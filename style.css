@@ -1,0 +1,92 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f7f8fa;
+  margin: 0;
+  padding: 0;
+}
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+h1 {
+  text-align: center;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+.subtitle {
+  text-align: center;
+  color: #4a5568;
+  margin-bottom: 32px;
+  font-size: 1.1em;
+}
+.search {
+  display: block;
+  margin: 0 auto 32px auto;
+  padding: 10px 16px;
+  width: 100%;
+  max-width: 400px;
+  font-size: 1em;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: #f1f5f9;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s;
+}
+.card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+}
+.preview {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5em;
+  color: #718096;
+}
+.app-name {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #2b6cb0;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.desc {
+  color: #4a5568;
+  font-size: 1em;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.link {
+  display: inline-block;
+  padding: 8px 18px;
+  background: #3182ce;
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.link:hover {
+  background: #2b6cb0;
+}

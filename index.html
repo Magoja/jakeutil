@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jake's Family Tools</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Jake's Family Tools</h1>
+    <div class="subtitle">Free, simple tools for my family and anyone who needs them. No ads, no paywalls.</div>
+    <input class="search" type="text" id="search" placeholder="Search tools..." oninput="filterApps()">
+    <div class="cards" id="cards"></div>
+  </div>
+  <script>
+    const apps = [
+      {
+        name: "MTG Proxy Generator",
+        url: "https://magoja.github.io/mtgproxy/",
+        description: "Generate Magic the Gathering proxy card image to print.",
+        preview: "🃏"
+      },
+      {
+        name: "QRCode generator",
+        url: "https://magoja.github.io/qrcode/",
+        description: "No shenanigan, just create QR Code.",
+        preview: "🔳"
+      }
+      // Add more apps here in future
+    ];
+
+    function renderApps(list) {
+      const cards = document.getElementById('cards');
+      cards.innerHTML = '';
+      list.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="preview">${app.preview || '🔧'}</div>
+          <div class="app-name">${app.name}</div>
+          <div class="desc">${app.description}</div>
+          <a class="link" href="${app.url}" target="_blank">Open</a>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
+    function filterApps() {
+      const q = document.getElementById('search').value.toLowerCase();
+      renderApps(apps.filter(app =>
+        app.name.toLowerCase().includes(q) ||
+        app.description.toLowerCase().includes(q)
+      ));
+    }
+
+    renderApps(apps);
+  </script>
+</body>
+</html>
