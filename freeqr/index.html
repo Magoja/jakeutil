@@ -1,84 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreeQR: Simple QR Code Generator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f7f7f7;
-      color: #222;
-    }
-    .container {
-      max-width: 400px;
-      margin: 2rem auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      padding: 2rem 1.5rem;
-    }
-    h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.5rem;
-      text-align: center;
-    }
-    p.desc {
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 0.7rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 1rem;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 0.7rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: #fff;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      transition: background 0.2s;
-    }
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #qrcode {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    .download-btn {
-      background: #28a745;
-      margin-bottom: 1rem;
-    }
-    .tips {
-      background: #f0f4f8;
-      border-radius: 8px;
-      padding: 1rem;
-      font-size: 0.95rem;
-      margin-top: 1rem;
-    }
-    @media (max-width: 500px) {
-      .container {
-        max-width: 98vw;
-        padding: 1rem 0.5rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="container">
     <h1>FreeQR: QR Code Generator</h1>
@@ -91,78 +20,18 @@
       <strong>About other public QR code services:</strong>
       <ul>
         <li><b>Pros:</b> Easy to use, instant results, often free.</li>
-        <li><b>Cons:</b> Some services may track your usage or embed tracking in QR codes. Your URLs may be logged or shared. Always check privacy policies.</li>
+        <li><b>Cons:</b> Some services may track your usage or embed tracking in QR codes. Your URLs may be logged or
+          shared. Always check privacy policies.</li>
       </ul>
       <b>Tip:</b> Generating QR codes locally (like this app) is safer for privacy.
     </div>
   </div>
-  <footer style="width:100%;text-align:center;font-size:0.95rem;color:#555;background:linear-gradient(90deg,#f7f7f7 80%,#e3f2fd 100%);padding:1.2rem 0 1rem 0;border-top:1px solid #eee;box-shadow:0 -2px 8px rgba(0,0,0,0.04);position:sticky;bottom:0;left:0;z-index:10;">
-    <div style="max-width:600px;margin:0 auto;">
-      <span style="font-weight:600;font-size:1.05em;color:#222;">By Jake</span>, <span style="color:#007bff;">Aug/2025</span> for <span style="color:#28a745;font-weight:500;">Jinmi</span>.<br>
-      <span style="display:inline-block;margin:0.5em 0;">
-        Contact: <a href="mailto:magoja+qrcode@gmail.com" style="color:#007bff;text-decoration:none;font-weight:500;">magoja+qrcode@gmail.com</a>
-      </span><br>
-      <span style="display:inline-block;margin-bottom:0.5em;">
-        Repository: <a href="https://github.com/Magoja/jakeutil/tree/master/freeqr" target="_blank" rel="noopener" style="color:#222;text-decoration:underline;font-weight:500;">Github</a>
-      </span>
-    </div>
-  </footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script>
-    const urlInput = document.getElementById('urlInput');
-    const generateBtn = document.getElementById('generateBtn');
-    const qrcodeDiv = document.getElementById('qrcode');
-    const downloadBtn = document.getElementById('downloadBtn');
-    let qrCodeInstance = null;
-
-    urlInput.addEventListener('input', () => {
-      generateBtn.disabled = urlInput.value.trim() === '';
-    });
-
-    generateBtn.addEventListener('click', () => {
-      const url = urlInput.value.trim();
-      if (!url) {
-        alert('Please enter a URL.');
-        return;
-      }
-      // Clear previous QR code
-      qrcodeDiv.innerHTML = '';
-      downloadBtn.style.display = 'none';
-      // Generate QR code
-      qrCodeInstance = new QRCode(qrcodeDiv, {
-        text: url,
-        width: 220,
-        height: 220,
-        colorDark: '#222',
-        colorLight: '#fff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      setTimeout(() => {
-        // Show download button
-        downloadBtn.style.display = 'block';
-      }, 300);
-    });
-
-    downloadBtn.addEventListener('click', () => {
-      if (!qrcodeDiv.firstChild) return;
-      let img = qrcodeDiv.querySelector('img');
-      if (!img) {
-        // fallback for canvas
-        const canvas = qrcodeDiv.querySelector('canvas');
-        if (canvas) {
-          img = new Image();
-          img.src = canvas.toDataURL('image/png');
-        }
-      }
-      if (img && img.src) {
-        const a = document.createElement('a');
-        a.href = img.src;
-        a.download = 'qrcode.png';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    });
-  </script>
+  <script src="app.js"></script>
+<footer class="sticky-footer">
+  By Jake, Aug/2025 for Jinmi. <a href="mailto:magoja+freeqr@gmail.com">Contact</a> | <a
+    href="https://github.com/Magoja/jakeutil">Repository</a>
+</footer>
 </body>
+
 </html>

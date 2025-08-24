@@ -39,6 +39,26 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 24px;
 }
+
+/* Sticky footer styles */
+.sticky-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 1em;
+  z-index: 100;
+}
+
+.sticky-footer a {
+  color: #90caf9;
+  text-decoration: underline;
+}
+
 .card {
   background: #f1f5f9;
   border-radius: 12px;

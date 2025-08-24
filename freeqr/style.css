@@ -1,0 +1,100 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f7f7f7;
+  color: #222;
+}
+
+.container {
+  max-width: 400px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 2rem 1.5rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+p.desc {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  transition: background 0.2s;
+}
+
+button:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+#qrcode {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.download-btn {
+  background: #28a745;
+  margin-bottom: 1rem;
+}
+
+.tips {
+  background: #f0f4f8;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 500px) {
+  .container {
+    max-width: 98vw;
+    padding: 1rem 0.5rem;
+  }
+}
+
+/* Sticky footer styles */
+.sticky-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #222;
+  color: #fff;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 1em;
+  z-index: 100;
+}
+.sticky-footer a {
+  color: #90caf9;
+  text-decoration: underline;
+}
