@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG Proxy Printer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="controls">
+    <h1>MTG Proxy Printing Tool</h1>
+    <pre>
+(1) Find and select cards you want from <a href="https://edhrec.com">EDHREC</a>.
+(2) Export your selection as `CLIPBOARD`. 
+(3) Paste it to the text area, and click `Generate Proxies`. 
+Eg:
+Armasaur Guide
+Dazzling Angel
+Exemplar of Light
+Hinterland Sanctifier
+Leyline of Hope
+Qala, Ajani's Pridemate</pre>
+    <textarea id="card-list" placeholder="Enter card names, one per line"></textarea>
+    <br>
+    <button id="generate-proxies">Generate Proxies</button>
+    <button id="print-proxies">Print Proxies</button>
+    <br>
+    <input type="file" id="custom-image-upload" accept="image/*" multiple>
+  </div>
+  <div id="card-images">
+  </div>
+  <div class="controls">
+    <div class="fancy-box">
+      Note: Click image to choose arts.
+    </div>
+    <h2>Debug Window</h2>
+    <textarea id="debug-window" rows="10" cols="50" readonly></textarea>
+  </div>
+  <script src="app.js"></script>
+</body>
+<footer>
+  By Jake, DEC/2024 for Nathan.
+  Contact us at: <a href="mailto:magoja+mtgproxy@gmail.com">magoja+mtgproxy@gmail.com</a>,
+  Repository in <a href="https://github.com/Magoja/mtgproxy">Github</a>
+</footer>
+
+</html>
