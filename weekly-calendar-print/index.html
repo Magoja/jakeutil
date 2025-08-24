@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Calendar Print</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Weekly Calendar Print</h1>
+    <div class="calendar-nav">
+      <button id="prev-week" title="Previous Week">&#8592; Prev</button>
+      <span id="current-week-label" style="font-weight:600;"></span>
+      <button id="next-week" title="Next Week">Next &#8594;</button>
+      <button id="print-btn">Print</button>
+    </div>
+    <code class="site-label">jakeutil.com</code>
+    <table class="calendar-table" id="calendar-table">
+      <!-- Calendar will be rendered here -->
+    </table>
+  </div>
+  <footer class="sticky-footer">
+    By Jake for <b>T</b>ongtong, Aug/2025, <a href="mailto:magoja+jakeutil@gmail.com">Contact</a> | <a href="https://github.com/Magoja/jakeutil">Repository</a>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
