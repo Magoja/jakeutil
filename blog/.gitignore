@@ -1,0 +1,15 @@
+# Jekyll build and cache files
+_site/
+.sass-cache/
+.jekyll-cache/
+Gemfile.lock
+vendor/
+node_modules/
+.DS_Store
+*.swp
+*.swo
+_site
+.sass-cache
+.jekyll-cache
+.jekyll-metadata
+vendor
