@@ -406,6 +406,7 @@ class TypingGame {
         this.ui = new UIController();
         this.state = new GameState(this.config.gameDuration);
         this.logic = new GameLogic(this.config);
+        this.particles = new ParticleSystem(this.ui.gameArea);
 
         this.init();
     }
@@ -456,6 +457,7 @@ class TypingGame {
         this.lastTime = time;
 
         this.logic.update(this.state, deltaTime, this.ui.getGameAreaHeight());
+        this.particles.update();
 
         // 4. Update UI
         this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
@@ -490,10 +492,18 @@ class TypingGame {
 
         if (matchIndex !== -1) {
             const hitWord = this.state.wordManager.get(matchIndex);
+
+            // Calculate spawn position BEFORE removing the element
+            const spawnX = hitWord.el.offsetLeft + (hitWord.el.offsetWidth / 2);
+            const spawnY = hitWord.el.offsetTop + (hitWord.el.offsetHeight / 2);
+
             this.removeWord(matchIndex);
 
             const points = this.logic.getScoreForWord(hitWord.word);
             this.state.addScore(points);
+
+            // Spawn particles at word location
+            this.particles.spawn(spawnX, spawnY);
 
             this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
             this.ui.clearInput();
@@ -511,6 +521,70 @@ class TypingGame {
     endGame(isWin) {
         this.state.isPlaying = false;
         this.ui.showGameOverScreen(this.state.score, isWin);
+    }
+}
+
+class ParticleSystem {
+    constructor(container) {
+        this.container = container;
+        this.particles = [];
+    }
+
+    spawn(x, y, count = 10, color = '#00ffcc') {
+        for (let i = 0; i < count; i++) {
+            const el = document.createElement('div');
+            el.classList.add('particle');
+
+            // Random spread
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            const vx = Math.cos(angle) * speed;
+            const vy = Math.sin(angle) * speed;
+
+            // Random size
+            const size = Math.random() * 5 + 3;
+
+            el.style.width = `${size}px`;
+            el.style.height = `${size}px`;
+            el.style.backgroundColor = color;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            this.container.appendChild(el);
+
+            this.particles.push({
+                el,
+                x, y,
+                vx, vy,
+                life: 1.0,
+                decay: Math.random() * 0.03 + 0.02
+            });
+        }
+    }
+
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2; // Gravity
+            p.life -= p.decay;
+
+            p.el.style.left = `${p.x}px`;
+            p.el.style.top = `${p.y}px`;
+            p.el.style.opacity = p.life;
+
+            if (p.life <= 0) {
+                p.el.remove();
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+
+    clear() {
+        this.particles.forEach(p => p.el.remove());
+        this.particles = [];
     }
 }
 
