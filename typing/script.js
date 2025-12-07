@@ -1,24 +1,105 @@
-class Dictionary {
+class GameConfig {
     constructor() {
+        this.gameDuration = 120; // seconds
+
+        // Spawning
+        this.baseSpawnInterval = 2000; // ms
+        this.rushSpawnInterval = 500; // ms
+
+        // Difficulty / Speed
+        this.baseFallSpeed = 0.2;
+        this.levelSpeedMultiplier = 0.1;
+
+        // Scoring
+        this.pointsPerCharacter = 10;
+
+        // Rush Mode: triggers at these elapsed seconds
+        this.rushTimes = [30, 60, 90];
+        this.rushDuration = 5; // seconds
+
+        // Level Definitions
+        // dictionary distributions: 0 to 4 correspond to words_1 to words_5
+        this.levels = {
+            1: { dist: [1.0, 0, 0, 0, 0] },     // All Very Easy
+            2: { dist: [0.7, 0.3, 0, 0, 0] },   // Mostly Easy, some Normal
+            3: { dist: [0.4, 0.4, 0.2, 0, 0] }, // Mix Easy/Normal/Medium
+            4: { dist: [0.2, 0.5, 0.3, 0, 0] }, // Shift to Medium
+            5: { dist: [0.1, 0.3, 0.6, 0, 0] }, // Mostly Medium
+            6: { dist: [0, 0.2, 0.5, 0.3, 0] }, // Intro Hard
+            7: { dist: [0, 0.1, 0.4, 0.5, 0] }, // Mostly Hard
+            8: { dist: [0, 0, 0.3, 0.5, 0.2] }, // Intro Very Hard
+            9: { dist: [0, 0, 0.1, 0.5, 0.4] }, // Mix Hard/Very Hard
+            10: { dist: [0, 0, 0, 0.2, 0.8] }    // Mostly Very Hard
+        };
+    }
+}
+
+class Dictionary {
+    constructor(url) {
+        this.url = url;
         this.words = [];
     }
 
-    async load(level) {
+    async load() {
         try {
-            const response = await fetch(`assets/level${level}.txt`);
+            const response = await fetch(this.url);
             const text = await response.text();
             this.words = text.split('\n').map(w => w.trim()).filter(w => w.length > 0);
             return true;
         } catch (err) {
-            console.error('Failed to load words', err);
+            console.error(`Failed to load ${this.url}`, err);
             this.words = [];
             return false;
         }
     }
 
-    pickWord() {
+    getRandomWord() {
         if (this.words.length === 0) return null;
         return this.words[Math.floor(Math.random() * this.words.length)];
+    }
+}
+
+class GameDictionary {
+    constructor(config) {
+        this.config = config;
+        // Create 5 dictionaries for 5 complexity levels
+        this.dictionaries = [
+            new Dictionary('assets/words_1.txt'),
+            new Dictionary('assets/words_2.txt'),
+            new Dictionary('assets/words_3.txt'),
+            new Dictionary('assets/words_4.txt'),
+            new Dictionary('assets/words_5.txt')
+        ];
+
+        // Start loading immediately
+        this.loadAll();
+    }
+
+    async loadAll() {
+        await Promise.all(this.dictionaries.map(d => d.load()));
+    }
+
+    pickWord(level) {
+        const levelConfig = this.config.levels[level];
+        // Fallback to first dict if config missing
+        if (!levelConfig) return this.dictionaries[0].getRandomWord();
+
+        const rand = Math.random();
+        let cumulative = 0;
+
+        // Distribution logic
+        for (let i = 0; i < levelConfig.dist.length; i++) {
+            cumulative += levelConfig.dist[i];
+            if (rand <= cumulative) {
+                // Try to pick from this dictionary
+                const dict = this.dictionaries[i];
+                const word = dict.getRandomWord();
+                if (word) return word;
+            }
+        }
+
+        // Fallback (e.g. if random roll edge case or empty dict)
+        return this.dictionaries[0].getRandomWord();
     }
 }
 
@@ -139,6 +220,9 @@ class UIController {
     getGameAreaHeight() {
         return this.gameArea.clientHeight;
     }
+    getGameAreaHeight() {
+        return this.gameArea.clientHeight;
+    }
 }
 
 class ActiveWordManager {
@@ -186,7 +270,8 @@ class ActiveWordManager {
 }
 
 class GameLogic {
-    constructor() {
+    constructor(config) {
+        this.config = config;
         this.events = {};
         this.wordPicker = null;
     }
@@ -228,8 +313,8 @@ class GameLogic {
     shouldSpawn(state, dt) {
         state.spawnTimer += dt;
 
-        let currentInterval = state.baseSpawnInterval;
-        if (state.isRush) currentInterval = 500;
+        let currentInterval = this.config.baseSpawnInterval;
+        if (state.isRush) currentInterval = this.config.rushSpawnInterval;
 
         // Difficulty Logic
         currentInterval = currentInterval / (state.level * 0.8);
@@ -245,10 +330,15 @@ class GameLogic {
     updateTime(state, dt) {
         state.timeLeft -= dt;
 
-        const timeElapsed = state.duration - state.timeLeft;
-        const isRushMoment = (timeElapsed > 30 && timeElapsed < 35) ||
-            (timeElapsed > 60 && timeElapsed < 65) ||
-            (timeElapsed > 90 && timeElapsed < 95);
+        const timeElapsed = this.config.gameDuration - state.timeLeft;
+
+        let isRushMoment = false;
+        for (const t of this.config.rushTimes) {
+            if (timeElapsed > t && timeElapsed < t + this.config.rushDuration) {
+                isRushMoment = true;
+                break;
+            }
+        }
         state.isRush = isRushMoment;
     }
 
@@ -259,7 +349,7 @@ class GameLogic {
 
     // Decision: Update positions and check Game Over condition
     updatePhysics(state, dt, containerHeight) {
-        const fallSpeed = 1 + (state.level * 0.5);
+        const fallSpeed = this.config.baseFallSpeed + (state.level * this.config.levelSpeedMultiplier);
         const speed = fallSpeed * (dt / 16);
 
         return state.wordManager.updatePositions(speed, containerHeight);
@@ -270,12 +360,12 @@ class GameLogic {
     }
 
     getScoreForWord(word) {
-        return word.length * 10;
+        return word.length * this.config.pointsPerCharacter;
     }
 }
 
 class GameState {
-    constructor(duration = 120) {
+    constructor(duration) {
         this.score = 0;
         this.level = 1;
         this.duration = duration;
@@ -283,7 +373,6 @@ class GameState {
         this.isPlaying = false;
         this.wordManager = new ActiveWordManager();
         this.spawnTimer = 0;
-        this.baseSpawnInterval = 2000;
         this.isRush = false;
     }
 
@@ -312,10 +401,11 @@ class GameState {
 
 class TypingGame {
     constructor() {
-        this.dictionary = new Dictionary();
+        this.config = new GameConfig();
+        this.gameDictionary = new GameDictionary(this.config);
         this.ui = new UIController();
-        this.state = new GameState();
-        this.logic = new GameLogic();
+        this.state = new GameState(this.config.gameDuration);
+        this.logic = new GameLogic(this.config);
 
         this.init();
     }
@@ -335,7 +425,7 @@ class TypingGame {
         });
 
         // Game Logic Bindings
-        this.logic.setWordPicker(() => this.dictionary.pickWord());
+        this.logic.setWordPicker(() => this.gameDictionary.pickWord(this.state.level));
 
         this.logic.on('spawn', (word) => {
             this.spawnWord(word);
@@ -347,8 +437,6 @@ class TypingGame {
     }
 
     async startGame() {
-        await this.dictionary.load(this.state.level);
-
         this.state.reset(this.state.level);
         this.ui.clearGameArea();
         this.ui.clearInput();

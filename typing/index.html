@@ -1,57 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Typer</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <div id="app">
         <!-- Start Screen -->
         <div id="start-screen" class="screen">
-            <h1 class="logo">NEON TYPER</h1>
+            <h1 class="logo">TYPER</h1>
             <p class="instruction">Shoot down the falling words by typing them!</p>
             <div class="level-select">
                 <h2>Select Level</h2>
-                <div class="buttons">
-                    <button class="btn" data-level="1">Level 1</button>
-                    <button class="btn" data-level="2">Level 2</button>
-                    <button class="btn" data-level="3">Level 3</button>
+                <div class="level-select">
+                    <button class="btn" data-level="1">1</button>
+                    <button class="btn" data-level="2">2</button>
+                    <button class="btn" data-level="3">3</button>
+                    <button class="btn" data-level="4">4</button>
+                    <button class="btn" data-level="5">5</button>
+                    <button class="btn" data-level="6">6</button>
+                    <button class="btn" data-level="7">7</button>
+                    <button class="btn" data-level="8">8</button>
+                    <button class="btn" data-level="9">9</button>
+                    <button class="btn" data-level="10">10</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Game Screen -->
-        <div id="game-screen" class="screen hidden">
-            <div id="hud">
-                <div class="hud-item">Level: <span id="level-display">1</span></div>
-                <div class="hud-item">Score: <span id="score-display">0</span></div>
-                <div class="hud-item">Time: <span id="time-display">02:00</span></div>
-            </div>
-            
-            <div id="game-area">
-                <!-- Falling words go here -->
-            </div>
-
-            <div id="input-container">
-                <input type="text" id="word-input" placeholder="Type here..." autocomplete="off" autofocus>
-            </div>
-            
-            <!-- Rush Mode Indicator -->
-            <div id="rush-indicator" class="hidden">RUSH MODE!</div>
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen hidden">
+        <div id="hud">
+            <div class="hud-item">Level: <span id="level-display">1</span></div>
+            <div class="hud-item">Score: <span id="score-display">0</span></div>
+            <div class="hud-item">Time: <span id="time-display">02:00</span></div>
         </div>
 
-        <!-- Game Over Screen -->
-        <div id="game-over-screen" class="screen hidden">
-            <h1>GAME OVER</h1>
-            <p id="game-over-reason">Time's Up!</p>
-            <p class="final-score">Score: <span id="final-score">0</span></p>
-            <button class="btn" id="restart-btn">Play Again</button>
+        <div id="game-area">
+            <!-- Falling words go here -->
         </div>
+
+        <div id="input-container">
+            <input type="text" id="word-input" placeholder="Type here..." autocomplete="off" autofocus>
+        </div>
+
+        <!-- Rush Mode Indicator -->
+        <div id="rush-indicator" class="hidden">RUSH MODE!</div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="screen hidden">
+        <h1>GAME OVER</h1>
+        <p id="game-over-reason">Time's Up!</p>
+        <p class="final-score">Score: <span id="final-score">0</span></p>
+        <button class="btn" id="restart-btn">Play Again</button>
+    </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
