@@ -94,6 +94,37 @@ body {
     box-shadow: 0 0 20px var(--accent-color);
 }
 
+/* Tooltip */
+.btn[data-tooltip] {
+    position: relative;
+}
+
+.btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.2);
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
 /* Game Screen */
 #game-screen {
     background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d15 100%);

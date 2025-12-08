@@ -20,16 +20,16 @@ class GameConfig {
         // Level Definitions
         // dictionary distributions: 0 (chars) to 5 (words_5)
         this.levels = {
-            1: { dist: [1.0, 0, 0, 0, 0, 0] },     // All Single Chars
-            2: { dist: [0.5, 0.5, 0, 0, 0, 0] },   // Mix Chars / Very Easy
-            3: { dist: [0.2, 0.8, 0, 0, 0, 0] },   // Mostly Very Easy
-            4: { dist: [0, 1.0, 0, 0, 0, 0] },     // All Very Easy
-            5: { dist: [0, 0.5, 0.5, 0, 0, 0] },   // Mix Very Easy / Easy
-            6: { dist: [0, 0.2, 0.5, 0.3, 0, 0] }, // Mix Easy / Medium
-            7: { dist: [0, 0, 0.4, 0.6, 0, 0] },   // Mostly Medium
-            8: { dist: [0, 0, 0.2, 0.5, 0.3, 0] }, // Intro Hard
-            9: { dist: [0, 0, 0, 0.5, 0.5, 0] },   // Mix Hard
-            10: { dist: [0, 0, 0, 0.2, 0.4, 0.4] } // Mostly Very Hard
+            1: { dist: [1.0, 0, 0, 0, 0, 0], desc: "Single Characters" },
+            2: { dist: [0.5, 0.5, 0, 0, 0, 0], desc: "Mix Chars / Very Easy" },
+            3: { dist: [0.2, 0.8, 0, 0, 0, 0], desc: "Mostly Very Easy" },
+            4: { dist: [0, 1.0, 0, 0, 0, 0], desc: "All Very Easy" },
+            5: { dist: [0, 0.5, 0.5, 0, 0, 0], desc: "Mix Very Easy / Easy" },
+            6: { dist: [0, 0.2, 0.5, 0.3, 0, 0], desc: "Mix Easy / Medium" },
+            7: { dist: [0, 0, 0.4, 0.6, 0, 0], desc: "Mostly Medium" },
+            8: { dist: [0, 0, 0.2, 0.5, 0.3, 0], desc: "Intro Hard" },
+            9: { dist: [0, 0, 0, 0.5, 0.5, 0], desc: "Mix Hard" },
+            10: { dist: [0, 0, 0, 0.2, 0.4, 0.4], desc: "Mostly Very Hard" }
         };
     }
 }
@@ -119,17 +119,28 @@ class UIController {
         this.finalScoreDisplay = document.getElementById('final-score');
         this.gameOverReasonDisplay = document.getElementById('game-over-reason');
         this.rushIndicator = document.getElementById('rush-indicator');
-        this.levelButtons = document.querySelectorAll('.level-select .btn');
-        this.restartBtn = document.getElementById('restart-btn');
+        this.levelButtonsContainer = document.querySelector('.level-select .level-select');
+        this.levelButtons = [];
     }
 
-    bindStartGame(handler) {
-        this.levelButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const level = parseInt(e.target.dataset.level);
-                handler(level);
+    createLevelButtons(levelsConfig, handler) {
+        this.levelButtonsContainer.innerHTML = '';
+        this.levelButtons = [];
+
+        for (const [level, config] of Object.entries(levelsConfig)) {
+            const btn = document.createElement('button');
+            btn.classList.add('btn');
+            btn.dataset.level = level;
+            btn.dataset.tooltip = config.desc;
+            btn.innerText = level;
+
+            btn.addEventListener('click', () => {
+                handler(parseInt(level));
             });
-        });
+
+            this.levelButtonsContainer.appendChild(btn);
+            this.levelButtons.push(btn);
+        }
     }
 
     bindRestart(handler) {
@@ -419,7 +430,7 @@ class TypingGame {
     }
 
     init() {
-        this.ui.bindStartGame((level) => {
+        this.ui.createLevelButtons(this.config.levels, (level) => {
             this.state.level = level;
             this.startGame();
         });
