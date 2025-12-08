@@ -18,18 +18,18 @@ class GameConfig {
         this.rushDuration = 5; // seconds
 
         // Level Definitions
-        // dictionary distributions: 0 to 4 correspond to words_1 to words_5
+        // dictionary distributions: 0 (chars) to 5 (words_5)
         this.levels = {
-            1: { dist: [1.0, 0, 0, 0, 0] },     // All Very Easy
-            2: { dist: [0.7, 0.3, 0, 0, 0] },   // Mostly Easy, some Normal
-            3: { dist: [0.4, 0.4, 0.2, 0, 0] }, // Mix Easy/Normal/Medium
-            4: { dist: [0.2, 0.5, 0.3, 0, 0] }, // Shift to Medium
-            5: { dist: [0.1, 0.3, 0.6, 0, 0] }, // Mostly Medium
-            6: { dist: [0, 0.2, 0.5, 0.3, 0] }, // Intro Hard
-            7: { dist: [0, 0.1, 0.4, 0.5, 0] }, // Mostly Hard
-            8: { dist: [0, 0, 0.3, 0.5, 0.2] }, // Intro Very Hard
-            9: { dist: [0, 0, 0.1, 0.5, 0.4] }, // Mix Hard/Very Hard
-            10: { dist: [0, 0, 0, 0.2, 0.8] }    // Mostly Very Hard
+            1: { dist: [1.0, 0, 0, 0, 0, 0] },     // All Single Chars
+            2: { dist: [0.5, 0.5, 0, 0, 0, 0] },   // Mix Chars / Very Easy
+            3: { dist: [0.2, 0.8, 0, 0, 0, 0] },   // Mostly Very Easy
+            4: { dist: [0, 1.0, 0, 0, 0, 0] },     // All Very Easy
+            5: { dist: [0, 0.5, 0.5, 0, 0, 0] },   // Mix Very Easy / Easy
+            6: { dist: [0, 0.2, 0.5, 0.3, 0, 0] }, // Mix Easy / Medium
+            7: { dist: [0, 0, 0.4, 0.6, 0, 0] },   // Mostly Medium
+            8: { dist: [0, 0, 0.2, 0.5, 0.3, 0] }, // Intro Hard
+            9: { dist: [0, 0, 0, 0.5, 0.5, 0] },   // Mix Hard
+            10: { dist: [0, 0, 0, 0.2, 0.4, 0.4] } // Mostly Very Hard
         };
     }
 }
@@ -62,8 +62,9 @@ class Dictionary {
 class GameDictionary {
     constructor(config) {
         this.config = config;
-        // Create 5 dictionaries for 5 complexity levels
+        // Create 6 dictionaries for 6 complexity levels (0 to 5)
         this.dictionaries = [
+            new Dictionary('assets/words_0.txt'),
             new Dictionary('assets/words_1.txt'),
             new Dictionary('assets/words_2.txt'),
             new Dictionary('assets/words_3.txt'),
@@ -136,9 +137,15 @@ class UIController {
     }
 
     bindInput(handler) {
+        this.input.addEventListener('input', (e) => {
+            handler(this.input.value);
+        });
+    }
+
+    bindEnter(handler) {
         this.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                handler(this.input.value);
+                handler();
             }
         });
     }
@@ -425,6 +432,10 @@ class TypingGame {
             this.checkInput(text);
         });
 
+        this.ui.bindEnter(() => {
+            this.ui.clearInput();
+        });
+
         // Game Logic Bindings
         this.logic.setWordPicker(() => this.gameDictionary.pickWord(this.state.level));
 
@@ -507,8 +518,6 @@ class TypingGame {
 
             this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
             this.ui.clearInput();
-        } else {
-            this.ui.shakeInput();
         }
     }
 
