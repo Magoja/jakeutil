@@ -362,9 +362,82 @@ class GameLogic {
         state.isRush = isRushMoment;
     }
 
-    // Decision: Returns match index or -1
+    // Decision: Validates input against current state
+    // Returns: { status: 'found'|'partial'|'typo'|'ignore', indices: number[] }
     checkInput(state, text) {
-        return state.wordManager.findIndexByText(text);
+        text = text.trim().toLowerCase();
+        if (text.length === 0) return { status: 'ignore' };
+
+        // 1. If we have targets, fitler them
+        if (state.targetWordIds.length > 0) {
+            // Check if any target is still valid
+            const validIndices = [];
+            const newTargetIds = [];
+
+            for (const id of state.targetWordIds) {
+                const index = state.wordManager.words.findIndex(w => w.id === id);
+                if (index !== -1) {
+                    const word = state.wordManager.words[index];
+                    const wordText = word.word.toLowerCase();
+                    if (wordText.startsWith(text)) {
+                        validIndices.push(index);
+                        newTargetIds.push(id);
+                    }
+                }
+            }
+
+            if (validIndices.length === 0) {
+                // All targets lost (typo)
+                state.targetWordIds = [];
+                return { status: 'typo' };
+            }
+
+            // Update targets to strictly matching subset
+            state.targetWordIds = newTargetIds;
+
+            // Check for completion among valid targets
+            const completeIndices = validIndices.filter(idx => {
+                return state.wordManager.words[idx].word.toLowerCase() === text;
+            });
+
+            if (completeIndices.length > 0) {
+                return { status: 'found', indices: completeIndices };
+            }
+
+            return { status: 'partial' };
+        }
+
+        // 2. No targets, find new ones
+        if (text.length > 0) {
+            const newTargets = [];
+            const newTargetIndices = [];
+
+            state.wordManager.words.forEach((w, idx) => {
+                if (w.word.toLowerCase().startsWith(text)) {
+                    newTargets.push(w.id);
+                    newTargetIndices.push(idx);
+                }
+            });
+
+            if (newTargets.length > 0) {
+                state.targetWordIds = newTargets;
+
+                // check instant completion (single char)
+                const completeIndices = newTargetIndices.filter(idx => {
+                    return state.wordManager.words[idx].word.toLowerCase() === text;
+                });
+
+                if (completeIndices.length > 0) {
+                    return { status: 'found', indices: completeIndices };
+                }
+
+                return { status: 'partial' };
+            } else {
+                return { status: 'ignore' };
+            }
+        }
+
+        return { status: 'ignore' };
     }
 
     // Decision: Update positions and check Game Over condition
@@ -394,6 +467,7 @@ class GameState {
         this.wordManager = new ActiveWordManager();
         this.spawnTimer = 0;
         this.isRush = false;
+        this.targetWordIds = [];
     }
 
     reset(level) {
@@ -404,6 +478,7 @@ class GameState {
         this.wordManager.clear();
         this.spawnTimer = 0;
         this.isRush = false;
+        this.targetWordIds = [];
     }
 
     addScore(points) {
@@ -512,25 +587,54 @@ class TypingGame {
     }
 
     checkInput(text) {
-        const matchIndex = this.logic.checkInput(this.state, text);
+        const result = this.logic.checkInput(this.state, text);
 
-        if (matchIndex !== -1) {
-            const hitWord = this.state.wordManager.get(matchIndex);
+        if (result.status === 'found') {
+            // Remove checks need to account for shifting indices if we just splice.
+            // Better to get IDs or objects then remove by ID/Obj, or sort indices desc.
+            // But logic returns current indices. If we remove one, others shift.
+            // Simple approach: Collect IDs first.
+            const indices = result.indices.sort((a, b) => b - a); // Remove from end
 
-            // Calculate spawn position BEFORE removing the element
-            const spawnX = hitWord.el.offsetLeft + (hitWord.el.offsetWidth / 2);
-            const spawnY = hitWord.el.offsetTop + (hitWord.el.offsetHeight / 2);
+            indices.forEach(index => {
+                const hitWord = this.state.wordManager.get(index);
+                // Calculate spawn position
+                const spawnX = hitWord.el.offsetLeft + (hitWord.el.offsetWidth / 2);
+                const spawnY = hitWord.el.offsetTop + (hitWord.el.offsetHeight / 2);
 
-            this.removeWord(matchIndex);
+                this.removeWord(index);
 
-            const points = this.logic.getScoreForWord(hitWord.word);
-            this.state.addScore(points);
+                const points = this.logic.getScoreForWord(hitWord.word);
+                this.state.addScore(points);
+                this.particles.spawn(spawnX, spawnY);
+            });
 
-            // Spawn particles at word location
-            this.particles.spawn(spawnX, spawnY);
-
+            this.state.targetWordIds = []; // Clear lock
             this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
             this.ui.clearInput();
+        } else if (result.status === 'typo') {
+            // Clear input on typo + drop selection
+            this.state.targetWordIds = [];
+            this.ui.clearInput();
+            this.ui.shakeInput();
+        } else if (result.status === 'ignore') {
+            this.ui.input.value = this.ui.input.value.slice(0, -1);
+        }
+
+        // Update Target Visuals
+        this.updateTargetVisuals();
+    }
+
+    updateTargetVisuals() {
+        // Clear all target styles
+        this.state.wordManager.getAll().forEach(w => w.el.classList.remove('target'));
+
+        // Apply to current targets
+        if (this.state.targetWordIds.length > 0) {
+            this.state.targetWordIds.forEach(id => {
+                const w = this.state.wordManager.getAll().find(word => word.id === id);
+                if (w) w.el.classList.add('target');
+            });
         }
     }
 
@@ -542,6 +646,7 @@ class TypingGame {
 
     endGame(isWin) {
         this.state.isPlaying = false;
+        this.state.targetWordIds = [];
         this.ui.showGameOverScreen(this.state.score, isWin);
     }
 }

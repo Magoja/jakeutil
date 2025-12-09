@@ -167,6 +167,13 @@ body {
     /* Just a visual flare if needed before removal */
 }
 
+.word-entity.target {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 15px var(--accent-color);
+    background: rgba(0, 255, 204, 0.2);
+    z-index: 20;
+}
+
 .particle {
     position: absolute;
     pointer-events: none;
