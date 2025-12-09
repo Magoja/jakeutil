@@ -120,6 +120,8 @@ class UIController {
         this.gameOverReasonDisplay = document.getElementById('game-over-reason');
         this.rushIndicator = document.getElementById('rush-indicator');
         this.levelButtonsContainer = document.querySelector('.level-select .level-select');
+        this.restartBtn = document.getElementById('restart-btn');
+
         this.levelButtons = [];
     }
 
