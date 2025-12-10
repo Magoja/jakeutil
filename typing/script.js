@@ -3,12 +3,12 @@ class GameConfig {
     this.gameDuration = 120; // seconds
 
     // Spawning
-    this.baseSpawnInterval = 2000; // ms
+    this.baseSpawnInterval = 2500; // ms
     this.rushSpawnInterval = 500; // ms
 
     // Difficulty / Speed
-    this.baseFallSpeed = 0.2;
-    this.levelSpeedMultiplier = 0.1;
+    this.baseFallSpeed = 0.15;
+    this.levelSpeedMultiplier = 0.05;
 
     // Scoring
     this.pointsPerCharacter = 10;
@@ -43,13 +43,12 @@ class Dictionary {
   async load() {
     try {
       const response = await fetch(this.url);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const text = await response.text();
       this.words = text.split('\n').map(w => w.trim()).filter(w => w.length > 0);
       return true;
     } catch (err) {
-      console.error(`Failed to load ${this.url}`, err);
-      this.words = [];
-      return false;
+      throw new Error(`Failed to load ${this.url}: ${err.message}`);
     }
   }
 
@@ -337,7 +336,7 @@ class GameLogic {
     if (state.isRush) currentInterval = this.config.rushSpawnInterval;
 
     // Difficulty Logic
-    currentInterval = currentInterval / (state.level * 0.8);
+    currentInterval = currentInterval / (1 + (state.level * 0.15));
 
     if (state.spawnTimer > currentInterval) {
       state.spawnTimer = 0;
@@ -398,7 +397,7 @@ class GameLogic {
     return { status: 'ignore' };
   }
 
-  processMatches(state, targetIds, indices, text) {
+  updatePhysics(state, dt, containerHeight) {
     const fallSpeed = this.config.baseFallSpeed + (state.level * this.config.levelSpeedMultiplier);
     const speed = fallSpeed * (dt / 16);
 
@@ -669,6 +668,56 @@ class TypingGame {
   }
 }
 
+function createParticle(x, y, size, color) {
+  const el = document.createElement('div');
+  el.classList.add('particle');
+  el.style.width = `${size}px`;
+  el.style.height = `${size}px`;
+  el.style.backgroundColor = color;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  return el;
+}
+
+function updateParticlePositions(particles) {
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2; // Gravity
+    p.life -= p.decay;
+
+    p.el.style.left = `${p.x}px`;
+    p.el.style.top = `${p.y}px`;
+    p.el.style.opacity = p.life;
+  }
+}
+
+function cleanupParticles(particles) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    if (p.life <= 0) {
+      p.el.remove();
+      particles.splice(i, 1);
+    }
+  }
+}
+
+function addRandomParticle(particles, el, x, y) {
+  // Random spread
+  const angle = Math.random() * Math.PI * 2;
+  const speed = Math.random() * 5 + 2;
+  const vx = Math.cos(angle) * speed;
+  const vy = Math.sin(angle) * speed;
+
+  particles.push({
+    el,
+    x, y,
+    vx, vy,
+    life: 1.0,
+    decay: Math.random() * 0.03 + 0.02
+  });
+}
+
 class ParticleSystem {
   constructor(container) {
     this.container = container;
@@ -677,54 +726,16 @@ class ParticleSystem {
 
   spawn(x, y, count = 10, color = '#00ffcc') {
     for (let i = 0; i < count; i++) {
-      const el = document.createElement('div');
-      el.classList.add('particle');
-
-      // Random spread
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 5 + 2;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-
-      // Random size
       const size = Math.random() * 5 + 3;
-
-      el.style.width = `${size}px`;
-      el.style.height = `${size}px`;
-      el.style.backgroundColor = color;
-      el.style.left = `${x}px`;
-      el.style.top = `${y}px`;
-
+      const el = createParticle(x, y, size, color);
       this.container.appendChild(el);
-
-      this.particles.push({
-        el,
-        x, y,
-        vx, vy,
-        life: 1.0,
-        decay: Math.random() * 0.03 + 0.02
-      });
+      addRandomParticle(this.particles, el, x, y);
     }
   }
 
   update() {
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.2; // Gravity
-      p.life -= p.decay;
-
-      p.el.style.left = `${p.x}px`;
-      p.el.style.top = `${p.y}px`;
-      p.el.style.opacity = p.life;
-
-      if (p.life <= 0) {
-        p.el.remove();
-        this.particles.splice(i, 1);
-      }
-    }
+    updateParticlePositions(this.particles);
+    cleanupParticles(this.particles);
   }
 
   clear() {
