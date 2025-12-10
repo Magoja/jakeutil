@@ -388,8 +388,6 @@ class GameLogic {
 
       if (newTargets.length > 0) {
         return this.processMatches(state, newTargets, newTargetIndices, text);
-      } else {
-        return { status: 'ignore' };
       }
     }
 
