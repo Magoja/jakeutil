@@ -362,27 +362,32 @@ class GameLogic {
     state.isRush = isRushMoment;
   }
 
-  // Decision: Validates input against current state
-  // Returns: { status: 'found'|'partial'|'typo'|'ignore', indices: number[] }
   checkInput(state, text) {
     text = text.trim().toLowerCase();
     if (text.length === 0) return { status: 'ignore' };
 
-    // 1. If we have targets, filter them
     if (state.targetWordIds.length > 0) {
-      const { validIndices, newTargetIds } = state.getValidTargets(text);
-
-      if (validIndices.length === 0) {
-        // All targets lost (typo)
-        state.targetWordIds = [];
-        return { status: 'typo' };
-      }
-
-      // Update targets and check completion
-      return this.processMatches(state, newTargetIds, validIndices, text);
+      return this.handleExistingTargets(state, text);
     }
 
-    // 2. No targets, find new ones
+    return this.handleNewTargets(state, text);
+  }
+
+  handleExistingTargets(state, text) {
+    const { validIndices, newTargetIds } = state.getValidTargets(text);
+
+    if (validIndices.length === 0) {
+      // All targets lost (typo)
+      state.targetWordIds = [];
+      return { status: 'typo' };
+    }
+
+    // Update targets and check completion
+    return this.processMatches(state, newTargetIds, validIndices, text);
+  }
+
+  handleNewTargets(state, text) {
+    // No targets, find new ones
     if (text.length > 0) {
       const { newTargets, newTargetIndices } = state.findNewTargets(text);
 
@@ -390,12 +395,10 @@ class GameLogic {
         return this.processMatches(state, newTargets, newTargetIndices, text);
       }
     }
-
     return { status: 'ignore' };
   }
 
-  // Decision: Update positions and check Game Over condition
-  updatePhysics(state, dt, containerHeight) {
+  processMatches(state, targetIds, indices, text) {
     const fallSpeed = this.config.baseFallSpeed + (state.level * this.config.levelSpeedMultiplier);
     const speed = fallSpeed * (dt / 16);
 
@@ -590,40 +593,54 @@ class TypingGame {
   checkInput(text) {
     const result = this.logic.checkInput(this.state, text);
 
-    if (result.status === 'found') {
-      // Remove checks need to account for shifting indices if we just splice.
-      // Better to get IDs or objects then remove by ID/Obj, or sort indices desc.
-      // But logic returns current indices. If we remove one, others shift.
-      // Simple approach: Collect IDs first.
-      const indices = result.indices.sort((a, b) => b - a); // Remove from end
-
-      indices.forEach(index => {
-        const hitWord = this.state.wordManager.get(index);
-        // Calculate spawn position
-        const spawnX = hitWord.el.offsetLeft + (hitWord.el.offsetWidth / 2);
-        const spawnY = hitWord.el.offsetTop + (hitWord.el.offsetHeight / 2);
-
-        this.removeWord(index);
-
-        const points = this.logic.getScoreForWord(hitWord.word);
-        this.state.addScore(points);
-        this.particles.spawn(spawnX, spawnY);
-      });
-
-      this.state.targetWordIds = []; // Clear lock
-      this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
-      this.ui.clearInput();
-    } else if (result.status === 'typo') {
-      // Clear input on typo + drop selection
-      this.state.targetWordIds = [];
-      this.ui.clearInput();
-      this.ui.shakeInput();
-    } else if (result.status === 'ignore') {
-      this.ui.input.value = this.ui.input.value.slice(0, -1);
+    switch (result.status) {
+      case 'found':
+        this.handleFound(result.indices);
+        break;
+      case 'typo':
+        this.handleTypo();
+        break;
+      case 'ignore':
+        this.handleIgnore();
+        break;
     }
 
-    // Update Target Visuals
     this.updateTargetVisuals();
+  }
+
+  handleFound(indices) {
+    // Remove from end to avoid shifting indices issues
+    indices.sort((a, b) => b - a).forEach(index => {
+      this.processCompletedWord(index);
+    });
+
+    this.state.targetWordIds = []; // Clear lock
+    this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
+    this.ui.clearInput();
+  }
+
+  handleTypo() {
+    // Clear input on typo + drop selection
+    this.state.targetWordIds = [];
+    this.ui.clearInput();
+    this.ui.shakeInput();
+  }
+
+  handleIgnore() {
+    this.ui.input.value = this.ui.input.value.slice(0, -1);
+  }
+
+  processCompletedWord(index) {
+    const hitWord = this.state.wordManager.get(index);
+    // Calculate spawn position
+    const spawnX = hitWord.el.offsetLeft + (hitWord.el.offsetWidth / 2);
+    const spawnY = hitWord.el.offsetTop + (hitWord.el.offsetHeight / 2);
+
+    this.removeWord(index);
+
+    const points = this.logic.getScoreForWord(hitWord.word);
+    this.state.addScore(points);
+    this.particles.spawn(spawnX, spawnY);
   }
 
   updateTargetVisuals() {
