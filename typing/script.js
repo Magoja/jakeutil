@@ -619,16 +619,31 @@ class TypingGame {
   }
 
   updateTargetVisuals() {
-    // Clear all target styles
-    this.state.wordManager.getAll().forEach(w => w.el.classList.remove('target'));
+    const currentInput = this.ui.input.value.trim().toLowerCase();
 
-    // Apply to current targets
-    if (this.state.targetWordIds.length > 0) {
-      this.state.targetWordIds.forEach(id => {
-        const w = this.state.wordManager.getAll().find(word => word.id === id);
-        if (w) w.el.classList.add('target');
-      });
-    }
+    this.state.wordManager.getAll().forEach(w => {
+      // 1. Handle Target Selection (Border)
+      if (this.state.targetWordIds.includes(w.id)) {
+        w.el.classList.add('target');
+
+        const lowerWord = w.word.toLowerCase();
+        // DEBUG LOGGING
+        console.log(`[TargetVisuals] Word: ${w.word}, Input: '${currentInput}', StartsWith: ${lowerWord.startsWith(currentInput)}`);
+
+        if (lowerWord.startsWith(currentInput) && currentInput.length > 0) {
+          const matchLen = currentInput.length;
+          const prefix = w.word.slice(0, matchLen);
+          const suffix = w.word.slice(matchLen);
+          w.el.innerHTML = `<span class="highlight">${prefix}</span>${suffix}`;
+        } else {
+          w.el.textContent = w.word;
+        }
+
+      } else {
+        w.el.classList.remove('target');
+        w.el.textContent = w.word;
+      }
+    });
   }
 
   removeWord(index) {

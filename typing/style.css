@@ -162,6 +162,10 @@ body {
     text-shadow: 0 0 5px var(--accent-color);
 }
 
+.word-entity .highlight {
+    color: #ff0000 !important;
+}
+
 .word-entity.matched {
     color: var(--danger-color);
     /* Just a visual flare if needed before removal */
