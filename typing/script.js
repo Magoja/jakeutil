@@ -365,35 +365,18 @@ class GameLogic {
     text = text.trim().toLowerCase();
     if (text.length === 0) return { status: 'ignore' };
 
-    if (state.targetWordIds.length > 0) {
-      return this.handleExistingTargets(state, text);
+    const { targetIds, indices } = findTargets(state.wordManager.words, state.targetWordIds, text);
+
+    if (targetIds.length > 0) {
+      return this.processMatches(state, targetIds, indices, text);
     }
 
-    return this.handleNewTargets(state, text);
-  }
-
-  handleExistingTargets(state, text) {
-    const { validIndices, newTargetIds } = state.getValidTargets(text);
-
-    if (validIndices.length === 0) {
+    if (state.targetWordIds.length > 0) {
       // All targets lost (typo)
       state.targetWordIds = [];
       return { status: 'typo' };
     }
 
-    // Update targets and check completion
-    return this.processMatches(state, newTargetIds, validIndices, text);
-  }
-
-  handleNewTargets(state, text) {
-    // No targets, find new ones
-    if (text.length > 0) {
-      const { newTargets, newTargetIndices } = state.findNewTargets(text);
-
-      if (newTargets.length > 0) {
-        return this.processMatches(state, newTargets, newTargetIndices, text);
-      }
-    }
     return { status: 'ignore' };
   }
 
@@ -457,37 +440,6 @@ class GameState {
 
   isTimeUp() {
     return this.timeLeft <= 0;
-  }
-
-  getValidTargets(text) {
-    const validIndices = [];
-    const newTargetIds = [];
-
-    for (const id of this.targetWordIds) {
-      const index = this.wordManager.words.findIndex(w => w.id === id);
-      if (index !== -1) {
-        const word = this.wordManager.words[index];
-        const wordText = word.word.toLowerCase();
-        if (wordText.startsWith(text)) {
-          validIndices.push(index);
-          newTargetIds.push(id);
-        }
-      }
-    }
-    return { validIndices, newTargetIds };
-  }
-
-  findNewTargets(text) {
-    const newTargets = [];
-    const newTargetIndices = [];
-
-    this.wordManager.words.forEach((w, idx) => {
-      if (w.word.toLowerCase().startsWith(text)) {
-        newTargets.push(w.id);
-        newTargetIndices.push(idx);
-      }
-    });
-    return { newTargets, newTargetIndices };
   }
 
   checkCompletion(indices, text) {
@@ -716,6 +668,37 @@ function addRandomParticle(particles, el, x, y) {
     life: 1.0,
     decay: Math.random() * 0.03 + 0.02
   });
+}
+
+function findTargets(words, targetWordIds, text) {
+  let targetIds = [];
+  let indices = [];
+
+  // 1. Try to find matches within current targets
+  if (targetWordIds.length > 0) {
+    for (const id of targetWordIds) {
+      const index = words.findIndex(w => w.id === id);
+      if (index !== -1) {
+        const word = words[index];
+        if (word.word.toLowerCase().startsWith(text)) {
+          targetIds.push(id);
+          indices.push(index);
+        }
+      }
+    }
+  }
+
+  // 2. If no matches in targets (or no targets), look everywhere (Target Switching)
+  if (targetIds.length === 0) {
+    words.forEach((w, idx) => {
+      if (w.word.toLowerCase().startsWith(text)) {
+        targetIds.push(w.id);
+        indices.push(idx);
+      }
+    });
+  }
+
+  return { targetIds, indices };
 }
 
 class ParticleSystem {

@@ -9,6 +9,17 @@
 </head>
 
 <body>
+    <button id="verify-tests-btn"
+        style="position: fixed; bottom: 10px; right: 10px; z-index: 1000; background: #333; color: white; border: 1px solid #555; padding: 5px 10px; font-family: monospace; cursor: pointer;">Verify
+        Tests</button>
+
+    <div id="test-popup"
+        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #222; border: 2px solid #555; padding: 20px; z-index: 2000; color: #fff; font-family: monospace; max-width: 80%; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+        <h3 id="test-popup-title" style="margin-top: 0;">Test Results</h3>
+        <p id="test-popup-message"></p>
+        <button onclick="document.getElementById('test-popup').style.display='none'"
+            style="margin-top: 10px; background: #444; color: white; border: none; padding: 5px 10px; cursor: pointer;">Close</button>
+    </div>
 
     <div id="app">
         <!-- Start Screen -->
@@ -54,6 +65,12 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="tests.js"></script>
+    <script>
+        document.getElementById('verify-tests-btn').addEventListener('click', () => {
+            runTests(true);
+        });
+    </script>
 </body>
 
 </html>
