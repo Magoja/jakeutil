@@ -21,18 +21,23 @@ function runTests(isManual = false) {
   function testFindTargets() {
     console.log("--- Group: Find Targets ---");
 
-    // --- Mock Data ---
-    const mockWords = [
-      { id: '1', word: 'apple' },
-      { id: '2', word: 'apricot' },
-      { id: '3', word: 'banana' },
-      { id: '4', word: 'berry' }
-    ];
+    // Mock Data (moved to individual tests)
 
     function findNewTargetsStartingWithA() {
+      // Setup
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = [];
       const text = 'a';
+
+      // Execute
       const result = findTargets(mockWords, targetWordIds, text);
+
+      // Verify
       assertEqual(
         "findNewTargetsStartingWithA",
         result,
@@ -41,6 +46,12 @@ function runTests(isManual = false) {
     }
 
     function findNewTargetsStartingWithB() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = [];
       const text = 'b';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -52,6 +63,12 @@ function runTests(isManual = false) {
     }
 
     function noMatchesForZ() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = [];
       const text = 'z';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -63,6 +80,12 @@ function runTests(isManual = false) {
     }
 
     function refineTargetsWithAp() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = ['1', '2'];
       const text = 'ap';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -74,6 +97,12 @@ function runTests(isManual = false) {
     }
 
     function narrowTargetsWithApp() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = ['1', '2'];
       const text = 'app';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -85,6 +114,12 @@ function runTests(isManual = false) {
     }
 
     function switchTargetFromBananaToApple() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = ['3'];
       const text = 'a';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -96,6 +131,12 @@ function runTests(isManual = false) {
     }
 
     function typoOnLockedTarget() {
+      const mockWords = [
+        { id: '1', word: 'apple' },
+        { id: '2', word: 'apricot' },
+        { id: '3', word: 'banana' },
+        { id: '4', word: 'berry' }
+      ];
       const targetWordIds = ['3'];
       const text = 'z';
       const result = findTargets(mockWords, targetWordIds, text);
@@ -103,6 +144,21 @@ function runTests(isManual = false) {
         "typoOnLockedTarget",
         result,
         { targetIds: [], indices: [] }
+      );
+    }
+
+    function typoOnLockedTarget2() {
+      const mockWords = [
+        { id: '1', word: 'aa' },
+        { id: '2', word: 'b' },
+      ];
+      const targetWordIds = ['1'];
+      const text = 'ab';
+      const result = findTargets(mockWords, targetWordIds, text);
+      assertEqual(
+        "typoOnLockedTarget",
+        result,
+        { targetIds: ['2'], indices: [1] }
       );
     }
 
@@ -114,6 +170,7 @@ function runTests(isManual = false) {
     narrowTargetsWithApp();
     switchTargetFromBananaToApple();
     typoOnLockedTarget();
+    typoOnLockedTarget2();
   }
 
   // --- Run Groups ---

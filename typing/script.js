@@ -368,7 +368,27 @@ class GameLogic {
     const { targetIds, indices } = findTargets(state.wordManager.words, state.targetWordIds, text);
 
     if (targetIds.length > 0) {
-      return this.processMatches(state, targetIds, indices, text);
+      // Detect if this was a tail match (implies we need to reset input)
+      // We check if the FIRST target found matches the full text.
+      // If not, it means we matched only the suffix (tail).
+      const firstTargetIdx = indices[0];
+      const matchedWord = state.wordManager.words[firstTargetIdx].word.toLowerCase();
+
+      let effectiveText = text;
+      let adjustedText = null;
+
+      if (!matchedWord.startsWith(text)) {
+        // Text "ab" matches word "banana"? No. 
+        // Must be tail match "b" -> "banana".
+        effectiveText = text.slice(-1);
+        adjustedText = effectiveText;
+      }
+
+      const result = this.processMatches(state, targetIds, indices, effectiveText);
+      if (adjustedText) {
+        result.adjustedText = adjustedText;
+      }
+      return result;
     }
 
     if (state.targetWordIds.length > 0) {
@@ -544,6 +564,10 @@ class TypingGame {
   checkInput(text) {
     const result = this.logic.checkInput(this.state, text);
 
+    if (result.adjustedText) {
+      this.ui.input.value = result.adjustedText;
+    }
+
     switch (result.status) {
       case 'found':
         this.handleFound(result.indices);
@@ -692,6 +716,19 @@ function findTargets(words, targetWordIds, text) {
   if (targetIds.length === 0) {
     words.forEach((w, idx) => {
       if (w.word.toLowerCase().startsWith(text)) {
+        targetIds.push(w.id);
+        indices.push(idx);
+      }
+    });
+  }
+
+  // 3. Tail Match Strategy: If still no matches and text is length > 1, try matching just the last char
+  //    (This happens when user types a typo 'ab' but 'b' is start of valid word)
+  if (targetIds.length === 0 && text.length > 1) {
+    const lastChar = text.slice(-1);
+    // Only allow switching if the LAST char is valid start of a word
+    words.forEach((w, idx) => {
+      if (w.word.toLowerCase().startsWith(lastChar)) {
         targetIds.push(w.id);
         indices.push(idx);
       }
