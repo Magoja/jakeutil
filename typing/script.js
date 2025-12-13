@@ -1,6 +1,6 @@
 class GameConfig {
   constructor() {
-    this.gameDuration = 120; // seconds
+    this.gameDuration = 60; // seconds
 
     // Spawning
     this.baseSpawnInterval = 2500; // ms
@@ -14,7 +14,7 @@ class GameConfig {
     this.pointsPerCharacter = 10;
 
     // Rush Mode: triggers at these elapsed seconds
-    this.rushTimes = [30, 60, 90];
+    this.rushTimes = [20, 40, 50];
     this.rushDuration = 5; // seconds
 
     // Level Definitions
@@ -195,8 +195,8 @@ class UIController {
     this.levelDisplay.innerText = level;
     this.scoreDisplay.innerText = score;
 
-    const m = Math.floor(timeLeft / 60);
-    const s = Math.floor(timeLeft % 60);
+    const m = Math.floor(Math.max(0, timeLeft) / 60);
+    const s = Math.floor(Math.max(0, timeLeft) % 60);
     this.timeDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
@@ -313,7 +313,8 @@ class GameLogic {
   update(state, dt, containerHeight) {
     this.updateTime(state, dt / 1000);
 
-    if (this.shouldSpawn(state, dt)) {
+    // Only spawn if time is not up
+    if (!state.isTimeUp() && this.shouldSpawn(state, dt)) {
       if (this.wordPicker) {
         const word = this.wordPicker();
         if (word) {
@@ -467,6 +468,10 @@ class GameState {
       return this.wordManager.words[idx].word.toLowerCase() === text;
     });
   }
+
+  allWordsCleared() {
+    return this.wordManager.getAll().length === 0;
+  }
 }
 
 class TypingGame {
@@ -539,7 +544,13 @@ class TypingGame {
     this.state.wordManager.getAll().forEach(w => this.ui.updateWordPosition(w.el, w.y));
 
     // 5. Check End Conditions
-    if (this.state.isTimeUp()) {
+    // 5. Check End Conditions
+    this.checkAndContinueGame();
+  }
+
+  checkAndContinueGame() {
+    // If time is up, wait until word list is empty (cleared)
+    if (this.state.isTimeUp() && this.state.allWordsCleared()) {
       this.endGame(true);
     } else {
       requestAnimationFrame((t) => this.gameLoop(t));
