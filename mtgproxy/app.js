@@ -143,7 +143,7 @@ async function fetchCardImageFromScryfall(cardName) {
   // Document: https://scryfall.com/docs/api/cards/search
   // Example: https://api.scryfall.com/cards/search?q=!%22Necropotence%22&pretty=true&unique=art
   let escapedCardNameExactMatch = encodeURIComponent("!\"" + cardName + "\"");
-  const response = await fetch(`https://api.scryfall.com/cards/search?&unique=art&q=${escapedCardNameExactMatch}`);
+  const response = await fetch(`https://api.scryfall.com/cards/search?&unique=prints&q=${escapedCardNameExactMatch}`);
   if (!response.ok) {
     throw new Error(`Error fetching card: ${response.statusText}`);
   }
