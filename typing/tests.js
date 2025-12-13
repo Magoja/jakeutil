@@ -162,6 +162,24 @@ function runTests(isManual = false) {
       );
     }
 
+    function typoOnLockedTarget3() {
+      // Scenario: Locked on 'ac'. User types 'ab'.
+      // 'a' matches. 'b' is typo for 'ac', but 'b' matches start of 'abc'.
+      // Should switch to 'abc' (id 2). Input should become 'b' (effective).
+      const mockWords = [
+        { id: '1', word: 'ac' },
+        { id: '2', word: 'abc' },
+      ];
+      const targetWordIds = ['1'];
+      const text = 'ab';
+      const result = findTargets(mockWords, targetWordIds, text);
+      assertEqual(
+        "typoOnLockedTarget3",
+        result,
+        { targetIds: ['2'], indices: [1] }
+      );
+    }
+
     // Execute Test Cases
     findNewTargetsStartingWithA();
     findNewTargetsStartingWithB();
@@ -171,6 +189,7 @@ function runTests(isManual = false) {
     switchTargetFromBananaToApple();
     typoOnLockedTarget();
     typoOnLockedTarget2();
+    typoOnLockedTarget3();
   }
 
   // --- Run Groups ---

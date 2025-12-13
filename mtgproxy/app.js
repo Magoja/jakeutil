@@ -63,6 +63,27 @@ function attachPopupEventListeners(modal) {
 function createImageBox(name, urls) {
   const container = document.createElement('div');
   container.classList.add('image-box');
+  container.setAttribute('draggable', 'true'); // Enable dragging
+
+  // Drag and Drop Event Listeners
+  container.addEventListener('dragstart', () => {
+    container.classList.add('dragging');
+  });
+
+  container.addEventListener('dragend', () => {
+    container.classList.remove('dragging');
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault(); // Allow dropping
+    const afterElement = getDragAfterElement(container.parentNode, e.clientY, e.clientX);
+    const draggable = document.querySelector('.dragging');
+    if (afterElement == null) {
+      container.parentNode.appendChild(draggable);
+    } else {
+      container.parentNode.insertBefore(draggable, afterElement);
+    }
+  });
 
   // Create the main image element
   const imgElement = createImageBoxForPrint(name, urls[0]);
@@ -94,7 +115,7 @@ function getUploadedImages() {
 }
 
 function getDebugCardList() {
-  return "Necropotence\n".repeat(9);
+  return "Mox Pearl\nMox Sapphire\nMox Ruby\nMox Emerald\nMox Jet\nBlack Lotus\nAncestral Recall\nTimetwister\nTime Walk";
 }
 
 function getCardListFromText() {
@@ -186,9 +207,27 @@ async function generateCardImages(cardsInfo) {
 
     const info = cardsInfo[index];
     logDebug(`Fetching card: ${info.name}`);
-    
+
     currentGrid.appendChild(createImageBox(info.name, info.urls));
   }
+}
+
+// Helper function to find the element after the cursor position
+function getDragAfterElement(container, y, x) {
+  const draggableElements = [...container.querySelectorAll('.image-box:not(.dragging)')];
+
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offsetX = x - box.left - box.width / 2;
+    const offsetY = y - box.top - box.height / 2;
+    const distance = offsetX * offsetX + offsetY * offsetY;
+
+    if (closest.distance === null || distance < closest.distance) {
+      return { distance: distance, element: child };
+    } else {
+      return closest;
+    }
+  }, { distance: null, element: null }).element;
 }
 
 function unittest() {
@@ -261,6 +300,12 @@ function unittest() {
 document.getElementById('generate-proxies').addEventListener('click', async () => {
   logDebug("# Starting to generate proxies...");
   let cardInfos = [...await resolveCardImages(getCardListFromText()), ...getUploadedImages()];
+
+  if (cardInfos.length > 9) {
+    logDebug(`# Limiting to 9 cards (received ${cardInfos.length}).`);
+    cardInfos = cardInfos.slice(0, 9);
+  }
+
   await generateCardImages(cardInfos);
   logDebug("# Finished generating proxies.");
 });

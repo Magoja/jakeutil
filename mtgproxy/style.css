@@ -73,67 +73,102 @@ footer {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(3, 63mm); /* 3 cards per row */
-  grid-template-rows: repeat(3, 88mm);  /* 3 rows per page */
-  gap: 0mm; /* Space between cards */
+  grid-template-columns: repeat(3, 63mm);
+  /* 3 cards per row */
+  grid-template-rows: repeat(3, 88mm);
+  /* 3 rows per page */
+  gap: 0mm;
+  /* Space between cards */
   justify-content: center;
-  margin: 5mm auto; /* Control top and bottom margins */
-  width: calc(3 * 63mm + 2 * 0mm); /* Total width of 3 cards + gaps */
-  height: calc(3 * 88mm + 1 * 0mm); /* Total height of 3 rows + gaps */
+  margin: 5mm auto;
+  /* Control top and bottom margins */
+  width: calc(3 * 63mm + 2 * 0mm);
+  /* Total width of 3 cards + gaps */
+  height: calc(3 * 88mm + 1 * 0mm);
+  /* Total height of 3 rows + gaps */
 }
 
 .card-grid img {
-  width: 63mm; /* Standard MTG card width */
-  height: 88mm; /* Standard MTG card height */
+  width: 63mm;
+  /* Standard MTG card width */
+  height: 88mm;
+  /* Standard MTG card height */
   border: 0px solid #ddd;
   border-radius: 0px;
 }
 
 /* Style for <pre> */
 pre {
-  background-color: #f4f4f9; /* Light gray background */
-  border: 1px solid #ccc; /* Subtle border */
-  border-radius: 5px; /* Rounded corners */
-  padding: 15px; /* Add padding for readability */
-  font-family: 'Courier New', Courier, monospace; /* Monospaced font */
-  font-size: 14px; /* Comfortable font size */
-  line-height: 1.6; /* Good line spacing */
-  overflow-x: auto; /* Allow horizontal scrolling for long content */
-  color: #333; /* Dark gray text color */
+  background-color: #f4f4f9;
+  /* Light gray background */
+  border: 1px solid #ccc;
+  /* Subtle border */
+  border-radius: 5px;
+  /* Rounded corners */
+  padding: 15px;
+  /* Add padding for readability */
+  font-family: 'Courier New', Courier, monospace;
+  /* Monospaced font */
+  font-size: 14px;
+  /* Comfortable font size */
+  line-height: 1.6;
+  /* Good line spacing */
+  overflow-x: auto;
+  /* Allow horizontal scrolling for long content */
+  color: #333;
+  /* Dark gray text color */
   max-width: 600px;
-  margin: 20px auto; /* Center the block */
-  text-align: left; /* Keep the text inside left-aligned */
+  margin: 20px auto;
+  /* Center the block */
+  text-align: left;
+  /* Keep the text inside left-aligned */
 }
 
 /* Style for <p> */
 p {
-  font-family: 'Arial', sans-serif; /* Clean sans-serif font */
-  font-size: 16px; /* Comfortable font size */
-  line-height: 1.8; /* Relaxed line spacing */
-  color: #444; /* Dark gray text */
-  margin-bottom: 1.5em; /* Space between paragraphs */
+  font-family: 'Arial', sans-serif;
+  /* Clean sans-serif font */
+  font-size: 16px;
+  /* Comfortable font size */
+  line-height: 1.8;
+  /* Relaxed line spacing */
+  color: #444;
+  /* Dark gray text */
+  margin-bottom: 1.5em;
+  /* Space between paragraphs */
   width: 80%;
   max-width: 600px;
 }
 
 footer {
-  background-color: #2c3e50; /* Dark background for contrast */
-  color: #ffffff; /* White text for readability */
-  text-align: center; /* Center-align text */
-  padding: 10px 20px; /* Add spacing inside the footer */
-  font-size: 0.9rem; /* Slightly smaller font size */
-  position: relative; /* Default relative position */
-  bottom: 0; /* Stick to the bottom if needed */
-  width: 100%; /* Full width */
+  background-color: #2c3e50;
+  /* Dark background for contrast */
+  color: #ffffff;
+  /* White text for readability */
+  text-align: center;
+  /* Center-align text */
+  padding: 10px 20px;
+  /* Add spacing inside the footer */
+  font-size: 0.9rem;
+  /* Slightly smaller font size */
+  position: relative;
+  /* Default relative position */
+  bottom: 0;
+  /* Stick to the bottom if needed */
+  width: 100%;
+  /* Full width */
 }
 
 footer a {
-  color: #3498db; /* Highlight the email with a contrasting color */
-  text-decoration: none; /* Remove underline */
+  color: #3498db;
+  /* Highlight the email with a contrasting color */
+  text-decoration: none;
+  /* Remove underline */
 }
 
 footer a:hover {
-  text-decoration: underline; /* Add underline on hover */
+  text-decoration: underline;
+  /* Add underline on hover */
 }
 
 .modal {
@@ -146,9 +181,12 @@ footer a:hover {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  width: 80%; /* Adjust width as needed */
-  height: 80%; /* Adjust height as needed */
-  overflow: auto; /* Add scroll if content overflows */
+  width: 80%;
+  /* Adjust width as needed */
+  height: 80%;
+  /* Adjust height as needed */
+  overflow: auto;
+  /* Add scroll if content overflows */
 }
 
 .modal-content {
@@ -176,17 +214,28 @@ footer a:hover {
 }
 
 .fancy-box {
-  background-color: #f9f9f9; /* Light gray background */
-  border: 2px solid #007bff; /* Blue border */
-  border-radius: 8px; /* Rounded corners */
-  padding: 10px 15px; /* Add padding inside the box */
-  font-size: 16px; /* Comfortable font size */
-  font-weight: bold; /* Make the text bold */
-  color: #333; /* Dark gray text */
-  text-align: center; /* Center-align the text */
-  margin: 10px auto; /* Center the box horizontally */
-  max-width: 400px; /* Limit the width of the box */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  background-color: #f9f9f9;
+  /* Light gray background */
+  border: 2px solid #007bff;
+  /* Blue border */
+  border-radius: 8px;
+  /* Rounded corners */
+  padding: 10px 15px;
+  /* Add padding inside the box */
+  font-size: 16px;
+  /* Comfortable font size */
+  font-weight: bold;
+  /* Make the text bold */
+  color: #333;
+  /* Dark gray text */
+  text-align: center;
+  /* Center-align the text */
+  margin: 10px auto;
+  /* Center the box horizontally */
+  max-width: 400px;
+  /* Limit the width of the box */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Add a subtle shadow */
 }
 
 @media print {
@@ -197,32 +246,57 @@ footer a:hover {
 
   body {
     margin: 0;
-    padding: 0; /* Remove any padding */
+    padding: 0;
+    /* Remove any padding */
   }
 
   .controls {
-    display: none; /* Hide controls when printing */
+    display: none;
+    /* Hide controls when printing */
   }
 
   .card-grid {
     display: grid;
-    gap: 0; /* No gaps between cards */
-    grid-template-columns: repeat(3, 63mm); /* 3 cards per row */
-    grid-template-rows: repeat(3, 88mm); /* 3 rows per page */
-    height: calc(3 * 88mm); /* 3 rows of cards, each 88mm tall */
-    margin: 0; /* Remove margins */
-    padding: 0; /* Remove padding */
-    page-break-after: avoid; /* Ensure each grid fits on one page */
-    width: 100%; /* Use full width of the page */
+    gap: 0;
+    /* No gaps between cards */
+    grid-template-columns: repeat(3, 63mm);
+    /* 3 cards per row */
+    grid-template-rows: repeat(3, 88mm);
+    /* 3 rows per page */
+    height: calc(3 * 88mm);
+    /* 3 rows of cards, each 88mm tall */
+    margin: 0;
+    /* Remove margins */
+    padding: 0;
+    /* Remove padding */
+    page-break-after: avoid;
+    /* Ensure each grid fits on one page */
+    width: 100%;
+    /* Use full width of the page */
   }
 
   .card-grid img {
-    width: 63mm; /* Standard MTG card width */
-    height: 88mm; /* Standard MTG card height */
-    border: none; /* Remove borders for printing */
+    width: 63mm;
+    /* Standard MTG card width */
+    height: 88mm;
+    /* Standard MTG card height */
+    border: none;
+    /* Remove borders for printing */
   }
 
   footer {
-    display: none; /* Hide controls when printing */
+    display: none;
+    /* Hide controls when printing */
   }
+}
+
+/* Drag and Drop styling */
+.image-box {
+  cursor: grab;
+}
+
+.image-box.dragging {
+  opacity: 0.5;
+  border: 2px dashed #007bff;
+  box-sizing: border-box;
 }
