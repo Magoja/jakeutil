@@ -115,16 +115,11 @@ function getUploadedImages() {
 }
 
 function getDebugCardList() {
-  return "Mox Pearl\nMox Sapphire\nMox Ruby\nMox Emerald\nMox Jet\nBlack Lotus\nAncestral Recall\nTimetwister\nTime Walk";
+  return ["Mox Pearl", "Mox Sapphire", "Mox Ruby", "Mox Emerald", "Mox Jet", "Black Lotus", "Ancestral Recall", "Timetwister", "Time Walk"];
 }
 
 function getCardListFromText() {
-  let cardListString = document.getElementById('card-list').value.trim();
-  if (cardListString === "") {
-    logDebug("No card list provided. Use debug list.");
-    cardListString = getDebugCardList();
-  }
-  return splitCardList(cardListString);
+  return splitCardList(document.getElementById('card-list').value.trim());
 }
 
 function getListOfCardImageOnly(cardList) {
@@ -297,16 +292,25 @@ function unittest() {
   }
 }
 
-document.getElementById('generate-proxies').addEventListener('click', async () => {
-  logDebug("# Starting to generate proxies...");
+async function getCardInfoFromUI() {
   let cardInfos = [...await resolveCardImages(getCardListFromText()), ...getUploadedImages()];
+
+  if (cardInfos.length === 0) {
+    logDebug("No card list provided. Use debug list.");
+    cardInfos = [...await resolveCardImages(getDebugCardList())];
+  }
 
   if (cardInfos.length > 9) {
     logDebug(`# Limiting to 9 cards (received ${cardInfos.length}).`);
     cardInfos = cardInfos.slice(0, 9);
   }
 
-  await generateCardImages(cardInfos);
+  return cardInfos;
+}
+
+document.getElementById('generate-proxies').addEventListener('click', async () => {
+  logDebug("# Starting to generate proxies...");
+  await generateCardImages(await getCardInfoFromUI());
   logDebug("# Finished generating proxies.");
 });
 
