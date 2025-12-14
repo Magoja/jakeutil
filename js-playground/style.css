@@ -265,3 +265,7 @@ body {
 #share-url:focus {
   outline: 1px solid var(--accent);
 }
+
+.hidden {
+  display: none !important;
+}

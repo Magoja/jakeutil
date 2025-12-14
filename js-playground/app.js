@@ -17,7 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Elements
   const runBtn = document.getElementById('run-btn');
+  const editBtn = document.getElementById('edit-btn');
   const shareBtn = document.getElementById('share-btn');
+  const resetBtn = document.getElementById('reset-btn');
   const clearBtn = document.getElementById('clear-btn');
   const consoleOutput = document.getElementById('console-output');
   const errorsOutput = document.getElementById('errors-output');
@@ -30,13 +32,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const shareUrlInput = document.getElementById('share-url');
   const copyBtn = document.getElementById('copy-btn');
 
-  // Load code from URL if present
-  checkUrlForCode();
+  const DEFAULT_CODE = `// Write your Javascript here
+// Press Run button or Cmd+Enter to execute
+
+print("Hello, World!");
+
+function sum(a, b) {
+  return a + b;
+}
+
+print("Sum of 5 + 3 is: " + sum(5, 3));
+`;
+
+  const STORAGE_KEY = 'js-playground-code';
+
+  // Initialization: URL > Local > Default
+  initializeCode();
 
   // Event Listeners
   runBtn.addEventListener('click', runCode);
+  editBtn.addEventListener('click', editCode);
   shareBtn.addEventListener('click', shareCode);
+  resetBtn.addEventListener('click', resetCode);
   clearBtn.addEventListener('click', clearOutput);
+
+  // Auto-save logic
+  editor.on('change', () => {
+    // Only save if not read-only (which checks URL)
+    if (!editor.isReadOnly()) {
+      localStorage.setItem(STORAGE_KEY, editor.getValue());
+    }
+  });
 
   closeModalBtn.addEventListener('click', hideModal);
   shareModal.addEventListener('click', (e) => {
@@ -64,18 +90,63 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Functions
-  function checkUrlForCode() {
+  function initializeCode() {
     const hash = window.location.hash;
+    let loadedFromUrl = false;
+
+    // 1. Try URL
     if (hash && hash.startsWith('#code=')) {
       try {
-        const compressed = hash.substring(6); // Remove '#code='
+        const compressed = hash.substring(6);
         const decompressed = LZString.decompressFromEncodedURIComponent(compressed);
         if (decompressed) {
           editor.setValue(decompressed);
+          loadedFromUrl = true;
+
+          // Set Read-Only Mode
+          editor.setOption('readOnly', true);
+
+          // Toggle Buttons
+          editBtn.classList.remove('hidden');
+          shareBtn.classList.add('hidden');
+          resetBtn.classList.add('hidden');
         }
       } catch (e) {
         console.error("Failed to load code from URL", e);
       }
+    }
+
+    // 2. Try LocalStorage if not from URL
+    if (!loadedFromUrl) {
+      const savedCode = localStorage.getItem(STORAGE_KEY);
+      if (savedCode) {
+        editor.setValue(savedCode);
+      }
+    }
+    // Note: If no URL code and no Saved code, editor has initial text from HTML (which matches DEFAULT_CODE roughly, but let's ensure consistency if needed).
+    // The HTML textarea has default content, so we are good.
+  }
+
+  function checkUrlForCode() {
+    // Logic moved to initializeCode
+  }
+
+  function editCode() {
+    // Save current (shared) code to local storage
+    if (confirm("Edit this code? This will overwrite your current local workspace.")) {
+      localStorage.setItem(STORAGE_KEY, editor.getValue());
+      // Reload without hash to return to local view
+      window.location.href = window.location.pathname;
+    }
+  }
+
+  function resetCode() {
+    if (confirm("Reset code to 'Hello World'? This will discard current changes.")) {
+      editor.setValue(DEFAULT_CODE);
+      clearOutput();
+      // URL hash should be cleared if present?
+      // remove #code from url
+      history.replaceState(null, '', ' ');
     }
   }
 
