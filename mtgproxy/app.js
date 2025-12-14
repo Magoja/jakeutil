@@ -6,39 +6,84 @@ function logDebug(message) {
   console.log(message);
 }
 
-function createPreviewModalImageBox(imgElement, name, url) {
-  const modalImg = document.createElement('img');
-  modalImg.src = url;
-  modalImg.alt = name;
-  modalImg.classList.add('modal-image');
-  return modalImg;
-}
-
 function createPreviewModalPopup(imgElement, name, urls) {
+  const modal = document.createElement('div');
+  modal.classList.add('modal');
+  modal.style.display = 'none';
+
   const modalContent = document.createElement('div');
   modalContent.classList.add('modal-content');
 
-  // Add all images to the modal
-  urls.forEach((url) => {
-    const modalImg = createPreviewModalImageBox(imgElement, name, url);
-    modalContent.appendChild(modalImg);
-    modalImg.addEventListener('click', () => {
-      imgElement.src = url; // Update the main image
-      modal.style.display = 'none'; // Close the modal
-    });
-  });
+  // Header
+  const header = document.createElement('div');
+  header.classList.add('modal-header');
+  const title = document.createElement('h2');
+  title.innerText = name;
+  const closeBtn = document.createElement('button');
+  closeBtn.classList.add('close-btn');
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => modal.style.display = 'none');
+  header.appendChild(title);
+  header.appendChild(closeBtn);
 
+  // Body
+  const body = document.createElement('div');
+  body.classList.add('modal-body');
+  const imageGrid = document.createElement('div');
+  imageGrid.classList.add('image-list-grid');
+  body.appendChild(imageGrid);
+
+  // Footer
+  const footer = document.createElement('div');
+  footer.classList.add('modal-footer');
+  const loadMoreBtn = document.createElement('button');
+  loadMoreBtn.classList.add('load-more-btn');
+  loadMoreBtn.innerText = 'Show next (20)';
+  loadMoreBtn.style.display = 'none';
   const duplicateBtn = document.createElement('button');
-  duplicateBtn.innerText = 'Duplicate Card';
   duplicateBtn.classList.add('duplicate-btn');
+  duplicateBtn.innerText = 'Duplicate Card';
+  footer.appendChild(loadMoreBtn);
+  footer.appendChild(duplicateBtn);
+
+  modalContent.appendChild(header);
+  modalContent.appendChild(body);
+  modalContent.appendChild(footer);
+  modal.appendChild(modalContent);
+
+  // Logic
+  let currentIndex = 0;
+  const BATCH_SIZE = 20;
+
+  function renderBatch() {
+    const nextBatch = urls.slice(currentIndex, currentIndex + BATCH_SIZE);
+    nextBatch.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.classList.add('modal-image');
+      img.addEventListener('click', () => {
+        imgElement.src = url;
+        modal.style.display = 'none';
+      });
+      imageGrid.appendChild(img);
+    });
+    currentIndex += nextBatch.length;
+    if (currentIndex >= urls.length) {
+      loadMoreBtn.style.display = 'none';
+    } else {
+      loadMoreBtn.style.display = 'block';
+    }
+  }
+
+  loadMoreBtn.addEventListener('click', renderBatch);
+
+  // Duplicate Logic
   duplicateBtn.addEventListener('click', () => {
     const currentCount = document.querySelectorAll('.image-box').length;
     if (currentCount >= 9) {
       alert('Maximum limit of 9 cards reached.');
       return;
     }
-
-    // Find the card grid to append to
     const cardGrid = document.querySelector('.card-grid');
     if (cardGrid) {
       const newCard = createImageBox(name, urls);
@@ -47,20 +92,8 @@ function createPreviewModalPopup(imgElement, name, urls) {
     }
   });
 
-  const modal = document.createElement('div');
-  modal.classList.add('modal');
-  modal.style.display = 'none'; // Initially hidden
-
-  // Arrange content: Images then button
-  const contentWrapper = document.createElement('div');
-  contentWrapper.style.display = 'flex';
-  contentWrapper.style.flexDirection = 'column';
-  contentWrapper.style.alignItems = 'center';
-
-  contentWrapper.appendChild(modalContent);
-  contentWrapper.appendChild(duplicateBtn);
-
-  modal.appendChild(contentWrapper);
+  // Initial render
+  renderBatch();
 
   return modal;
 }
