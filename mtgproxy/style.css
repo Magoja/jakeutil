@@ -300,3 +300,18 @@ footer a:hover {
   border: 2px dashed #007bff;
   box-sizing: border-box;
 }
+
+.duplicate-btn {
+  margin-top: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.duplicate-btn:hover {
+  background-color: #218838;
+}

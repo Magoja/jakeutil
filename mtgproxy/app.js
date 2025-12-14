@@ -28,10 +28,39 @@ function createPreviewModalPopup(imgElement, name, urls) {
     });
   });
 
+  const duplicateBtn = document.createElement('button');
+  duplicateBtn.innerText = 'Duplicate Card';
+  duplicateBtn.classList.add('duplicate-btn');
+  duplicateBtn.addEventListener('click', () => {
+    const currentCount = document.querySelectorAll('.image-box').length;
+    if (currentCount >= 9) {
+      alert('Maximum limit of 9 cards reached.');
+      return;
+    }
+
+    // Find the card grid to append to
+    const cardGrid = document.querySelector('.card-grid');
+    if (cardGrid) {
+      const newCard = createImageBox(name, urls);
+      cardGrid.appendChild(newCard);
+      modal.style.display = 'none';
+    }
+  });
+
   const modal = document.createElement('div');
   modal.classList.add('modal');
   modal.style.display = 'none'; // Initially hidden
-  modal.appendChild(modalContent);
+
+  // Arrange content: Images then button
+  const contentWrapper = document.createElement('div');
+  contentWrapper.style.display = 'flex';
+  contentWrapper.style.flexDirection = 'column';
+  contentWrapper.style.alignItems = 'center';
+
+  contentWrapper.appendChild(modalContent);
+  contentWrapper.appendChild(duplicateBtn);
+
+  modal.appendChild(contentWrapper);
 
   return modal;
 }
