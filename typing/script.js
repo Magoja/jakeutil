@@ -224,7 +224,7 @@ class UIController {
     el.innerText = text;
     el.style.left = `${x}%`;
     el.style.top = '-50px';
-    this.gameArea.appendChild(el);
+    this.gameArea.prepend(el);
     return el;
   }
 
