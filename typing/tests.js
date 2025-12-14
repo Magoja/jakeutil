@@ -192,9 +192,76 @@ function runTests(isManual = false) {
     typoOnLockedTarget3();
   }
 
+  function testGameDictionary() {
+    console.log("--- Group: GameDictionary ---");
+
+    function createMockGameDictionary() {
+      const config = new GameConfig();
+      config.gameDuration = 60;
+      config.levels = {
+        1: { cpm: 60, dist: [1, 0, 0, 0, 0, 0], desc: "Test Level 1" },
+        2: { cpm: 100, dist: [0.5, 0.5, 0, 0, 0, 0], desc: "Test Level 2" }
+      };
+
+      const gd = new GameDictionary(config);
+      // Mock dictionaries
+      gd.dictionaries = Array(6).fill(null).map((_, i) => ({
+        getRandomWord: () => {
+          // Return word with length = i+1 for easier checking
+          return "x".repeat(i + 1);
+        },
+        load: async () => true
+      }));
+      return gd;
+    }
+
+    function testPreselectCounts() {
+      const gd = createMockGameDictionary();
+      // Level 1: CPM 60. Game Duration 60s. Target = 60 chars.
+      // Dist: 100% from dict 0 (length 1).
+      // Should modify logic slightly? 
+      // Dict 0 words are length 1. So we need 60 words.
+      const words = gd.preselect(1);
+
+      const totalChars = words.reduce((sum, w) => sum + w.length, 0);
+
+      assertEqual("testPreselectCounts - enough chars", totalChars >= 60, true);
+      assertEqual("testPreselectCounts - roughly correct count", words.length >= 60, true);
+    }
+
+    function testPreselectDistribution() {
+      const gd = createMockGameDictionary();
+      // Level 2: CPM 100. Target 100 chars.
+      // Dist: 50% dict 0 (len 1), 50% dict 1 (len 2).
+      // Avg len = 1.5. Expected words approx 100 / 1.5 = 66 words.
+
+      const words = gd.preselect(2);
+      const totalChars = words.reduce((sum, w) => sum + w.length, 0);
+
+      assertEqual("testPreselectDistribution - enough chars", totalChars >= 100, true);
+
+      // Check if we have mix of len 1 and len 2
+      const len1 = words.filter(w => w.length === 1).length;
+      const len2 = words.filter(w => w.length === 2).length;
+
+      // Allow for randomness, but both should be present with high probability
+      assertEqual("testPreselectDistribution - has len 1", len1 > 0, true);
+      assertEqual("testPreselectDistribution - has len 2", len2 > 0, true);
+    }
+
+    testPreselectCounts();
+    testPreselectDistribution();
+  }
+
   // --- Run Groups ---
   try {
+    console.log("Starting test groups...");
     testFindTargets();
+    console.log("Finished testFindTargets. Calling testGameDictionary...");
+    console.log("GameConfig typeof:", typeof GameConfig);
+    console.log("GameDictionary typeof:", typeof GameDictionary);
+    testGameDictionary();
+    console.log("Finished testGameDictionary.");
   } catch (e) {
     console.error("Test execution error:", e);
     failed++;

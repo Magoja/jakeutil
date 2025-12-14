@@ -96,6 +96,30 @@ class GameDictionary {
     // Fallback (e.g. if random roll edge case or empty dict)
     return this.dictionaries[0].getRandomWord();
   }
+
+  preselect(level) {
+    const levelConfig = this.config.levels[level];
+    if (!levelConfig) return [];
+
+    const durationMin = this.config.gameDuration / 60; // default 60s -> 1 min
+    const targetTotalChars = levelConfig.cpm * durationMin;
+
+    let totalChars = 0;
+    const selectedWords = [];
+    let safety = 0;
+    const maxSafety = targetTotalChars * 2 + 100; // ample buffer
+
+    while (totalChars < targetTotalChars && safety < maxSafety) {
+      const word = this.pickWord(level);
+      if (word) {
+        selectedWords.push(word);
+        totalChars += word.length;
+      }
+      safety++;
+    }
+
+    return selectedWords;
+  }
 }
 
 function createTooltip(desc, cpm) {
@@ -437,6 +461,7 @@ class GameState {
     this.spawnTimer = 0;
     this.isRush = false;
     this.targetWordIds = [];
+    this.wordsToSpawn = [];
   }
 
   reset(level) {
@@ -471,6 +496,13 @@ class GameState {
   allWordsCleared() {
     return this.wordManager.getAll().length === 0;
   }
+
+  pickWord() {
+    if (this.wordsToSpawn.length === 0) {
+      return null;
+    }
+    return this.wordsToSpawn.shift();
+  }
 }
 
 class TypingGame {
@@ -487,8 +519,7 @@ class TypingGame {
 
   init() {
     this.ui.createLevelButtons(this.config.levels, (level) => {
-      this.state.level = level;
-      this.startGame();
+      this.startGame(level);
     });
 
     this.ui.bindRestart(() => {
@@ -503,9 +534,6 @@ class TypingGame {
       this.ui.clearInput();
     });
 
-    // Game Logic Bindings
-    this.logic.setWordPicker(() => this.gameDictionary.pickWord(this.state.level));
-
     this.logic.on('spawn', (word) => {
       this.spawnWord(word);
     });
@@ -515,15 +543,17 @@ class TypingGame {
     });
   }
 
-  async startGame() {
-    this.state.reset(this.state.level);
+  async startGame(level) {
+    this.state.reset(level);
+    this.state.wordsToSpawn = this.gameDictionary.preselect(level);
     this.ui.clearGameArea();
     this.ui.clearInput();
 
     this.ui.showGameScreen();
-    this.ui.updateHUD(this.state.level, this.state.score, this.state.timeLeft);
+    this.ui.updateHUD(level, this.state.score, this.state.timeLeft);
 
     this.lastTime = performance.now();
+    this.logic.setWordPicker(() => this.state.pickWord());
 
     requestAnimationFrame((time) => this.gameLoop(time));
   }
