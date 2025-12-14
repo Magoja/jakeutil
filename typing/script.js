@@ -20,16 +20,11 @@ class GameConfig {
     // Level Definitions
     // dictionary distributions: 0 (chars) to 5 (words_5)
     this.levels = {
-      1: { dist: [1.0, 0, 0, 0, 0, 0], desc: "Single Characters" },
-      2: { dist: [0.5, 0.5, 0, 0, 0, 0], desc: "Mix Chars / Very Easy" },
-      3: { dist: [0.2, 0.8, 0, 0, 0, 0], desc: "Mostly Very Easy" },
-      4: { dist: [0, 1.0, 0, 0, 0, 0], desc: "All Very Easy" },
-      5: { dist: [0, 0.5, 0.5, 0, 0, 0], desc: "Mix Very Easy / Easy" },
-      6: { dist: [0, 0.2, 0.5, 0.3, 0, 0], desc: "Mix Easy / Medium" },
-      7: { dist: [0, 0, 0.4, 0.6, 0, 0], desc: "Mostly Medium" },
-      8: { dist: [0, 0, 0.2, 0.5, 0.3, 0], desc: "Intro Hard" },
-      9: { dist: [0, 0, 0, 0.5, 0.5, 0], desc: "Mix Hard" },
-      10: { dist: [0, 0, 0, 0.2, 0.4, 0.4], desc: "Mostly Very Hard" }
+      1: { cpm: 100, dist: [0.2, 0.7, 0.1, 0, 0, 0], desc: "Very Easy" },
+      2: { cpm: 175, dist: [0, 0.4, 0.4, 0.2, 0, 0], desc: "Easy" },
+      3: { cpm: 250, dist: [0, 0.1, 0.4, 0.3, 0.2, 0], desc: "Medium" },
+      4: { cpm: 325, dist: [0, 0.1, 0.3, 0.3, 0.2, 0.1], desc: "Hard" },
+      5: { cpm: 400, dist: [0, 0.1, 0.3, 0.3, 0.2, 0.1], desc: "Expert" }
     };
   }
 }
@@ -103,6 +98,10 @@ class GameDictionary {
   }
 }
 
+function createTooltip(desc, cpm) {
+  return `${desc} - ${cpm} CPM Target`;
+}
+
 class UIController {
   constructor() {
     // DOM Elements
@@ -132,7 +131,7 @@ class UIController {
       const btn = document.createElement('button');
       btn.classList.add('btn');
       btn.dataset.level = level;
-      btn.dataset.tooltip = config.desc;
+      btn.dataset.tooltip = createTooltip(config.desc, config.cpm);
       btn.innerText = level;
 
       btn.addEventListener('click', () => {
