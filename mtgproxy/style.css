@@ -45,6 +45,12 @@ button:hover {
   background-color: #2980b9;
 }
 
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .card-grid img:hover {
   transform: scale(1.03);
 }
@@ -202,17 +208,21 @@ footer a:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   background-color: rgba(0, 0, 0, 0.5);
   /* Semi-transparent background */
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1000;
+  /* Use block layout to allow absolute positioning of child to work simply */
+  display: block;
 }
 
 .modal-content {
+  position: fixed;
+  /* Fixed relative to viewport, or absolute relative to modal */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: white;
   padding: 0;
   /* Remove padding here, managing internally */
@@ -224,8 +234,7 @@ footer a:hover {
   max-height: 90vh;
   /* Don't overflow screen height */
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  margin: auto;
-  /* Ensure centering in flex container */
+  margin: 0;
 }
 
 .modal-header {

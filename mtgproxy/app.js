@@ -18,7 +18,7 @@ function createPreviewModalPopup(imgElement, name, urls) {
   const header = document.createElement('div');
   header.classList.add('modal-header');
   const title = document.createElement('h2');
-  title.innerText = name;
+  title.innerText = `${name} (${urls.length} matches)`;
   const closeBtn = document.createElement('button');
   closeBtn.classList.add('close-btn');
   closeBtn.innerHTML = '&times;';
@@ -38,7 +38,6 @@ function createPreviewModalPopup(imgElement, name, urls) {
   footer.classList.add('modal-footer');
   const loadMoreBtn = document.createElement('button');
   loadMoreBtn.classList.add('load-more-btn');
-  loadMoreBtn.innerText = 'Show next (20)';
   loadMoreBtn.style.display = 'none';
   const duplicateBtn = document.createElement('button');
   duplicateBtn.classList.add('duplicate-btn');
@@ -68,10 +67,14 @@ function createPreviewModalPopup(imgElement, name, urls) {
       imageGrid.appendChild(img);
     });
     currentIndex += nextBatch.length;
+
     if (currentIndex >= urls.length) {
       loadMoreBtn.style.display = 'none';
     } else {
       loadMoreBtn.style.display = 'block';
+      const remaining = urls.length - currentIndex;
+      const nextCount = Math.min(remaining, BATCH_SIZE);
+      loadMoreBtn.innerText = `Show next ${nextCount} (${currentIndex} / ${urls.length} shown)`;
     }
   }
 
@@ -149,14 +152,28 @@ function createImageBox(name, urls) {
 
   // Create the main image element
   const imgElement = createImageBoxForPrint(name, urls[0]);
-  imgElement.addEventListener('click', () => {
-    modal.style.display = 'block';
-  });
-  container.appendChild(imgElement);
-
   const modal = createPreviewModalPopup(imgElement, name, urls);
   attachPopupEventListeners(modal);
   document.body.appendChild(modal);
+
+  imgElement.addEventListener('click', () => {
+    modal.style.display = 'block';
+
+    // Check if duplicate button should be disabled
+    const duplicateBtn = modal.querySelector('.duplicate-btn');
+    if (duplicateBtn) {
+      const currentCount = document.querySelectorAll('.image-box').length;
+      if (currentCount >= 9) {
+        duplicateBtn.disabled = true;
+        duplicateBtn.title = "Maximum limit of 9 cards reached.";
+      } else {
+        duplicateBtn.disabled = false;
+        duplicateBtn.title = "";
+      }
+    }
+  });
+
+  container.appendChild(imgElement);
   return container;
 }
 
