@@ -202,17 +202,26 @@ print("Sum of 5 + 3 is: " + sum(5, 3));
     consoleOutput.scrollTop = consoleOutput.scrollHeight;
   }
 
+  function addTimestampLog() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    const dateMark = document.createElement('div');
+    dateMark.className = 'system-log';
+    dateMark.textContent = `--- Execution started at ${timeString} ---`;
+    consoleOutput.appendChild(dateMark);
+  }
+
   function runCode() {
     clearOutput();
+    addTimestampLog();
+
     const code = editor.getValue();
 
-    // Switch to output tab by default
     document.querySelector('[data-target="console"]').click();
 
     try {
       const runFunc = new Function('print', 'console', code);
       runFunc(print, { log: print, error: (msg) => { throw new Error(msg); }, warn: print });
-
     } catch (err) {
       handleError(err);
     }
