@@ -17,15 +17,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Elements
   const runBtn = document.getElementById('run-btn');
+  const shareBtn = document.getElementById('share-btn');
   const clearBtn = document.getElementById('clear-btn');
   const consoleOutput = document.getElementById('console-output');
   const errorsOutput = document.getElementById('errors-output');
   const tabs = document.querySelectorAll('.tab');
   const errorTab = document.getElementById('error-tab');
 
+  // Modal Elements
+  const shareModal = document.getElementById('share-modal');
+  const closeModalBtn = document.getElementById('close-modal');
+  const shareUrlInput = document.getElementById('share-url');
+  const copyBtn = document.getElementById('copy-btn');
+
+  // Load code from URL if present
+  checkUrlForCode();
+
   // Event Listeners
   runBtn.addEventListener('click', runCode);
+  shareBtn.addEventListener('click', shareCode);
   clearBtn.addEventListener('click', clearOutput);
+
+  closeModalBtn.addEventListener('click', hideModal);
+  shareModal.addEventListener('click', (e) => {
+    if (e.target === shareModal) hideModal();
+  });
+
+  copyBtn.addEventListener('click', () => {
+    shareUrlInput.select();
+    document.execCommand('copy');
+    copyBtn.textContent = 'Copied!';
+    setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+  });
 
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
@@ -41,6 +64,44 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Functions
+  function checkUrlForCode() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#code=')) {
+      try {
+        const compressed = hash.substring(6); // Remove '#code='
+        const decompressed = LZString.decompressFromEncodedURIComponent(compressed);
+        if (decompressed) {
+          editor.setValue(decompressed);
+        }
+      } catch (e) {
+        console.error("Failed to load code from URL", e);
+      }
+    }
+  }
+
+  function shareCode() {
+    const code = editor.getValue();
+    const compressed = LZString.compressToEncodedURIComponent(code);
+    const url = `${window.location.origin}${window.location.pathname}#code=${compressed}`;
+
+    // Update URL without reloading (optional, users might like this)
+    window.history.replaceState(null, '', `#code=${compressed}`);
+
+    // Show Modal
+    shareUrlInput.value = url;
+    shareModal.classList.remove('hidden');
+
+    // Focus and select
+    setTimeout(() => {
+      shareUrlInput.focus();
+      shareUrlInput.select();
+    }, 100);
+  }
+
+  function hideModal() {
+    shareModal.classList.add('hidden');
+  }
+
   function clearOutput() {
     consoleOutput.innerHTML = '';
     errorsOutput.innerHTML = '';
@@ -78,48 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-target="console"]').click();
 
     try {
-      // Create a safe-ish scope for execution
-      // using Function constructor to avoid direct eval usage if possible,
-      // though for a playground eval is often what's needed for scope access if we wanted it.
-      // But let's wrap it in an IIFE style with our custom print.
-
-      const wrappedCode = `
-        (function() {
-          try {
-            ${code}
-          } catch(err) {
-            throw err;
-          }
-        })();
-      `;
-
-      // Define safe scope variables
-      const safeScope = {
-        print: print,
-        console: {
-          log: print,
-          error: (msg) => { throw new Error(msg); },
-          warn: print,
-          info: print
-        },
-        // Block some globals if we really wanted to be safe, but this is client side playground.
-        // window: {}, 
-        // document: {} 
-        // For now, full access is fine as requested.
-      };
-
-      // Execute
-      // We use a function constructor to give access to our 'print'
-      // new Function('print', code)(print);
-
-      // Better approach to allow 'print' usage directly:
-      // We will actually just use 'new Function' with arguments.
-      // Note: This doesn't capture console.log calls inside unless we proxy console, 
-      // but the user requirement effectively asked for 'print()'.
-      // We will also map console.log to print for convenience.
-
       const runFunc = new Function('print', 'console', code);
-      runFunc(print, { log: print, error: console.error, warn: console.warn });
+      runFunc(print, { log: print, error: (msg) => { throw new Error(msg); }, warn: print });
 
     } catch (err) {
       handleError(err);
