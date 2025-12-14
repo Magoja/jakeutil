@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Playground - Jake's Family Tools</title>
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand">JS Playground</div>
+    <div class="actions">
+      <button id="run-btn" class="btn primary" title="Run Code (Cmd+Enter)">▶ Run</button>
+      <button id="clear-btn" class="btn secondary">Clear Output</button>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <div class="editor-pane">
+      <textarea id="code-editor">// Write your Javascript here
+// Press Run button or Cmd+Enter to execute
+
+print("Hello, World!");
+
+function sum(a, b) {
+  return a + b;
+}
+
+print("Sum of 5 + 3 is: " + sum(5, 3));
+</textarea>
+    </div>
+
+    <div class="output-pane">
+      <div class="tabs">
+        <button class="tab active" data-target="console">Output</button>
+        <button class="tab" data-target="errors" id="error-tab">Errors</button>
+      </div>
+      <div id="console-output" class="tab-content active"></div>
+      <div id="errors-output" class="tab-content"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
