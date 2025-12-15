@@ -4,17 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weekly Calendar Print</title>
+  <title>Calendar Print</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
   <div class="container">
-    <h1>Weekly Calendar Print</h1>
+    <h1>Calendar Print</h1>
     <div class="calendar-nav">
-      <button id="prev-week" title="Previous Week">&#8592; Prev</button>
-      <span id="current-week-label" style="font-weight:600;"></span>
-      <button id="next-week" title="Next Week">Next &#8594;</button>
+      <select id="view-selector" style="font-size:1em; padding:4px;">
+        <option value="weekly">Weekly View</option>
+        <option value="monthly">Monthly View</option>
+      </select>
+      <button id="prev-btn" title="Previous">&#8592; Prev</button>
+      <span id="current-label" style="font-weight:600;"></span>
+      <button id="next-btn" title="Next">Next &#8594;</button>
       <button id="print-btn">Print</button>
     </div>
     <code class="site-label">jakeutil.com</code>
