@@ -4,23 +4,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JavaScript Playground - Jake's Family Tools</title>
+  <title>Python Playground - Jake's Family Tools</title>
 
   <!-- CodeMirror -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
   <!-- LZ String for compression -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <!-- Pyodide -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
 
   <link rel="stylesheet" href="../playground-assets/playground.css">
 </head>
 
 <body>
   <div class="header">
-    <div class="brand">JavaScript Playground</div>
+    <div class="brand">Python Playground</div>
     <div class="actions">
       <button id="run-btn" class="btn primary" title="Run Code (Cmd+Enter)">▶ Run</button>
       <button id="edit-btn" class="btn primary hidden" title="Edit your own code">Edit</button>
@@ -32,16 +34,15 @@
 
   <div class="main-container">
     <div class="editor-pane">
-      <textarea id="code-editor">// Write your Javascript here
-// Press Run button or Cmd+Enter to execute
+      <textarea id="code-editor"># Write your Python here
+# Press Run button or Cmd+Enter to execute
 
-print("Hello, World!");
+print("Hello, World!")
 
-function sum(a, b) {
-  return a + b;
-}
+def sum(a, b):
+    return a + b
 
-print("Sum of 5 + 3 is: " + sum(5, 3));
+print(f"Sum of 5 + 3 is: {sum(5, 3)}")
 </textarea>
     </div>
 
