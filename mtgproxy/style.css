@@ -402,7 +402,6 @@ footer a:hover {
 }
 
 /* Serialized Mark Styling */
-/* Serialized Mark Styling */
 .serialized-mark {
   position: absolute;
   /* Position relative to the card height. 
@@ -440,6 +439,10 @@ footer a:hover {
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .serialized-mark .sep {
@@ -449,8 +452,11 @@ footer a:hover {
   background-color: #fff;
   transform: skewX(-20deg);
   /* Slanted graphical slash */
-  margin: 0 3px;
+  margin: 0px 5px 0px 3px;
+  /* top right bottom left */
   /* Spacing around slash */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .serialized-mark .curr,
