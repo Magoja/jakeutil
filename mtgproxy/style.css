@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'Gotham Medium';
+  src: url('fonts/gotham-medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
 /* General body styling */
 body {
   font-family: Arial, sans-serif;
@@ -428,7 +435,7 @@ footer a:hover {
   overflow: hidden;
   /* Clip the skewed slash at corners */
 
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Gotham Medium', sans-serif;
   font-size: 12px;
   /* Smaller font */
   font-weight: 700;
@@ -463,7 +470,7 @@ footer a:hover {
 .serialized-mark .total {
   display: flex;
   align-items: center;
-  padding: 3px 0;
+  padding: 3px 0 2px 0;
   /* Add vertical padding back to text */
   line-height: 1;
 }
