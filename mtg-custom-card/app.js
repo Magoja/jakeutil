@@ -16,9 +16,11 @@ let state = {
   power: '',
   toughness: '',
   artist: '',
+  artist: '',
   symbolCache: {}
 };
 
+// Dragging State
 // Dragging State
 let isDragging = false;
 let startX, startY;
@@ -112,6 +114,7 @@ function setupEventListeners() {
   // Canvas Dragging
   canvas.addEventListener('mousedown', (e) => {
     isDragging = true;
+    dragDistance = 0;
     startX = e.offsetX;
     startY = e.offsetY;
   });
@@ -120,6 +123,7 @@ function setupEventListeners() {
     if (!isDragging) return;
     const dx = e.offsetX - startX;
     const dy = e.offsetY - startY;
+    dragDistance += Math.abs(dx) + Math.abs(dy);
     state.backgroundX += dx;
     state.backgroundY += dy;
     startX = e.offsetX;
@@ -130,9 +134,11 @@ function setupEventListeners() {
   canvas.addEventListener('mouseup', () => isDragging = false);
   canvas.addEventListener('mouseout', () => isDragging = false);
 
+
   // Download
   document.getElementById('download-btn').addEventListener('click', downloadCard);
 }
+
 
 function handleImageUpload(e) {
   const file = e.target.files[0];
@@ -194,6 +200,8 @@ function drawCard() {
     // but for now simple translation works.
     ctx.drawImage(img, state.backgroundX, state.backgroundY, scaledW, scaledH);
   }
+
+
   ctx.restore();
 
   // 3. Card Title Box
@@ -453,6 +461,7 @@ function downloadCard() {
   link.href = canvas.toDataURL('image/jpeg', 0.9);
   link.click();
 }
+
 
 // Start
 init();

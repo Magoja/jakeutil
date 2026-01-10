@@ -6,7 +6,68 @@ function logDebug(message) {
   console.log(message);
 }
 
-function createPreviewModalPopup(imgElement, name, urls) {
+function createSerializedMarkElement() {
+  const div = document.createElement('div');
+  div.classList.add('serialized-mark');
+  div.style.display = 'none'; // Hidden by default
+  return div;
+}
+
+function initializeSerializationState(markElement, currentInput, totalInput, checkbox) {
+  if (markElement && markElement.style.display !== 'none') {
+    if (markElement.dataset.current && markElement.dataset.total) {
+      currentInput.value = markElement.dataset.current;
+      totalInput.value = markElement.dataset.total;
+      checkbox.checked = true;
+    } else {
+      const text = markElement.innerText;
+      const parts = text.split('/');
+      if (parts.length === 2) {
+        currentInput.value = parts[0];
+        totalInput.value = parts[1];
+        checkbox.checked = true;
+      }
+    }
+  }
+}
+
+function updateSerializedMark(markElement, currentInput, totalInput, checkbox) {
+  if (checkbox.checked && currentInput.value && totalInput.value) {
+    markElement.dataset.current = currentInput.value;
+    markElement.dataset.total = totalInput.value;
+    // Graphic slash implementation
+    markElement.innerHTML = `<span class="curr">${currentInput.value}</span><span class="sep"></span><span class="total">${totalInput.value}</span>`;
+    markElement.style.display = 'flex';
+  } else {
+    markElement.style.display = 'none';
+  }
+}
+
+function handleSerializationInput(currentInput, totalInput, checkbox, markElement) {
+  // Auto-check if typing
+  if (currentInput.value || totalInput.value) {
+    if (!checkbox.checked) {
+      checkbox.checked = true;
+    }
+  }
+  updateSerializedMark(markElement, currentInput, totalInput, checkbox);
+}
+
+function handleDuplicateCard(name, urls, modal) {
+  const currentCount = document.querySelectorAll('.image-box').length;
+  if (currentCount >= 9) {
+    alert('Maximum limit of 9 cards reached.');
+    return;
+  }
+  const cardGrid = document.querySelector('.card-grid');
+  if (cardGrid) {
+    const newCard = createImageBox(name, urls);
+    cardGrid.appendChild(newCard);
+    modal.style.display = 'none';
+  }
+}
+
+function createPreviewModalPopup(imgElement, name, urls, markElement) {
   const modal = document.createElement('div');
   modal.classList.add('modal');
   modal.style.display = 'none';
@@ -31,6 +92,39 @@ function createPreviewModalPopup(imgElement, name, urls) {
   body.classList.add('modal-body');
   const imageGrid = document.createElement('div');
   imageGrid.classList.add('image-list-grid');
+  imageGrid.classList.add('image-list-grid');
+
+  // Serialization Controls
+  const serialControls = document.createElement('div');
+  serialControls.classList.add('serialization-controls');
+
+  const checkboxLabel = document.createElement('label');
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkboxLabel.appendChild(checkbox);
+  checkboxLabel.appendChild(document.createTextNode(' Enable Serialized Mark'));
+
+  const inputsDiv = document.createElement('div');
+  inputsDiv.classList.add('serial-inputs');
+  const currentInput = document.createElement('input');
+  currentInput.type = 'text';
+  currentInput.placeholder = '001';
+  currentInput.classList.add('serial-input');
+
+  const separator = document.createTextNode(' / ');
+
+  const totalInput = document.createElement('input');
+  totalInput.type = 'text';
+  totalInput.placeholder = '500';
+  totalInput.classList.add('serial-input');
+
+  inputsDiv.appendChild(currentInput);
+  inputsDiv.appendChild(separator);
+  inputsDiv.appendChild(totalInput);
+
+  serialControls.appendChild(checkboxLabel);
+  serialControls.appendChild(inputsDiv);
+
   body.appendChild(imageGrid);
 
   // Footer
@@ -46,6 +140,7 @@ function createPreviewModalPopup(imgElement, name, urls) {
   footer.appendChild(duplicateBtn);
 
   modalContent.appendChild(header);
+  modalContent.appendChild(serialControls); // Moved here to be fixed
   modalContent.appendChild(body);
   modalContent.appendChild(footer);
   modal.appendChild(modalContent);
@@ -81,22 +176,20 @@ function createPreviewModalPopup(imgElement, name, urls) {
   loadMoreBtn.addEventListener('click', renderBatch);
 
   // Duplicate Logic
-  duplicateBtn.addEventListener('click', () => {
-    const currentCount = document.querySelectorAll('.image-box').length;
-    if (currentCount >= 9) {
-      alert('Maximum limit of 9 cards reached.');
-      return;
-    }
-    const cardGrid = document.querySelector('.card-grid');
-    if (cardGrid) {
-      const newCard = createImageBox(name, urls);
-      cardGrid.appendChild(newCard);
-      modal.style.display = 'none';
-    }
-  });
+  duplicateBtn.addEventListener('click', () => handleDuplicateCard(name, urls, modal));
 
   // Initial render
   renderBatch();
+
+  // Serialization Logic
+  initializeSerializationState(markElement, currentInput, totalInput, checkbox);
+
+  checkbox.addEventListener('change', () => updateSerializedMark(markElement, currentInput, totalInput, checkbox));
+
+  const onInputMatch = () => handleSerializationInput(currentInput, totalInput, checkbox, markElement);
+
+  currentInput.addEventListener('input', onInputMatch);
+  totalInput.addEventListener('input', onInputMatch);
 
   return modal;
 }
@@ -152,7 +245,8 @@ function createImageBox(name, urls) {
 
   // Create the main image element
   const imgElement = createImageBoxForPrint(name, urls[0]);
-  const modal = createPreviewModalPopup(imgElement, name, urls);
+  const markElement = createSerializedMarkElement(); // Create mark
+  const modal = createPreviewModalPopup(imgElement, name, urls, markElement); // Pass mark
   attachPopupEventListeners(modal);
   document.body.appendChild(modal);
 
@@ -174,6 +268,7 @@ function createImageBox(name, urls) {
   });
 
   container.appendChild(imgElement);
+  container.appendChild(markElement); // Append mark
   return container;
 }
 
