@@ -152,3 +152,115 @@
   left: 5px;
   transform: rotate(45deg);
 }
+
+/* Play Window Styles */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.back-link {
+  position: absolute;
+  left: 0;
+  text-decoration: none;
+  color: #5d9cec;
+  font-weight: 500;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.status-message {
+  font-size: 1.2rem;
+  margin: 20px 0;
+  color: #666;
+}
+
+.status-message.error {
+  color: #d9534f;
+}
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 9px;
+  overflow: hidden;
+  width: 180px;
+  height: 252px;
+  /* Standard MTG card ratio 2.5:3.5 approx */
+  flex-shrink: 0;
+  /* Prevent shrinking below this size */
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  /* Force fill to ensure identical size regardless of source, usually cards are standard ratio anyway */
+  display: block;
+  border-radius: 9px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+/* Hover effect on the container, not just image */
+.card-item:hover .card-image {
+  transform: scale(1.05);
+}
+
+.flip-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Make it circular and nice */
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  opacity: 0;
+  /* Hidden by default */
+  transition: opacity 0.2s, background-color 0.2s, transform 0.2s;
+  z-index: 20;
+}
+
+/* Show button on hover */
+.card-item:hover .flip-button {
+  opacity: 1;
+}
+
+.flip-button:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.flip-button svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}

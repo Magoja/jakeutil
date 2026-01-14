@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sealed Practice - Play</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style.css">
   <style>
     .container {
       text-align: center;
@@ -21,22 +21,17 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="header">
+    <a href="index.html" class="back-link">← Back to Menu</a>
     <h1>Sealed Practice</h1>
-    <div id="set-display" class="set-display"></div>
   </div>
-
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const setCode = params.get('set');
-    const display = document.getElementById('set-display');
-
-    if (setCode) {
-      display.textContent = `Playing Sealed with Set Code: ${setCode.toUpperCase()}`;
-    } else {
-      display.textContent = "No set selected.";
-    }
-  </script>
+  <div id="status-message" class="status-message"></div>
+  <div class="container">
+    <div id="cards-container" class="cards-grid">
+      <!-- Cards will be rendered here -->
+    </div>
+  </div>
+  <script src="play.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,147 @@
+// play.js
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(window.location.search);
+  const setCode = params.get('set');
+  const statusMessage = document.getElementById('status-message');
+  const cardsContainer = document.getElementById('cards-container');
+
+  if (!setCode) {
+    statusMessage.textContent = "Error: No set selected.";
+    statusMessage.classList.add('error');
+    return;
+  }
+
+  statusMessage.textContent = `Loading cards for set: ${setCode.toUpperCase()}...`;
+
+  try {
+    const cards = await fetchAllCards(setCode);
+    if (cards.length === 0) {
+      statusMessage.textContent = `No cards found for set: ${setCode.toUpperCase()}`;
+      statusMessage.classList.add('error');
+      return;
+    }
+
+    statusMessage.style.display = 'none'; // Hide loading message on success
+    renderCards(cards);
+  } catch (error) {
+    console.error("Error loading cards:", error);
+    statusMessage.textContent = "Error loading cards. Please try again later.";
+    statusMessage.classList.add('error');
+  }
+});
+
+async function fetchAllCards(setCode) {
+  let url = `https://api.scryfall.com/cards/search?q=set:${setCode}`;
+  let allCards = [];
+  let hasMore = true;
+
+  while (hasMore) {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    const data = await response.json();
+
+    if (data.data) {
+      const parsedCards = data.data.map(parseCardData).filter(c => c !== null); // Filter out any failed parses if necessary
+      allCards = allCards.concat(parsedCards);
+    }
+
+    hasMore = data.has_more;
+    if (hasMore) {
+      url = data.next_page;
+    }
+  }
+  return allCards;
+}
+
+function parseCardData(cardData) {
+  try {
+    const parsed = {
+      id: cardData.collector_number, // Use collector number as ID
+      name: cardData.name,
+      rarity: cardData.rarity,
+      colors: cardData.colors || [],
+      color_identity: cardData.color_identity || [],
+      is_transform: false,
+      faces: []
+    };
+
+    if (cardData.card_faces && !cardData.image_uris) {
+      // Transform card (double-faced)
+      parsed.is_transform = true;
+      parsed.faces = cardData.card_faces.map(face => ({
+        name: face.name,
+        mana_cost: face.mana_cost,
+        type_line: face.type_line,
+        colors: face.colors || [],
+        power: face.power,
+        toughness: face.toughness,
+        oracle_text: face.oracle_text,
+        image_uris: face.image_uris
+      }));
+      // Set primary face for initial display if needed, but we'll use faces[0]
+    } else {
+      // Normal card (single-faced)
+      parsed.faces.push({
+        name: cardData.name,
+        mana_cost: cardData.mana_cost,
+        cmc: cardData.cmc,
+        type_line: cardData.type_line,
+        colors: cardData.colors || [],
+        power: cardData.power,
+        toughness: cardData.toughness,
+        oracle_text: cardData.oracle_text,
+        image_uris: cardData.image_uris
+      });
+    }
+
+    return parsed;
+  } catch (e) {
+    console.warn("Failed to parse card:", cardData, e);
+    return null;
+  }
+}
+
+function renderCards(cards) {
+  const container = document.getElementById('cards-container');
+  container.innerHTML = '';
+
+  cards.forEach(card => {
+    const cardElement = document.createElement('div');
+    cardElement.classList.add('card-item');
+
+    // Default to front face
+    let currentFaceIndex = 0;
+    const face = card.faces[0];
+    const imageUrl = face.image_uris ? face.image_uris.normal : ''; // Fallback if no image
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = face.name;
+    img.classList.add('card-image');
+
+    cardElement.appendChild(img);
+
+    if (card.is_transform) {
+      const flipBtn = document.createElement('button');
+      flipBtn.classList.add('flip-button');
+      flipBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>`;
+      flipBtn.onclick = () => {
+        currentFaceIndex = (currentFaceIndex + 1) % card.faces.length;
+        const newFace = card.faces[currentFaceIndex];
+        if (newFace.image_uris) {
+          img.src = newFace.image_uris.normal;
+          img.alt = newFace.name;
+        }
+      };
+      cardElement.appendChild(flipBtn);
+    }
+
+    // Add tooltip or other info if needed? 
+    // For now request just asked to load images on screen.
+
+    container.appendChild(cardElement);
+  });
+}
