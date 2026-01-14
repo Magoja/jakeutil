@@ -44,7 +44,7 @@ async function fetchAllCards(setCode) {
     const data = await response.json();
 
     if (data.data) {
-      const parsedCards = data.data.map(parseCardData).filter(c => c !== null); // Filter out any failed parses if necessary
+      const parsedCards = data.data.map(parseCardData).filter(c => c !== null);
       allCards = allCards.concat(parsedCards);
     }
 
@@ -53,20 +53,25 @@ async function fetchAllCards(setCode) {
       url = data.next_page;
     }
   }
+
+  // Sort by collector number
+  allCards.sort((a, b) => {
+    // secure sort for numeric strings (e.g. "1", "2", "10", "100")
+    // and also handles variants like "10a" vs "10b" correctly
+    return a.collector_number.localeCompare(b.collector_number, undefined, { numeric: true, sensitivity: 'base' });
+  });
+
   return allCards;
 }
 
 function parseCardData(cardData) {
   try {
-    const parsed = {
-      id: cardData.collector_number, // Use collector number as ID
-      name: cardData.name,
-      rarity: cardData.rarity,
-      colors: cardData.colors || [],
-      color_identity: cardData.color_identity || [],
-      is_transform: false,
-      faces: []
-    };
+    // Start with a shallow copy of everything so we don't drop metadata
+    const parsed = { ...cardData };
+
+    // Add our normalized fields on top
+    parsed.is_transform = false;
+    parsed.faces = [];
 
     if (cardData.card_faces && !cardData.image_uris) {
       // Transform card (double-faced)
@@ -81,7 +86,6 @@ function parseCardData(cardData) {
         oracle_text: face.oracle_text,
         image_uris: face.image_uris
       }));
-      // Set primary face for initial display if needed, but we'll use faces[0]
     } else {
       // Normal card (single-faced)
       parsed.faces.push({
