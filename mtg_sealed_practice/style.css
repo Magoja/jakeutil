@@ -1,9 +1,36 @@
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+#play-button {
+  height: 60px;
+  padding: 0 40px;
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  background-color: #5d9cec;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#play-button:hover {
+  background-color: #4a89dc;
+}
+
 .custom-select-wrapper {
   position: relative;
   user-select: none;
-  width: 500px;
+  width: 400px;
+  /* Adjusted width to fit alongside button comfortably */
 }
 
+/* Rest of the original CSS... */
 .custom-select {
   position: relative;
   display: flex;

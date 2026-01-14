@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const trigger = document.querySelector('.custom-select__trigger span');
   const optionsContainer = document.querySelector('.custom-select__options');
   let sets = [];
+  let currentSetCode = null;
 
   // Helper to calculate date difference
   function daysFromToday(dateString) {
@@ -31,6 +32,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function selectSet(set, optionElement) {
+    currentSetCode = set.code;
+
     // Update trigger text/icon
     trigger.innerHTML = `
         <div style="display: flex; align-items: center;">
@@ -121,6 +124,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.addEventListener('click', function (e) {
       if (!select.contains(e.target)) {
         select.classList.remove('open');
+      }
+    });
+
+    // Play button handler
+    document.getElementById('play-button').addEventListener('click', () => {
+      if (currentSetCode) {
+        window.location.href = `play.html?set=${currentSetCode}`;
+      } else {
+        alert("Please select a set first.");
       }
     });
 

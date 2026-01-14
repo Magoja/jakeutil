@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sealed Practice - Play</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .container {
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .set-display {
+      font-size: 24px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Sealed Practice</h1>
+    <div id="set-display" class="set-display"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const setCode = params.get('set');
+    const display = document.getElementById('set-display');
+
+    if (setCode) {
+      display.textContent = `Playing Sealed with Set Code: ${setCode.toUpperCase()}`;
+    } else {
+      display.textContent = "No set selected.";
+    }
+  </script>
+</body>
+
+</html>
