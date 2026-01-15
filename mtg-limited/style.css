@@ -8,7 +8,7 @@
 
   .container {
     text-align: center;
-    margin-top: 5px;
+    margin-top: 0px;
   }
 
   .set-display {
@@ -461,7 +461,7 @@
   /* Mobile Optimization */
   @media (max-width: 600px) {
     .container {
-      padding: 0 10px;
+      padding: 0 0px;
     }
 
     .controls {
@@ -507,8 +507,8 @@
     }
 
     .cards-grid {
-      padding: 5px;
-      gap: 6px;
+      padding: 0px;
+      gap: 1px;
       /* Smaller gap */
       justify-content: center;
     }
