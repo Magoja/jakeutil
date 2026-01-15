@@ -378,6 +378,33 @@
     fill: currentColor;
   }
 
+  /* Loading Spinner */
+  .spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #5d9cec;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+    /* Below flip button (20), but needs to be visible */
+    pointer-events: none;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
   .shortcut {
     display: flex;
     align-items: center;

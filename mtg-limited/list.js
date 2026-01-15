@@ -128,7 +128,19 @@ function createCardElement(card) {
   const face = card.faces[0];
   const imageUrl = face.image_uris ? face.image_uris.normal : ''; // Fallback if no image
 
+  // Spinner
+  const spinner = createSpinner();
+  cardElement.appendChild(spinner);
+
   const img = createCardImage(imageUrl, face.name);
+
+  // Hide spinner when image loads
+  img.onload = () => {
+    spinner.style.display = 'none';
+  };
+  img.onerror = () => {
+    spinner.style.display = 'none';
+  };
 
   cardElement.appendChild(img);
 
@@ -167,6 +179,12 @@ function createCardImage(imageUrl, name) {
   img.alt = name;
   img.classList.add('card-image');
   return img;
+}
+
+function createSpinner() {
+  const spinner = document.createElement('div');
+  spinner.classList.add('spinner');
+  return spinner;
 }
 
 function renderCards(cards) {
