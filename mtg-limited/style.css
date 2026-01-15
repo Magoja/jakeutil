@@ -399,3 +399,88 @@
     /* Reduced from 20px */
     height: 12px;
   }
+
+  /* Mobile Optimization */
+  @media (max-width: 600px) {
+    .container {
+      padding: 0 10px;
+    }
+
+    .controls {
+      flex-direction: column;
+      width: 100%;
+      gap: 10px;
+    }
+
+    .custom-select-wrapper {
+      width: 100%;
+    }
+
+    .custom-select__trigger {
+      width: 100%;
+      box-sizing: border-box;
+      /* Ensure padding doesn't overflow */
+    }
+
+    #play-button {
+      width: 100%;
+      height: 50px;
+      /* Slightly smaller height for mobile */
+    }
+
+    .set-display {
+      font-size: 20px;
+    }
+
+    fieldset {
+      padding: 10px !important;
+      /* Override inline style */
+    }
+
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    /* List View Mobile */
+    .header {
+      flex-wrap: wrap;
+      /* Allow wrapping on very small screens */
+      padding: 10px;
+    }
+
+    .cards-grid {
+      padding: 5px;
+      gap: 6px;
+      /* Smaller gap */
+      justify-content: center;
+    }
+
+    .card-item {
+      /* 2 items per row. 
+         width = (100% - gap) / 2 
+         gap is 6px, so subtract 3px from 50%? 
+         Let's be safe with calc(50% - 5px) to ensure they fit.
+      */
+      width: calc(50% - 5px);
+      height: auto;
+      aspect-ratio: 2.5 / 3.5;
+      border-radius: 6px;
+      /* Slightly smaller radius */
+    }
+
+    .card-image {
+      border-radius: 6px;
+    }
+
+    /* Adjust filter button size on mobile (~70% of desktop) */
+    .filter-btn {
+      width: 18px;
+      height: 18px;
+      font-size: 8px;
+    }
+
+    .filter-btn img {
+      width: 18px;
+      height: 18px;
+    }
+  }
