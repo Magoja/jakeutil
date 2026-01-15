@@ -62,24 +62,71 @@
         preview: "🎨"
       },
       {
-        name: "[Beta] MTG Limited Training",
+        name: "MTG Limited Training",
         url: "/mtg-limited/",
         description: "Review MTG sets for limited play",
-        preview: "📦"
+        preview: '<img src="mtg-limited/icon.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">'
       },
     ];
+
+    // Load recent apps
+    function getRecentApps() {
+      try {
+        return JSON.parse(localStorage.getItem('jakeutil_recent_apps')) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function trackAppUsage(appName) {
+      let recent = getRecentApps();
+      // Remove if exists
+      recent = recent.filter(name => name !== appName);
+      // Add to front
+      recent.unshift(appName);
+      // Limit to 5
+      if (recent.length > 5) recent.pop();
+      localStorage.setItem('jakeutil_recent_apps', JSON.stringify(recent));
+    }
+
+    // Sort apps by recency
+    function sortApps(appList) {
+      const recent = getRecentApps();
+      if (recent.length === 0) return appList;
+
+      return [...appList].sort((a, b) => {
+        const indexA = recent.indexOf(a.name);
+        const indexB = recent.indexOf(b.name);
+
+        // If both are recent, sort by index (lower index = more recent = first)
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        // If a is recent but b is not, a comes first
+        if (indexA !== -1) return -1;
+        // If b is recent but a is not, b comes first
+        if (indexB !== -1) return 1;
+        // Neither is recent, keep original order (or alphabetical?)
+        // Keeping original order for now as per array definition
+        return 0;
+      });
+    }
 
     function renderApps(list) {
       const cards = document.getElementById('cards');
       cards.innerHTML = '';
-      list.forEach(app => {
+
+      // Sort before rendering
+      const sortedList = sortApps(list);
+
+      sortedList.forEach(app => {
         const card = document.createElement('div');
         card.className = 'card';
+        // Use data attribute or escape name for safety
+        const safeName = app.name.replace(/'/g, "\\'");
         card.innerHTML = `
           <div class="preview">${app.preview || '🔧'}</div>
           <div class="app-name">${app.name}</div>
           <div class="desc">${app.description}</div>
-          <a class="link" href="${app.url}" target="_blank">Open</a>
+          <a class="link" href="${app.url}" target="_blank" onclick="trackAppUsage('${safeName}')">Open</a>
         `;
         cards.appendChild(card);
       });
@@ -87,10 +134,12 @@
 
     function filterApps() {
       const q = document.getElementById('search').value.toLowerCase();
-      renderApps(apps.filter(app =>
+      // Only filter, let renderApps handle sorting
+      const filtered = apps.filter(app =>
         app.name.toLowerCase().includes(q) ||
         app.description.toLowerCase().includes(q)
-      ));
+      );
+      renderApps(filtered);
     }
 
     renderApps(apps);
