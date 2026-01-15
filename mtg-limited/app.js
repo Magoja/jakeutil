@@ -170,15 +170,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Default select the first one (latest)
-    if (optionsContainer.firstElementChild) {
-      optionsContainer.firstElementChild.click();
+    // Default select the first valid set (latest)
+    if (sets.length > 0) {
+      selectDefaultSet(sets);
     }
 
     // Add 4 shortcut buttons for the latest 4 sets
     const shortcutContainer = document.getElementById('shortcut-container');
     if (shortcutContainer && sets.length > 0) {
       createSetShortcuts(shortcutContainer, sets, 16);
+    }
+  }
+
+  function selectDefaultSet(sets) {
+    const validTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
+    // It's already sorted by date. Find the first matching set.
+    const targetSet = sets.find(set => validTypes.includes(set.set_type));
+
+    if (targetSet) {
+      // Find the option element
+      // We can iterate optionsContainer.children, or simpler:
+      // Since we created options in order of 'sets', we can find it by value.
+      const option = Array.from(optionsContainer.children).find(opt => opt.dataset.value === targetSet.code);
+      if (option) {
+        selectSet(targetSet, option);
+      }
+    } else if (sets.length > 0 && optionsContainer.firstElementChild) {
+      // Fallback: select whatever is first if no "valid" type found
+      selectSet(sets[0], optionsContainer.firstElementChild);
     }
   }
 
