@@ -45,8 +45,8 @@
   .custom-select-wrapper {
     position: relative;
     user-select: none;
-    width: 400px;
-    /* Adjusted width to fit alongside button comfortably */
+    width: 600px;
+    /* Adjusted width to not fit alongside button comfortably */
   }
 
   /* Rest of the original CSS... */

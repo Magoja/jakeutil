@@ -119,46 +119,62 @@ function parseCardData(cardData) {
   }
 }
 
+function createCardElement(card) {
+  const cardElement = document.createElement('div');
+  cardElement.classList.add('card-item');
+
+  // Default to front face
+  let currentFaceIndex = 0;
+  const face = card.faces[0];
+  const imageUrl = face.image_uris ? face.image_uris.normal : ''; // Fallback if no image
+
+  const img = createCardImage(imageUrl, face.name);
+
+  cardElement.appendChild(img);
+
+  if (card.is_transform) {
+    cardElement.classList.add('transformable');
+
+    const flipBtn = createFlipButton();
+
+    // Make whole card clickable for transform cards
+    cardElement.onclick = () => {
+      currentFaceIndex = (currentFaceIndex + 1) % card.faces.length;
+      const newFace = card.faces[currentFaceIndex];
+      if (newFace.image_uris) {
+        img.src = newFace.image_uris.normal;
+        img.alt = newFace.name;
+      }
+    };
+
+    cardElement.appendChild(flipBtn);
+  }
+
+  return cardElement;
+}
+
+function createFlipButton() {
+  const flipBtn = document.createElement('button');
+  flipBtn.classList.add('flip-button');
+  flipBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>`;
+  return flipBtn;
+}
+
+function createCardImage(imageUrl, name) {
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.loading = "lazy"; // Native lazy loading
+  img.alt = name;
+  img.classList.add('card-image');
+  return img;
+}
+
 function renderCards(cards) {
   const container = document.getElementById('cards-container');
   container.innerHTML = '';
 
   cards.forEach(card => {
-    const cardElement = document.createElement('div');
-    cardElement.classList.add('card-item');
-
-    // Default to front face
-    let currentFaceIndex = 0;
-    const face = card.faces[0];
-    const imageUrl = face.image_uris ? face.image_uris.normal : ''; // Fallback if no image
-
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.loading = "lazy"; // Native lazy loading
-    img.alt = face.name;
-    img.classList.add('card-image');
-
-    cardElement.appendChild(img);
-
-    if (card.is_transform) {
-      cardElement.classList.add('transformable');
-
-      const flipBtn = document.createElement('button');
-      flipBtn.classList.add('flip-button');
-      flipBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>`;
-
-      // Make whole card clickable for transform cards
-      cardElement.onclick = () => {
-        currentFaceIndex = (currentFaceIndex + 1) % card.faces.length;
-        const newFace = card.faces[currentFaceIndex];
-        if (newFace.image_uris) {
-          img.src = newFace.image_uris.normal;
-          img.alt = newFace.name;
-        }
-      };
-
-      cardElement.appendChild(flipBtn);
-    }
+    const cardElement = createCardElement(card);
 
     // Add tooltip or other info if needed? 
     // For now request just asked to load images on screen.
