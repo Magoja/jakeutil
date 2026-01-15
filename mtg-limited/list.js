@@ -181,9 +181,9 @@ function createFilterBar() {
     { key: 'B', icon: 'icons/icon-4.png', label: 'B' },
     { key: 'R', icon: 'icons/icon-5.png', label: 'R' },
     { key: 'G', icon: 'icons/icon-1.png', label: 'G' },
-    { key: 'C', label: 'C', title: 'Colorless' },
-    { key: 'M', label: 'M', title: 'Multicolor' },
-    { key: 'L', label: 'L', title: 'Land' }
+    { key: 'C', icon: 'icons/icon-6.png', label: 'C' },
+    { key: 'M', icon: 'icons/icon-31.png', label: 'M' },
+    { key: 'L', icon: 'icons/icon-9.png', label: 'L' }
   ];
 
   filters.forEach(f => {
