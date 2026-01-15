@@ -134,6 +134,7 @@ function renderCards(cards) {
 
     const img = document.createElement('img');
     img.src = imageUrl;
+    img.loading = "lazy"; // Native lazy loading
     img.alt = face.name;
     img.classList.add('card-image');
 
