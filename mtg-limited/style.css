@@ -235,6 +235,10 @@
     transform: scale(1.05);
   }
 
+  .transformable {
+    cursor: pointer;
+  }
+
   .flip-button {
     position: absolute;
     top: 50%;
@@ -252,8 +256,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: none;
+    /* Let clicks pass through to the card */
 
-    cursor: pointer;
     opacity: 0;
     /* Hidden by default */
     transition: opacity 0.2s, background-color 0.2s, transform 0.2s;
