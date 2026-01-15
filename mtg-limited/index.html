@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG Sealed Practice</title>
+  <link rel="stylesheet" href="../style.css"> <!-- Inherit global styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>MTG Limited Training</h1>
+    <div id="loading-indicator">Loading sets...</div>
+
+    <fieldset style="border: 1px solid #ccc; padding: 20px; border-radius: 8px; margin: 20px auto; max-width: 800px;">
+      <legend style="padding: 0 10px; font-weight: bold;">Visual Spoiler</legend>
+      <div class="subtitle">Select a set or use a shortcut.</div>
+      <div class="controls" style="margin-top: 0;">
+        <div class="custom-select-wrapper">
+          <div class="custom-select">
+            <div class="custom-select__trigger"><span>Select a Set</span>
+              <div class="arrow"></div>
+            </div>
+            <div class="custom-select__options">
+              <!-- Options will be populated by JS -->
+            </div>
+          </div>
+        </div>
+        <button id="play-button">Open</button>
+      </div>
+
+      <div id="shortcut-container"
+        style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <!-- Shortcuts will be populated by JS -->
+      </div>
+    </fieldset>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+<footer class="sticky-footer">
+  By Jake, JAN/2026.
+  <a href="mailto:info@jakeutil.com">Email</a> |
+  <a href="https://github.com/Magoja/jakeutil">Github Repository</a>
+</footer>
+
+</html>

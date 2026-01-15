@@ -71,6 +71,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     return option;
   }
 
+  function createSetButton(set) {
+    const btn = document.createElement('button');
+    // Use flex layout for image + text
+    btn.style.display = "flex";
+    btn.style.alignItems = "center";
+    btn.style.gap = "8px";
+    btn.style.padding = "10px 15px";
+    btn.style.border = "1px solid #ccc";
+    btn.style.borderRadius = "5px";
+    btn.style.cursor = "pointer";
+    btn.style.backgroundColor = "#f0f0f0";
+
+    btn.innerHTML = `
+        <img src="${set.icon_svg_uri}" alt="" style="width: 20px; height: 20px;">
+        <span>${set.name}</span>
+    `;
+
+    btn.addEventListener('click', () => {
+      window.location.href = `list.html?set=${set.code}`;
+    });
+    return btn;
+  }
+
+  function createSetShortcuts(shortcutContainer, sets, count) {
+    const latest = sets.slice(0, count);
+    latest.forEach(set => {
+      shortcutContainer.appendChild(createSetButton(set));
+    });
+  }
+
   async function fetchAllSets() {
     let url = 'https://api.scryfall.com/sets/'; // Initial URL
     let allSets = [];
@@ -101,7 +131,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function init() {
     const allSets = await fetchAllSets();
-    sets = allSets.filter(filterSets);
+
+    // Filter sets: Remove expansion check, but keep the "future" logic if we want to avoid very future sets?
+    // Request said: "List all sets without filtering, except future sets with drop down combo."
+    // Interpreting as: Show all sets in the dropdown.
+    // However, usually we still want to filter out sets that are too far in the future to have cards.
+    // The previous logic allowed sets released within 14 days.
+    // I will remove the 'expansion' check. I will keep the date check to avoid listing sets 2 years out.
+    sets = allSets.filter(set => {
+      // Keep date logic for now (<= 14 days from now)
+      if (!set.released_at) return false;
+      const days = daysFromToday(set.released_at);
+      return days <= 14;
+    });
 
     // Populate options
     if (sets.length === 0) {
@@ -127,10 +169,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Play button handler
+    // Play/Open button handler
     document.getElementById('play-button').addEventListener('click', () => {
       if (currentSetCode) {
-        window.location.href = `play.html?set=${currentSetCode}`;
+        window.location.href = `list.html?set=${currentSetCode}`;
       } else {
         alert("Please select a set first.");
       }
@@ -139,6 +181,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Default select the first one (latest)
     if (optionsContainer.firstElementChild) {
       optionsContainer.firstElementChild.click();
+    }
+
+    // Add 4 shortcut buttons for the latest 4 sets
+    const shortcutContainer = document.getElementById('shortcut-container');
+    if (shortcutContainer && sets.length > 0) {
+      createSetShortcuts(shortcutContainer, sets, 6);
     }
   }
 
