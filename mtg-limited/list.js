@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     statusMessage.style.display = 'none'; // Hide loading message on success
 
+    // Save last viewed set
+    localStorage.setItem('mtg_limited_last_set', setCode);
+
     // Initialize Filters
     createFilterBar();
     renderCards(cards); // Initial render

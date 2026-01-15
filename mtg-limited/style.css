@@ -427,6 +427,37 @@
     height: 12px;
   }
 
+  .quick-start-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    padding: 15px 20px;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+    background-color: #4a89dc;
+    /* Blue */
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, background-color 0.2s;
+  }
+
+  .quick-start-btn:hover {
+    background-color: #3b6fb6;
+    transform: translateY(-2px);
+  }
+
+  .quick-start-btn img {
+    width: 32px;
+    height: 32px;
+  }
+
   /* Mobile Optimization */
   @media (max-width: 600px) {
     .container {

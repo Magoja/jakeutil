@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     optionElement.classList.add('selected');
 
     console.log("Selected set:", set.code, set.name);
+    // Save selection
+    localStorage.setItem('mtg_limited_last_set', set.code);
   }
 
   function createOption(set) {
@@ -182,22 +184,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function selectDefaultSet(sets) {
+  function findDefaultSet(sets) {
     const validTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
-    // It's already sorted by date. Find the first matching set.
-    const targetSet = sets.find(set => validTypes.includes(set.set_type));
+    return sets.find(set => validTypes.includes(set.set_type)) || sets[0];
+  }
 
-    if (targetSet) {
-      // Find the option element
-      // We can iterate optionsContainer.children, or simpler:
-      // Since we created options in order of 'sets', we can find it by value.
-      const option = Array.from(optionsContainer.children).find(opt => opt.dataset.value === targetSet.code);
+  function findPreferredSet(sets) {
+    // 1. Check localStorage for last viewed/selected set
+    const lastSetCode = localStorage.getItem('mtg_limited_last_set');
+    if (lastSetCode) {
+      const lastSet = sets.find(s => s.code === lastSetCode);
+      if (lastSet) return lastSet;
+    }
+    // 2. Fallback to default
+    return findDefaultSet(sets);
+  }
+
+  function selectDefaultSet(sets) {
+    // Select the preferred set (Restored > Default)
+    const initialSet = findPreferredSet(sets);
+    if (initialSet) {
+      const option = Array.from(optionsContainer.children).find(opt => opt.dataset.value === initialSet.code);
       if (option) {
-        selectSet(targetSet, option);
+        selectSet(initialSet, option);
       }
-    } else if (sets.length > 0 && optionsContainer.firstElementChild) {
-      // Fallback: select whatever is first if no "valid" type found
-      selectSet(sets[0], optionsContainer.firstElementChild);
+    }
+
+    updateQuickStartButton(findDefaultSet(sets));
+  }
+
+  function updateQuickStartButton(set) {
+    const quickStartBtn = document.getElementById('default-set-btn');
+
+    if (quickStartBtn && set) {
+      quickStartBtn.innerHTML = `
+            <img src="${set.icon_svg_uri}" alt="">
+            <span>Go to ${set.name}</span>
+        `;
+      quickStartBtn.onclick = () => {
+        window.location.href = `list.html?set=${set.code}`;
+      };
+      quickStartBtn.style.display = 'flex';
     }
   }
 
