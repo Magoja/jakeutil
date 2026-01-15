@@ -73,18 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function createSetButton(set) {
     const btn = document.createElement('button');
-    // Use flex layout for image + text
-    btn.style.display = "flex";
-    btn.style.alignItems = "center";
-    btn.style.gap = "8px";
-    btn.style.padding = "10px 15px";
-    btn.style.border = "1px solid #ccc";
-    btn.style.borderRadius = "5px";
-    btn.style.cursor = "pointer";
-    btn.style.backgroundColor = "#f0f0f0";
+    btn.classList.add('shortcut');
 
     btn.innerHTML = `
-        <img src="${set.icon_svg_uri}" alt="" style="width: 20px; height: 20px;">
+        <img src="${set.icon_svg_uri}" alt="">
         <span>${set.name}</span>
     `;
 
@@ -186,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Add 4 shortcut buttons for the latest 4 sets
     const shortcutContainer = document.getElementById('shortcut-container');
     if (shortcutContainer && sets.length > 0) {
-      createSetShortcuts(shortcutContainer, sets, 6);
+      createSetShortcuts(shortcutContainer, sets, 16);
     }
   }
 

@@ -377,3 +377,25 @@
     height: 24px;
     fill: currentColor;
   }
+
+  .shortcut {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    /* Reduced from 8px */
+    padding: 6px 9px;
+    /* Reduced from 10px 15px */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    /* Slightly reduced radius */
+    cursor: pointer;
+    background-color: #f0f0f0;
+    font-size: 0.8rem;
+    /* Reduce font size */
+  }
+
+  .shortcut img {
+    width: 12px;
+    /* Reduced from 20px */
+    height: 12px;
+  }
