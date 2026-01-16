@@ -1,11 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const loadingIndicator = document.getElementById('loading-indicator');
-  const selectWrapper = document.querySelector('.custom-select-wrapper');
-  const select = document.querySelector('.custom-select');
-  const trigger = document.querySelector('.custom-select__trigger span');
-  const optionsContainer = document.querySelector('.custom-select__options');
-  let sets = [];
-  let currentSetCode = null;
+
+  // Visual Spoiler State
+  let visualSpoilerSetCode = null;
+  // Open Booster State
+  let boosterSetCode = null;
 
   // Helper to calculate date difference
   function daysFromToday(dateString) {
@@ -15,63 +14,83 @@ document.addEventListener('DOMContentLoaded', async () => {
     return timeDiff / (1000 * 3600 * 24);
   }
 
-  function filterSets(set) {
-    // Filter sets
-    // 1. set_type must be expansion
-    // 2. released_at is not more than 2 weeks in future
-    if (set.set_type !== 'expansion') return false;
+  // Generic Dropdown Setup
+  function setupDropdown(wrapperSelector, sets, onSelect, defaultSet = null) {
+    const wrapper = document.querySelector(wrapperSelector);
+    if (!wrapper) return;
 
-    if (!set.released_at) return false;
+    const select = wrapper.querySelector('.custom-select');
+    const trigger = wrapper.querySelector('.custom-select__trigger span');
+    const optionsContainer = wrapper.querySelector('.custom-select__options');
 
-    const days = daysFromToday(set.released_at);
-    // If days > 14, it's too far in the future.
-    // We want sets released in the past, OR sets releasing within 14 days.
-    // days <= 14 means it is either in the past (negative or small positive) 
-    // or in the near future.
-    return days <= 14;
-  }
+    // Clear existing options
+    optionsContainer.innerHTML = '';
 
-  function selectSet(set, optionElement) {
-    currentSetCode = set.code;
+    function updateTrigger(set) {
+      trigger.innerHTML = `
+            <div style="display: flex; align-items: center;">
+                  <img src="${set.icon_svg_uri}" class="icon" alt="${set.name}" style="height: 20px; width: 20px; margin-right: 10px;">
+                  ${set.name}
+            </div>
+        `;
+    }
 
-    // Update trigger text/icon
-    trigger.innerHTML = `
-        <div style="display: flex; align-items: center;">
-              <img src="${set.icon_svg_uri}" class="icon" alt="${set.name}" style="height: 20px; width: 20px; margin-right: 10px;">
-              ${set.name}
-        </div>
-    `;
+    sets.forEach(set => {
+      const option = document.createElement('div');
+      option.classList.add('custom-option');
+      option.dataset.value = set.code;
 
-    select.classList.remove('open');
+      const isFuture = daysFromToday(set.released_at) > 0;
+      const releasedText = isFuture ? ` (Releases: ${set.released_at})` : '';
 
-    // Remove selected class from others
-    document.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
-    optionElement.classList.add('selected');
-
-    console.log("Selected set:", set.code, set.name);
-    // Save selection
-    localStorage.setItem('mtg_limited_last_set', set.code);
-  }
-
-  function createOption(set) {
-    const option = document.createElement('div');
-    option.classList.add('custom-option');
-    option.dataset.value = set.code;
-
-    const isFuture = daysFromToday(set.released_at) > 0;
-    const releasedText = isFuture ? ` (Releases: ${set.released_at})` : '';
-
-    option.innerHTML = `
+      option.innerHTML = `
                 <img src="${set.icon_svg_uri}" class="icon" alt="${set.name}">
                 <span>${set.name}${releasedText}</span>
             `;
 
-    option.addEventListener('click', function () {
-      selectSet(set, this);
+      option.addEventListener('click', function () {
+        select.classList.remove('open');
+
+        // Update UI
+        updateTrigger(set);
+
+        // Update selected class
+        wrapper.querySelectorAll('.custom-option').forEach(opt => opt.classList.remove('selected'));
+        this.classList.add('selected');
+
+        // Callback
+        onSelect(set);
+      });
+      optionsContainer.appendChild(option);
     });
 
-    return option;
+    // Trigger Click
+    const triggerBtn = wrapper.querySelector('.custom-select__trigger');
+    triggerBtn.addEventListener('click', function (e) {
+      e.stopPropagation(); // Prevent bubble to window
+      // Close other dropdowns? For now just toggle this one.
+      select.classList.toggle('open');
+    });
+
+    // Default Selection
+    if (defaultSet) {
+      const option = Array.from(optionsContainer.children).find(opt => opt.dataset.value === defaultSet.code);
+      if (option) {
+        updateTrigger(defaultSet);
+        option.classList.add('selected');
+        onSelect(defaultSet);
+      }
+    }
   }
+
+  // Global click to close dropdowns
+  window.addEventListener('click', function (e) {
+    document.querySelectorAll('.custom-select').forEach(select => {
+      if (!select.contains(e.target)) {
+        select.classList.remove('open');
+      }
+    });
+  });
 
   function createSetButton(set) {
     const btn = document.createElement('button');
@@ -96,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function fetchAllSets() {
-    let url = 'https://api.scryfall.com/sets/'; // Initial URL
+    let url = 'https://api.scryfall.com/sets/';
     let allSets = [];
     let hasMore = true;
 
@@ -123,67 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function init() {
-    const allSets = await fetchAllSets();
-
-    // Filter sets: Remove expansion check, but keep the "future" logic if we want to avoid very future sets?
-    // Request said: "List all sets without filtering, except future sets with drop down combo."
-    // Interpreting as: Show all sets in the dropdown.
-    // However, usually we still want to filter out sets that are too far in the future to have cards.
-    // The previous logic allowed sets released within 14 days.
-    // I will remove the 'expansion' check. I will keep the date check to avoid listing sets 2 years out.
-    sets = allSets.filter(set => {
-      // Keep date logic for now (<= 14 days from now)
-      if (!set.released_at) return false;
-      const days = daysFromToday(set.released_at);
-      return days <= 14;
-    });
-
-    // Populate options
-    if (sets.length === 0) {
-      loadingIndicator.textContent = "No valid sets found.";
-      return;
-    }
-
-    loadingIndicator.style.display = 'none';
-
-    sets.forEach(set => {
-      optionsContainer.appendChild(createOption(set));
-    });
-
-    // Toggle dropdown open
-    document.querySelector('.custom-select__trigger').addEventListener('click', function () {
-      select.classList.toggle('open');
-    });
-
-    // Close dropdown if clicked outside
-    window.addEventListener('click', function (e) {
-      if (!select.contains(e.target)) {
-        select.classList.remove('open');
-      }
-    });
-
-    // Play/Open button handler
-    document.getElementById('play-button').addEventListener('click', () => {
-      if (currentSetCode) {
-        window.location.href = `list.html?set=${currentSetCode}`;
-      } else {
-        alert("Please select a set first.");
-      }
-    });
-
-    // Default select the first valid set (latest)
-    if (sets.length > 0) {
-      selectDefaultSet(sets);
-    }
-
-    // Add 4 shortcut buttons for the latest 4 sets
-    const shortcutContainer = document.getElementById('shortcut-container');
-    if (shortcutContainer && sets.length > 0) {
-      createSetShortcuts(shortcutContainer, sets, 16);
-    }
-  }
-
   function findDefaultSet(sets) {
     const validTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
     return sets.find(set => validTypes.includes(set.set_type)) || sets[0];
@@ -200,19 +158,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return findDefaultSet(sets);
   }
 
-  function selectDefaultSet(sets) {
-    // Select the preferred set (Restored > Default)
-    const initialSet = findPreferredSet(sets);
-    if (initialSet) {
-      const option = Array.from(optionsContainer.children).find(opt => opt.dataset.value === initialSet.code);
-      if (option) {
-        selectSet(initialSet, option);
-      }
-    }
-
-    updateQuickStartButton(findDefaultSet(sets));
-  }
-
   function updateQuickStartButton(set) {
     const quickStartBtn = document.getElementById('default-set-btn');
 
@@ -226,6 +171,86 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
       quickStartBtn.style.display = 'flex';
     }
+  }
+
+  async function init() {
+    const allSets = await fetchAllSets();
+
+    if (allSets.length === 0) {
+      loadingIndicator.textContent = "No valid sets found.";
+      return;
+    }
+
+    loadingIndicator.style.display = 'none';
+
+    // --- Visual Spoiler Section ---
+    // Rules: No 'expansion' check required, just date logic to avoid far future sets.
+    const visualSets = allSets.filter(set => {
+      if (!set.released_at) return false;
+      const days = daysFromToday(set.released_at);
+      return days <= 14;
+    });
+
+    const initVisualSet = findPreferredSet(visualSets);
+
+    // Note: Used '.custom-select-wrapper' in index.html for the first one manually, 
+    // but now adding ID to second one. Let's assume the first one is just .custom-select-wrapper 
+    // or we can add ID to it if we want, but simpler to just use class for first one if unique context.
+    // Actually, simpler: I'll target the first one specifically or add ID in index.html?
+    // I didn't add ID to first one in index.html. I only added ID for the booster one.
+    // So distinct them by: .custom-select-wrapper:not(#booster-select-wrapper) ?
+
+    setupDropdown('.custom-select-wrapper:not(#booster-select-wrapper)', visualSets, (set) => {
+      visualSpoilerSetCode = set.code;
+      console.log("Visual Set:", set.code);
+      localStorage.setItem('mtg_limited_last_set', set.code);
+    }, initVisualSet);
+
+    // Play/Open button for Visual Spoiler
+    document.getElementById('play-button').addEventListener('click', () => {
+      if (visualSpoilerSetCode) {
+        window.location.href = `list.html?set=${visualSpoilerSetCode}`;
+      } else {
+        alert("Please select a set first.");
+      }
+    });
+
+    // Shortcuts
+    const shortcutContainer = document.getElementById('shortcut-container');
+    if (shortcutContainer && visualSets.length > 0) {
+      createSetShortcuts(shortcutContainer, visualSets, 16);
+    }
+    updateQuickStartButton(findDefaultSet(visualSets));
+
+
+    // --- Open Boosters Section ---
+    // Rules: Limited relevant sets only (core, expansion, masters, draft_innovation)
+    const limitedTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
+    const boosterSets = allSets.filter(set => {
+      if (!set.released_at) return false;
+      const days = daysFromToday(set.released_at);
+      if (days > 14) return false; // Not too far in future
+      return limitedTypes.includes(set.set_type);
+    });
+
+    // Default to latest
+    const initBoosterSet = boosterSets[0]; // Since validTypes are usually what we want, and it's sorted by release usually? 
+    // Scryfall returns usually sorted by date desc? Actually we should double check if we need sorting.
+    // Assuming Scryfall API returns roughly chronological or reverse chronological. 
+    // We'll just grab the first one as "Latest".
+
+    setupDropdown('#booster-select-wrapper', boosterSets, (set) => {
+      boosterSetCode = set.code;
+      console.log("Booster Set:", set.code);
+    }, initBoosterSet);
+
+    document.getElementById('booster-open-button').addEventListener('click', () => {
+      if (boosterSetCode) {
+        window.location.href = `booster.html?set=${boosterSetCode}`;
+      } else {
+        alert("Please select a set first.");
+      }
+    });
   }
 
   init();

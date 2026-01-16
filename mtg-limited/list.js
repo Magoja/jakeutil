@@ -18,109 +18,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  statusMessage.textContent = `Loading cards for set: ${setCode.toUpperCase()}...`;
+  async function init() {
+    statusMessage.textContent = `Loading cards for set: ${setCode.toUpperCase()}...`;
 
-  try {
-    const cards = await fetchAllCards(setCode);
-    if (cards.length === 0) {
-      statusMessage.textContent = `No cards found for set: ${setCode.toUpperCase()}`;
+    try {
+      const cards = await Scryfall.fetchCards(`set:${setCode}`);
+      if (cards.length === 0) {
+        statusMessage.textContent = `No cards found for set: ${setCode.toUpperCase()}`;
+        statusMessage.classList.add('error');
+        return;
+      }
+
+      statusMessage.style.display = 'none';
+
+      // Save last viewed set
+      localStorage.setItem('mtg_limited_last_set', setCode);
+
+      // Initialize Filters
+      allCardsGlobal = cards; // Global update
+      createFilterBar();
+      renderCards(cards);
+
+    } catch (error) {
+      console.error("Error loading cards:", error);
+      statusMessage.textContent = "Error loading cards. Please try again later.";
       statusMessage.classList.add('error');
-      return;
     }
-
-    statusMessage.style.display = 'none'; // Hide loading message on success
-
-    // Save last viewed set
-    localStorage.setItem('mtg_limited_last_set', setCode);
-
-    // Initialize Filters
-    createFilterBar();
-    renderCards(cards); // Initial render
-  } catch (error) {
-    console.error("Error loading cards:", error);
-    statusMessage.textContent = "Error loading cards. Please try again later.";
-    statusMessage.classList.add('error');
   }
+
+  init();
 });
-
-async function fetchAllCards(setCode) {
-  let url = `https://api.scryfall.com/cards/search?q=set:${setCode}`;
-  let allCards = [];
-  let hasMore = true;
-
-  while (hasMore) {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`API Error: ${response.status}`);
-    }
-    const data = await response.json();
-
-    if (data.data) {
-      const parsedCards = data.data.map(parseCardData).filter(c => c !== null);
-      allCards = allCards.concat(parsedCards);
-    }
-
-    hasMore = data.has_more;
-    if (hasMore) {
-      url = data.next_page;
-    }
-  }
-
-  // Sort by collector number
-  allCards.sort((a, b) => {
-    // secure sort for numeric strings (e.g. "1", "2", "10", "100")
-    // and also handles variants like "10a" vs "10b" correctly
-    return a.collector_number.localeCompare(b.collector_number, undefined, { numeric: true, sensitivity: 'base' });
-  });
-
-
-  allCardsGlobal = allCards; // Save to global variable
-  return allCards;
-}
-
-function parseCardData(cardData) {
-  try {
-    // Start with a shallow copy of everything so we don't drop metadata
-    const parsed = { ...cardData };
-
-    // Add our normalized fields on top
-    parsed.is_transform = false;
-    parsed.faces = [];
-
-    if (cardData.card_faces && !cardData.image_uris) {
-      // Transform card (double-faced)
-      parsed.is_transform = true;
-      parsed.faces = cardData.card_faces.map(face => ({
-        name: face.name,
-        mana_cost: face.mana_cost,
-        type_line: face.type_line,
-        colors: face.colors || [],
-        power: face.power,
-        toughness: face.toughness,
-        oracle_text: face.oracle_text,
-        image_uris: face.image_uris
-      }));
-    } else {
-      // Normal card (single-faced)
-      parsed.faces.push({
-        name: cardData.name,
-        mana_cost: cardData.mana_cost,
-        cmc: cardData.cmc,
-        type_line: cardData.type_line,
-        colors: cardData.colors || [],
-        power: cardData.power,
-        toughness: cardData.toughness,
-        oracle_text: cardData.oracle_text,
-        image_uris: cardData.image_uris
-      });
-    }
-
-    return parsed;
-  } catch (e) {
-    console.warn("Failed to parse card:", cardData, e);
-    return null;
-  }
-}
 
 function createCardElement(card) {
   const cardElement = document.createElement('div');
