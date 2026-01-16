@@ -284,11 +284,11 @@ function applyFilters() {
     const isColorless = colors.length === 0 && !isLand;
 
     // Check Matches
-    if (filterState.has('W') && colors.includes('W')) return true;
-    if (filterState.has('U') && colors.includes('U')) return true;
-    if (filterState.has('B') && colors.includes('B')) return true;
-    if (filterState.has('R') && colors.includes('R')) return true;
-    if (filterState.has('G') && colors.includes('G')) return true;
+    if (!isMulticolor && filterState.has('W') && colors.includes('W')) return true;
+    if (!isMulticolor && filterState.has('U') && colors.includes('U')) return true;
+    if (!isMulticolor && filterState.has('B') && colors.includes('B')) return true;
+    if (!isMulticolor && filterState.has('R') && colors.includes('R')) return true;
+    if (!isMulticolor && filterState.has('G') && colors.includes('G')) return true;
 
     if (filterState.has('C') && isColorless) return true;
     if (filterState.has('M') && isMulticolor) return true;
