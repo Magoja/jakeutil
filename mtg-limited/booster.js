@@ -88,14 +88,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     return null;
   }
 
-  function createCardImage(card) {
-    const img = document.createElement('img');
-    img.src = Scryfall.getPrimaryImage(card);
-    img.classList.add('card-img');
-    img.alt = card.name;
-    return img;
-  }
-
   function generatePackData() {
     const pack = [];
     // Slot 1: Rare/Mythic (Approx 1/8 chance of Mythic)
@@ -113,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     container.innerHTML = '';
 
     generatePackData().forEach(card => {
-      container.appendChild(createCardImage(card));
+      container.appendChild(CardUI.createCardElement(card));
     });
   }
 

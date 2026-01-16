@@ -553,32 +553,11 @@
     margin: 0 auto;
   }
 
-  .card-img {
-    width: 200px;
-    border-radius: 9px;
-    /* Magic card corner radius approximation */
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s;
-  }
-
-  .card-img:hover {
-    transform: scale(1.05);
-    /* Slight zoom on hover */
-    z-index: 10;
-  }
-
   /* Mobile optimization for Booster Page */
   @media (max-width: 600px) {
     #booster-container {
       gap: 5px;
       padding: 0 5px;
-    }
-
-    .card-img {
-      width: calc(50% - 5px);
-      /* 2 cards per row with 5px gap approx */
-      height: auto;
-      aspect-ratio: 2.5 / 3.5;
     }
 
     /* Adjust header button on mobile if needed */
