@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setCode = params.get('set');
   const container = document.getElementById('booster-container');
   const loadingMessage = document.getElementById('loading-message');
-  const setNameDisplay = document.getElementById('set-name-display');
   const openAnotherBtn = document.getElementById('open-another-btn');
 
   if (!setCode) {
@@ -31,10 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cards = await Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`);
 
       if (cards.length > 0) {
-        // Set name from first card
-        const first = cards[0];
-        if (first.set_name) setNameDisplay.textContent = `(${first.set_name})`;
-
         processCards(cards); // Populate pool
         isDataLoaded = true;
         loadingMessage.style.display = 'none';

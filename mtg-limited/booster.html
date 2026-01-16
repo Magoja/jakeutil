@@ -6,50 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Open Booster</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    .booster-controls {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-      gap: 10px;
-    }
-
-    #booster-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .card-img {
-      width: 200px;
-      border-radius: 9px;
-      /* Magic card corner radius approximation */
-      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-      transition: transform 0.2s;
-    }
-
-    .card-img:hover {
-      transform: scale(1.05);
-      /* Slight zoom on hover */
-      z-index: 10;
-    }
-  </style>
 </head>
 
 <body>
+  <div class="header">
+    <a href="index.html" class="back-link">← Back</a>
+    <button id="open-another-btn" class="action-button" style="height: 40px; padding: 0 20px; font-size: 14px;">Open
+      another!</button>
+  </div>
+
   <div class="container">
-    <div style="text-align: center; margin-top: 20px;">
-      <h1>Booster Pack <span id="set-name-display"></span></h1>
-      <a href="index.html" style="color: #666; text-decoration: none;">&larr; Back to Menu</a>
-    </div>
-
-    <div class="booster-controls">
-      <button id="open-another-btn" class="action-button">Open another!</button>
-    </div>
-
     <div id="loading-message" style="text-align: center; font-size: 1.2em; margin-top: 50px;">
       Loading Set Data...
     </div>
