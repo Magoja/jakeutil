@@ -80,39 +80,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     return result;
   }
 
-  function generateBooster() {
-    if (!isDataLoaded) return;
-
-    container.innerHTML = '';
-    const pack = [];
-
-    // Logic: 1 Rare/Mythic, 3 Uncommon, 10 Common
-
-    // Slot 1: Rare/Mythic (Approx 1/8 chance of Mythic)
+  function getRareSlot(pool) {
     const hasMythics = pool.mythic.length > 0;
     const isMythic = hasMythics && (Math.random() < 0.125); // 1/8
 
     if (isMythic) {
-      pack.push(getRandomItem(pool.mythic));
+      return getRandomItem(pool.mythic);
     } else {
-      if (pool.rare.length > 0) pack.push(getRandomItem(pool.rare));
-      else if (pool.mythic.length > 0) pack.push(getRandomItem(pool.mythic)); // Fallback
+      if (pool.rare.length > 0) return getRandomItem(pool.rare);
+      else if (pool.mythic.length > 0) return getRandomItem(pool.mythic); // Fallback
     }
+    return null;
+  }
 
+  function createCardImage(card) {
+    const img = document.createElement('img');
+    img.src = Scryfall.getPrimaryImage(card);
+    img.classList.add('card-img');
+    img.alt = card.name;
+    return img;
+  }
+
+  function generatePackData() {
+    const pack = [];
+    // Slot 1: Rare/Mythic (Approx 1/8 chance of Mythic)
+    pack.push(getRareSlot(pool));
     // Slot 2-4: Uncommons (3)
     pack.push(...pickN(3, pool.uncommon));
-
     // Slot 5-14: Commons (10)
     pack.push(...pickN(10, pool.common));
+    return pack;
+  }
 
-    // Render
-    pack.filter(c => c).forEach(card => {
-      const img = document.createElement('img');
-      img.src = Scryfall.getPrimaryImage(card);
-      img.classList.add('card-img');
-      img.alt = card.name;
-      // Add hover or click effect if needed, currently just display
-      container.appendChild(img);
+  function generateBooster() {
+    if (!isDataLoaded) return;
+
+    container.innerHTML = '';
+
+    generatePackData().forEach(card => {
+      container.appendChild(createCardImage(card));
     });
   }
 
