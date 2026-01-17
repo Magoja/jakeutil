@@ -39,16 +39,11 @@ class KeywordExtractor {
     // Assuming we process all cards but UI might filter. 
     // However, user said "Click it, to show only the matching CREATURE cards".
 
-    if (typeLine.includes('Creature') || typeLine.includes('Tribal')) {
-      // 1. Creature Types
-      // Remove "Legendary", "Creature", "Artifact", etc to just get subtypes? 
-      // User example: "Kithkin", "Knight". These are subtypes.
-      // We generally split by "—" and take the right side.
-
-      if (typeLine.includes('—')) {
-        const subtypes = typeLine.split('—')[1].trim().split(' ');
-        subtypes.forEach(Type => keywords.add(Type));
-      }
+    // 1. Subtypes (for all cards)
+    // We generally split by "—" and take the right side.
+    if (typeLine.includes('—')) {
+      const subtypes = typeLine.split('—')[1].trim().split(' ');
+      subtypes.forEach(Type => keywords.add(Type));
     }
 
     // 2. Ability Keywords
