@@ -738,7 +738,8 @@
 
   .card-stack .card-item:hover {
     z-index: 100;
-    transform: scale(1.05) translateY(-20px);
+    transform: scale(1.05);
+    /* translateY(-20px); */
     /* Pop up slightly */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   }

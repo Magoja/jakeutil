@@ -386,6 +386,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (idxB === -1) idxB = 99;
         return idxA - idxB;
       });
+    } else if (mode === 'rarity') {
+      const order = ['mythic', 'rare', 'uncommon', 'common'];
+      return keys.sort((a, b) => {
+        let idxA = order.indexOf(a);
+        let idxB = order.indexOf(b);
+        if (idxA === -1) idxA = 99;
+        if (idxB === -1) idxB = 99;
+        return idxA - idxB;
+      });
     }
     return keys.sort(); // Default alphabetical
   }
