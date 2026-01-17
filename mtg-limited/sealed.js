@@ -541,10 +541,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  document.getElementById('open-another-btn').addEventListener('click', () => {
-    SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
-  });
-
   // Zoom Logic
   const zoomSlider = document.getElementById('card-zoom');
 
@@ -624,6 +620,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     return defaultValue;
   }
+
+  function initRerollModal() {
+    const rerollModal = document.getElementById('reroll-modal');
+    const openAnotherBtn = document.getElementById('open-another-btn');
+    const rerollConfirmBtn = document.getElementById('reroll-confirm');
+    const rerollCancelBtn = document.getElementById('reroll-cancel');
+
+    openAnotherBtn.addEventListener('click', () => {
+      rerollModal.style.display = 'flex';
+    });
+
+    rerollConfirmBtn.addEventListener('click', () => {
+      SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
+    });
+
+    rerollCancelBtn.addEventListener('click', () => {
+      rerollModal.style.display = 'none';
+    });
+
+    // Close modal on outside click
+    rerollModal.addEventListener('click', (e) => {
+      if (e.target === rerollModal) {
+        rerollModal.style.display = 'none';
+      }
+    });
+  }
+
+  initRerollModal();
 
   // Init
   fetchCards();

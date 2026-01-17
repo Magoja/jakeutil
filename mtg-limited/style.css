@@ -796,7 +796,7 @@
   }
 
   #toggle-view-btn {
-    width: 60px;
+    width: 40px;
     /* Make it wider */
     text-align: center;
     font-size: 1.2em;
@@ -821,4 +821,45 @@
     gap: 10px;
     z-index: 1000;
     backdrop-filter: blur(5px);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    /* Above everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+  }
+
+  .modal h3 {
+    margin-top: 0;
+    color: #333;
+  }
+
+  .modal p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
   }

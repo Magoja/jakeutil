@@ -36,7 +36,7 @@
 
     <div class="deck-area" id="deck-area">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h4 style="margin: 0;">Deck (<span id="deck-count">0</span>)</h4>
+        <h5 style="margin: 0;">Deck (<span id="deck-count">0</span>)</h5>
         <button id="toggle-view-btn" class="action-button small" title="Toggle View">⤢</button>
       </div>
       <div class="deck-list" id="deck-list">
@@ -58,6 +58,17 @@
     <button class="mana-btn" data-color="B" title="Add Swamp"><img src="icons/icon-4.png" alt="B"></button>
     <button class="mana-btn" data-color="R" title="Add Mountain"><img src="icons/icon-5.png" alt="R"></button>
     <button class="mana-btn" data-color="G" title="Add Forest"><img src="icons/icon-1.png" alt="G"></button>
+  </div>
+
+  <div id="reroll-modal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+      <h3>Confirm Re-roll</h3>
+      <p>Are you sure you want to re-roll this pool? <br><strong>Current deck will be lost.</strong></p>
+      <div class="modal-buttons">
+        <button id="reroll-cancel" class="action-button small" style="background-color: #aaa;">Cancel</button>
+        <button id="reroll-confirm" class="action-button small" style="background-color: #d9534f;">Re-roll</button>
+      </div>
+    </div>
   </div>
 
   <div class="zoom-controls">
