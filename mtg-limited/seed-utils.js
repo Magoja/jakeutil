@@ -7,6 +7,7 @@ const SeedUtils = {
   updateUrlWithSeed(seed, reload = false) {
     const newUrl = new URL(window.location);
     newUrl.searchParams.set('seed', seed);
+    newUrl.searchParams.delete('deck'); // Clear deck on seed change
     if (reload) {
       window.location.href = newUrl.toString();
     } else {
