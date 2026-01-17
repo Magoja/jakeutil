@@ -199,6 +199,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    // Toggle Draw 7 Button
+    const draw7Btn = document.getElementById('draw-7-btn');
+    if (draw7Btn) {
+      if (deckCards.length >= 40) {
+        draw7Btn.style.display = 'inline-block';
+      } else {
+        draw7Btn.style.display = 'none';
+      }
+    }
+
     document.getElementById('metric-total').textContent = deckCards.length;
     document.getElementById('metric-creatures').textContent = creatures;
     document.getElementById('metric-spells').textContent = spells;
@@ -693,6 +703,88 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   initRerollModal();
+  initHandModal();
+
+  function initHandModal() {
+    const draw7Btn = document.getElementById('draw-7-btn');
+    const handModal = document.getElementById('hand-modal');
+    const closeHandBtn = document.getElementById('close-hand-btn');
+    const mulliganBtn = document.getElementById('mulligan-btn');
+    const drawOneBtn = document.getElementById('draw-one-btn');
+    const handDisplay = document.getElementById('hand-display');
+
+    let currentHand = [];
+
+    // Open Modal
+    draw7Btn.addEventListener('click', () => {
+      drawHand(7);
+      handModal.style.display = 'flex';
+    });
+
+    // Close Modal
+    closeHandBtn.addEventListener('click', () => {
+      handModal.style.display = 'none';
+    });
+
+    handModal.addEventListener('click', (e) => {
+      if (e.target === handModal) {
+        handModal.style.display = 'none';
+      }
+    });
+
+    // Actions
+    mulliganBtn.addEventListener('click', () => {
+      drawHand(7);
+    });
+
+    drawOneBtn.addEventListener('click', () => {
+      drawNextCard();
+    });
+
+    function drawHand(count) {
+      currentHand = [];
+      const deckCopy = [...deckCards];
+      // Shuffle check? We can just pick random indices or shuffle copy.
+      // Standard shuffle
+      for (let i = deckCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deckCopy[i], deckCopy[j]] = [deckCopy[j], deckCopy[i]];
+      }
+
+      currentHand = deckCopy.slice(0, count);
+      renderHand();
+    }
+
+    function drawNextCard() {
+      // We need to know what remains.
+      // Easiest is to keep a "shuffled deck" state or just pick a random card that isn't in hand?
+      // Since it's just "draw one more", picking random from currently "in deck" implies we need to know the deck order.
+      // Let's re-shuffle the WHOLE deck, ensure current hand is at top (already drawn), then pick next?
+      // Or simpler: Hand is just a subset. 
+      // To simulate "Draw one", we need to pick a card from the deck that is NOT in the current hand (by unique ref if possible, but basic lands might duplicate).
+      // Actually, basic lands have unique IDs now.
+
+      const inHandIds = new Set(currentHand.map(c => c.uniqueId));
+      const available = deckCards.filter(c => !inHandIds.has(c.uniqueId));
+
+      if (available.length > 0) {
+        const pick = available[Math.floor(Math.random() * available.length)];
+        currentHand.push(pick);
+        renderHand();
+      }
+    }
+
+    function renderHand() {
+      handDisplay.innerHTML = '';
+      currentHand.forEach(card => {
+        const el = CardUI.createCardElementForDeck(card);
+        el.style.transformOrigin = 'top left';
+        el.style.position = 'relative'; // Reset from any absolute
+        el.style.margin = '0';
+        handDisplay.appendChild(el);
+      });
+    }
+  }
 
   // Init
   fetchCards();

@@ -952,3 +952,30 @@
       border-radius: 8px 0 0 8px;
     }
   }
+
+  /* Draw 7 and Hand Test Styles */
+  .draw-7-btn:hover {
+    background-color: #da4453 !important;
+    /* Reddish hover or custom? Let's use darker gold/yellow */
+    filter: brightness(0.9);
+  }
+
+  .hand-modal-content {
+    width: 90%;
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  /* Modal Content Mobile */
+  @media (max-width: 600px) {
+    .hand-modal-content {
+      width: 95%;
+      padding: 10px;
+    }
+
+    .hand-modal-content .cards-grid {
+      gap: 5px;
+    }
+  }

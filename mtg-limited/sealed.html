@@ -29,6 +29,9 @@
         <span class="full-label">CMC</span>
         <span class="short-label">CMC</span>
       </button>
+      <button class="action-button small draw-7-btn" id="draw-7-btn" style="display: none; background-color: #f6bb42;">
+        Draw 7
+      </button>
     </div>
     <button id="open-another-btn" class="action-button"
       style="height: 32px; padding: 0 15px; font-size: 14px;">Re-roll</button>
@@ -76,6 +79,24 @@
       <div class="modal-buttons">
         <button id="reroll-cancel" class="action-button small" style="background-color: #aaa;">Cancel</button>
         <button id="reroll-confirm" class="action-button small" style="background-color: #d9534f;">Re-roll</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hand-modal" class="modal-overlay" style="display: none;">
+    <div class="modal hand-modal-content">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+        <h3 style="margin: 0;">Your Hand</h3>
+        <button id="close-hand-btn"
+          style="background:none; border:none; font-size: 20px; cursor: pointer;">&times;</button>
+      </div>
+      <div id="hand-display" class="cards-grid" style="justify-content: center; margin-bottom: 20px;">
+        <!-- Hand cards go here -->
+      </div>
+      <div class="modal-buttons">
+        <button id="mulligan-btn" class="action-button small">Mulligan</button>
+        <button id="draw-one-btn" class="action-button small" style="background-color: #8cc152;">Draw one more</button>
       </div>
     </div>
   </div>
