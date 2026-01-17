@@ -529,10 +529,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Controls ---
 
-  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; activeFilters.clear(); render(); });
-  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; activeFilters.clear(); render(); });
-  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; activeFilters.clear(); render(); });
-  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; activeFilters.clear(); render(); });
+  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; render(); });
+  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; render(); });
+  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; render(); });
+  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; render(); });
 
   // Land Station
   document.querySelectorAll('.mana-btn').forEach(btn => {
