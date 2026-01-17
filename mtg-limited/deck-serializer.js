@@ -40,7 +40,7 @@ class DeckSerializer {
     if (base64) {
       try {
         const indices = DeckSerializer.bytesToIndices(DeckSerializer.decodeBase64Url(base64));
-        deckCards = DeckSerializer.indicesToDeckCards(indices, allCards);
+        deckCards.push(...DeckSerializer.indicesToDeckCards(indices, allCards));
       } catch (e) {
         console.error("Error decoding deck:", e);
       }
