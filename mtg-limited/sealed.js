@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
   const seed = SeedUtils.ensureSeed(params);
+  const deckParam = params.get('deck');
 
   // Initialize RNG
   const rng = RNG.create(seed);
@@ -44,7 +45,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         generateSealedPool();
 
         // Check for deck to restore
-        const deckParam = params.get('deck');
         if (deckParam) {
           handleDeckRestoration(deckParam);
         }
@@ -907,7 +907,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlInput = document.getElementById('share-url-input');
 
     shareBtn.addEventListener('click', () => {
-      const serialized = DeckSerializer.serialize(allCards, deckCards);
+      const serialized = DeckSerializer.serialize(deckCards);
       const url = new URL(window.location.href);
       url.searchParams.set('deck', serialized);
       urlInput.value = url.toString();
@@ -922,7 +922,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.addEventListener('click', () => {
       urlInput.select();
       document.execCommand('copy');
-      copyBtn.textContent = 'Copied!';
+      copyBtn.textContent = '✓ Copied!';
       setTimeout(() => copyBtn.textContent = 'Copy', 2000);
     });
 
