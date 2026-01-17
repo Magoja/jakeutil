@@ -292,8 +292,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // DOM Update
     const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
     if (cardElement) {
+      const parent = cardElement.parentElement;
       // Remove from current parent
       cardElement.remove();
+
+      if (parent && parent.classList.contains('card-stack') && parent.children.length === 0) {
+        const column = parent.parentElement;
+        parent.remove();
+        if (column && column.classList.contains('pool-column')) {
+          column.remove();
+        }
+      }
       // Update source dataset
       cardElement.dataset.source = destination;
       // Re-bind click event? Logic is generic "toggle", so it holds.
@@ -420,7 +429,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return 'Other';
   }
 
-  function insertCardIntoList(container, el, card, sortFn = compareByCollectorNumber) {
+  function insertCardIntoList(container, el, card) {
+    insertCardSorted(container, el, card, compareByCollectorNumber);
+  }
+
+  function insertCardSorted(container, el, card, sortFn = compareByCollectorNumber) {
     const children = Array.from(container.children).filter(c => c.classList.contains('card-item'));
     let insertBefore = null;
 
@@ -460,7 +473,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const stack = column.querySelector('.card-stack');
-    insertCardIntoList(stack, el, card, sortFn);
+    insertCardSorted(stack, el, card, sortFn);
   }
 
   // Drop Zones
