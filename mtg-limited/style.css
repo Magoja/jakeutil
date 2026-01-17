@@ -665,15 +665,15 @@
   }
 
   .deck-area {
-    flex: 0 0 calc(var(--card-width) + 34px);
+    flex: 0 0 calc(var(--card-width) + 6px);
     /* Width depends on card size + padding */
-    width: calc(var(--card-width) + 34px);
+    width: calc(var(--card-width) + 6px);
     display: flex;
     flex-direction: column;
     background: #c0c0c0;
     /* Darker gray */
     border-radius: 8px;
-    padding: 10px;
+    padding: 3px;
     overflow-y: auto;
     transition: background-color 0.3s ease;
   }
