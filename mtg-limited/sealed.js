@@ -54,17 +54,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function generateSealedPool() {
-    // Generate 6 packs
-    for (let i = 0; i < 6; i++) {
+  function openPacks(count) {
+    const cards = [];
+    for (let i = 0; i < count; i++) {
       const pack = BoosterLogic.generatePackData(pool, rng);
-      allCards.push(...pack);
+      cards.push(...pack);
     }
-    // Deep copy or id tagging? Cards are objects.
-    // Let's add unique IDs to each card instance to track them, since there can be duplicates
-    allCards.forEach((card, index) => {
+    return cards;
+  }
+
+  function assignUniqueId(cards) {
+    cards.forEach((card, index) => {
       card.uniqueId = `card-${index}`;
     });
+  }
+
+  function generateSealedPool() {
+    // Generate 6 packs
+    const packs = openPacks(6);
+    allCards.push(...packs);
+
+    assignUniqueId(allCards);
 
     poolCards = [...allCards]; // Initially all in pool
     deckCards = [];
@@ -102,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     deckList.innerHTML = '';
 
     // Update Title logic
-    const pileHeader = document.querySelector('#deck-area h3');
+    const pileHeader = document.querySelector('#deck-area h5');
     if (pileHeader) {
       // Rebuild header keeping ID for deck-count
       pileHeader.innerHTML = `${titleLabel} (<span id="deck-count">${cards.length}</span>)`;
@@ -234,9 +244,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Click to move functionality as alternative
     el.addEventListener('click', (e) => {
-      // Only if not transform flip button click
-      if (e.target.closest('.flip-button')) return;
-
       const currentSource = el.dataset.source;
       moveCard(card.uniqueId, currentSource === 'pool' ? 'deck' : 'pool');
     });
@@ -255,35 +262,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (idx !== -1) {
         poolCards.splice(idx, 1);
         deckCards.push(card);
-      } else { return; } // Already in deck or error
+      }
     } else {
       // Move from deck to pool
-
       // Special Case: Basic Lands (user added) -> Delete
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       if (type.includes('Basic Land')) {
-        const idx = deckCards.findIndex(c => c.uniqueId === uniqueId);
-        if (idx !== -1) deckCards.splice(idx, 1);
-
-        // Cleanup allCards
-        const acIdx = allCards.findIndex(c => c.uniqueId === uniqueId);
-        if (acIdx !== -1) allCards.splice(acIdx, 1);
-
-        // DOM Cleanup
-        const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
-        if (cardElement) cardElement.remove();
-
-        updateMetrics();
-        // Update count
-        deckCount = document.getElementById('deck-count');
-        if (deckCount) {
-          // Basic land removal -> count changes
-          // If focus mode and removed from deck (Main), deck count changes? 
-          // Note: deckCount element displays the count of the PILE container.
-          // If Deck is in View (Focus Mode), Pile is Pool. Pool count doesn't change.
-          // If Deck is in Pile (Normal Mode), Pile is Deck. Deck count changes.
-          if (!isDeckFocus) deckCount.textContent = deckCards.length;
-        }
+        removeBasicLand(uniqueId);
         return;
       }
 
@@ -291,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (idx !== -1) {
         deckCards.splice(idx, 1);
         poolCards.push(card);
-      } else { return; }
+      }
     }
 
     // DOM Update
@@ -504,6 +489,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  function removeBasicLand(uniqueId) {
+    const idx = deckCards.findIndex(c => c.uniqueId === uniqueId);
+    if (idx !== -1) deckCards.splice(idx, 1);
+
+    // Cleanup allCards
+    const acIdx = allCards.findIndex(c => c.uniqueId === uniqueId);
+    if (acIdx !== -1) allCards.splice(acIdx, 1);
+
+    // DOM Cleanup
+    const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
+    if (cardElement) cardElement.remove();
+
+    updateMetrics();
+    // Update count
+    deckCount = document.getElementById('deck-count');
+    if (deckCount) {
+      if (!isDeckFocus) deckCount.textContent = deckCards.length;
+    }
+  }
+
   function addBasicLand(colorKey) {
     const landMap = { 'W': 'Plains', 'U': 'Island', 'B': 'Swamp', 'R': 'Mountain', 'G': 'Forest' };
     const landName = landMap[colorKey];
@@ -529,7 +534,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     deckCards.push(landCard);
     allCards.push(landCard); // Track source
 
-    render();
+    // Incremental DOM Update (instead of full render)
+    const el = createDraggableCard(landCard, 'deck');
+
+    if (isDeckFocus) {
+      // Deck is in Pool View (Columns)
+      const group = getCardGroupKey(landCard, currentSort);
+      insertCardIntoColumn(poolArea, el, landCard, group, compareCardsForDeck);
+      deckCount.textContent = deckCards.length;
+    } else {
+      // Deck is in List View (Pile)
+      // Note: This case is unlikely if Land Station is only visible in Deck Focus, but handling it is safe
+      insertCardIntoList(deckList, el, landCard, compareCardsForDeck);
+    }
+
+    updateMetrics();
   }
 
   document.getElementById('toggle-view-btn').addEventListener('click', () => {

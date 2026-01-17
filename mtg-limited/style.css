@@ -753,11 +753,6 @@
     margin-top: var(--card-overlap);
   }
 
-  .deck-list .card-item:hover {
-    z-index: 100;
-    transform: scale(1.05) translateY(-20px);
-  }
-
   /* Header controls */
   .header-controls {
     display: flex;

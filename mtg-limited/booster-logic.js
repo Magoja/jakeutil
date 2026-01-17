@@ -54,6 +54,10 @@ const BoosterLogic = {
     return null;
   },
 
+  deepCopy(array) {
+    return JSON.parse(JSON.stringify(array));
+  },
+
   generatePackData(pool, rng) {
     const pack = [];
     // Slot 1: Rare/Mythic
@@ -66,6 +70,6 @@ const BoosterLogic = {
     // Slot 5-14: Commons (10)
     pack.push(...this.pickN(10, pool.common, rng));
 
-    return pack;
+    return this.deepCopy(pack);
   }
 };
