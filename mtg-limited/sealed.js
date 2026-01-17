@@ -810,7 +810,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         el.style.margin = '0';
         handDisplay.appendChild(el);
       });
+
+      // Auto-scale to fit screen
+      setTimeout(fitHandToScreen, 0);
     }
+
+    function fitHandToScreen() {
+      if (handModal.style.display === 'none') return;
+
+      // Reset first to measure natural size
+      handDisplay.style.transform = 'none';
+      handDisplay.style.zoom = '1';
+      handDisplay.style.width = 'auto'; // allow natural expansion if needed? actually grid constraint is better.
+
+      const modalPadding = 40; // approx padding
+      const headerHeight = 50; // approx
+      const footerHeight = 60; // approx
+      const margin = 40;
+
+      const availableWidth = window.innerWidth - margin;
+      const availableHeight = window.innerHeight - headerHeight - footerHeight - margin;
+
+      const naturalWidth = handDisplay.scrollWidth;
+      const naturalHeight = handDisplay.scrollHeight;
+
+      // We only care if we are overflowing or if it looks huge.
+      // But if cards wrap, scrollHeight increases.
+      // The container width is already constrained by CSS (90% or max 1000px).
+      // So mainly we verify height fit.
+
+      let scale = 1;
+      const heightRatio = availableHeight / naturalHeight;
+      const widthRatio = availableWidth / naturalWidth; // in case it's wider for some reason
+
+      scale = Math.min(heightRatio, widthRatio, 1);
+
+      if (scale < 1) {
+        // Apply scale
+        handDisplay.style.transformOrigin = 'top center';
+        handDisplay.style.transform = `scale(${scale})`;
+        // We might need to adjust the container height to match scaled height so buttons jump up?
+        // transform doesn't affect flow. 
+        // So we should simpler use zoom?
+        // Or set max-height on the grid and use Viewbox logic?
+
+        // Let's try Zoom if supported, else transform.
+        // 'zoom' affects layout which is what we want (reducing space taken).
+        // Mac supports zoom in Chrome/Safari which USER uses.
+        handDisplay.style.zoom = scale;
+        handDisplay.style.transform = 'none';
+      }
+    }
+
+    window.addEventListener('resize', fitHandToScreen);
   }
 
   function handleDeckRestoration(encodedDeck) {
