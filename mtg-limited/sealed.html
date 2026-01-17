@@ -11,15 +11,24 @@
 <body>
   <div class="header">
     <a href="index.html" class="back-link">← Back</a>
-    <div style="flex-grow: 1; text-align: center;">
-      <span style="font-weight: bold; font-size: 1.2em;">Sealed Pool <span id="set-name-display"></span></span>
-    </div>
     <div class="header-controls">
       <!-- Sort Buttons -->
-      <button class="action-button small" id="sort-color">Color</button>
-      <button class="action-button small" id="sort-rarity">Rarity</button>
-      <button class="action-button small" id="sort-type">Type</button>
-      <button class="action-button small" id="sort-cmc">CMC</button>
+      <button class="action-button small" id="sort-color">
+        <span class="full-label">Color</span>
+        <span class="short-label">C</span>
+      </button>
+      <button class="action-button small" id="sort-rarity">
+        <span class="full-label">Rarity</span>
+        <span class="short-label">R</span>
+      </button>
+      <button class="action-button small" id="sort-type">
+        <span class="full-label">Type</span>
+        <span class="short-label">T</span>
+      </button>
+      <button class="action-button small" id="sort-cmc">
+        <span class="full-label">CMC</span>
+        <span class="short-label">CMC</span>
+      </button>
     </div>
     <button id="open-another-btn" class="action-button"
       style="height: 32px; padding: 0 15px; font-size: 14px;">Re-roll</button>
@@ -72,8 +81,8 @@
   </div>
 
   <div class="zoom-controls">
-    <label for="card-zoom">Zoom</label>
-    <input type="range" id="card-zoom" min="0.5" max="2" step="0.1" value="1">
+    <button id="zoom-out" class="zoom-btn">-</button>
+    <button id="zoom-in" class="zoom-btn">+</button>
   </div>
 
   <script src="scryfall.js"></script>

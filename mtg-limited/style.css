@@ -814,13 +814,38 @@
     right: 20px;
     background: rgba(0, 0, 0, 0.85);
     color: white;
-    padding: 10px;
+    padding: 5px 10px;
     border-radius: 8px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
     z-index: 1000;
     backdrop-filter: blur(5px);
+  }
+
+  .zoom-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #666;
+    background: #444;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .zoom-btn:hover {
+    background: #666;
+  }
+
+  .zoom-btn:active {
+    background: #888;
   }
 
   /* Modal */
@@ -862,4 +887,73 @@
     display: flex;
     justify-content: center;
     gap: 15px;
+  }
+
+  /* Responsive Labels for Sort Buttons */
+  .short-label {
+    display: none;
+  }
+
+  .full-label {
+    display: inline;
+  }
+
+  /* Extended Mobile Optimizations */
+  @media (max-width: 600px) {
+
+    /* Swap Labels */
+    .short-label {
+      display: inline;
+    }
+
+    .full-label {
+      display: none;
+    }
+
+    /* Adjust Action Buttons in Header */
+    .header-controls .action-button.small {
+      padding: 0 8px;
+      min-width: 24px;
+      font-weight: bold;
+    }
+
+    /* Metrics Bar - One line at bottom */
+    .floating-metrics {
+      flex-direction: row;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      min-width: unset;
+      border-radius: 0;
+      padding: 8px 5px;
+      justify-content: space-around;
+      align-items: center;
+      box-sizing: border-box;
+      font-size: 11px;
+      z-index: 1000;
+    }
+
+    /* Metrics items styling for row */
+    .floating-metrics div {
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0px;
+    }
+
+    /* Land Station - Left over the metric */
+    .land-station {
+      left: 0;
+      bottom: 60px;
+      /* Above metrics bar */
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* Zoom Controls - Right over the metric */
+    .zoom-controls {
+      right: 0;
+      bottom: 60px;
+      border-radius: 8px 0 0 8px;
+    }
   }

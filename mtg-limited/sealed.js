@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const poolArea = document.getElementById('pool-area');
   const deckList = document.getElementById('deck-list');
   let deckCount = document.getElementById('deck-count');
-  const setNameDisplay = document.getElementById('set-name-display');
 
   if (!setCode) {
     loadingMessage.textContent = "No set specified.";
@@ -39,10 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ]);
 
       if (cards.length > 0) {
-        if (cards[0].set_name) setNameDisplay.textContent = `(${cards[0].set_name})`;
-
         basicLands = lands; // Store basics for land station
-
         BoosterLogic.processCards(cards, pool); // Populate source pool logic
         generateSealedPool();
         isDataLoaded = true;
@@ -542,19 +538,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Zoom Logic
-  const zoomSlider = document.getElementById('card-zoom');
+  const zoomInBtn = document.getElementById('zoom-in');
+  const zoomOutBtn = document.getElementById('zoom-out');
 
-  const savedZoom = loadSetting('sealed-card-zoom');
-  if (savedZoom) {
-    zoomSlider.value = savedZoom;
-    document.documentElement.style.setProperty('--card-scale', savedZoom);
+  let currentZoom = parseFloat(loadSetting('sealed-card-zoom') || 1);
+
+  // Set initial bounds
+  let minZoom = 0.5;
+  let maxZoom = 2.0;
+
+  // Mobile Adjustment
+  if (window.innerWidth <= 600) {
+    minZoom = 0.2;
+    maxZoom = 1.0;
   }
 
-  zoomSlider.addEventListener('input', (e) => {
-    const scale = e.target.value;
-    document.documentElement.style.setProperty('--card-scale', scale);
-    saveSetting('sealed-card-zoom', scale);
-  });
+  // Ensure initial is within bounds
+  if (currentZoom < minZoom) currentZoom = minZoom;
+  if (currentZoom > maxZoom) currentZoom = maxZoom;
+
+  function updateZoom(newZoom) {
+    // Round to avoid float precision issues
+    newZoom = Math.round(newZoom * 10) / 10;
+
+    if (newZoom < minZoom) newZoom = minZoom;
+    if (newZoom > maxZoom) newZoom = maxZoom;
+
+    currentZoom = newZoom;
+    document.documentElement.style.setProperty('--card-scale', currentZoom);
+    saveSetting('sealed-card-zoom', currentZoom);
+  }
+
+  // Initial Apply
+  updateZoom(currentZoom);
+
+  if (zoomInBtn && zoomOutBtn) {
+    zoomInBtn.addEventListener('click', () => {
+      updateZoom(currentZoom + 0.1);
+    });
+
+    zoomOutBtn.addEventListener('click', () => {
+      updateZoom(currentZoom - 0.1);
+    });
+  }
 
   function compareByCollectorNumber(a, b) {
     const numA = parseInt(a.collector_number) || 0;
