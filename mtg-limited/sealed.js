@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentSort = 'color'; // Default sort
   let isDeckFocus = false;
 
+
+  let activeFilters = new Set();
+  const keywordCounts = new Map();
+
   // Fetch all cards
   async function fetchCards() {
     try {
@@ -35,7 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const [cards, lands] = await Promise.all([
         Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`),
-        Scryfall.fetchCards(`set:${setCode} unique:prints type:basic`)
+        Scryfall.fetchCards(`set:${setCode} unique:prints type:basic`),
+        KeywordExtractor.loadSetRules(setCode)
       ]);
 
       if (cards.length > 0) {
@@ -49,8 +54,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           handleDeckRestoration(deckParam);
         }
 
+        calculateKeywords();
         isDataLoaded = true;
         render();
+        initFilterModal(); // Init filters after cards loaded
         loadingMessage.style.display = 'none';
       } else {
         loadingMessage.textContent = "No cards found.";
@@ -96,16 +103,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       landStation.style.display = isDeckFocus ? 'flex' : 'none';
     }
 
+    let filteredPool = poolCards;
+    let filteredDeck = deckCards;
+
+    if (activeFilters.size > 0) {
+      const filterFn = (c) => {
+        const kws = KeywordExtractor.getKeywords(c);
+        // OR logic: Match any
+        return kws.some(k => activeFilters.has(k));
+      };
+
+      filteredPool = poolCards.filter(filterFn);
+      filteredDeck = deckCards.filter(filterFn);
+    }
+
     if (isDeckFocus) {
       // Focus: Main=Deck, Side=Pool
       container.classList.add('deck-focus');
-      renderViewUI(deckCards, 'deck');
-      renderPileUI(poolCards, 'pool', 'Pile');
+      renderViewUI(filteredDeck, 'deck');
+      renderPileUI(filteredPool, 'pool', 'Pile');
     } else {
       // Normal: Main=Pool, Side=Deck
       container.classList.remove('deck-focus');
-      renderViewUI(poolCards, 'pool');
-      renderPileUI(deckCards, 'deck', 'Deck');
+      renderViewUI(filteredPool, 'pool');
+      renderPileUI(filteredDeck, 'deck', 'Deck');
     }
     updateMetrics();
   }
@@ -508,10 +529,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Controls ---
 
-  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; render(); });
-  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; render(); });
-  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; render(); });
-  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; render(); });
+  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; activeFilters.clear(); render(); });
+  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; activeFilters.clear(); render(); });
+  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; activeFilters.clear(); render(); });
+  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; activeFilters.clear(); render(); });
 
   // Land Station
   document.querySelectorAll('.mana-btn').forEach(btn => {
@@ -585,6 +606,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('toggle-view-btn').addEventListener('click', () => {
     isDeckFocus = !isDeckFocus;
+    activeFilters.clear(); // Reset filters on view toggle
     if (isDeckFocus) {
       currentSort = 'cmc';
     } else {
@@ -636,6 +658,84 @@ document.addEventListener('DOMContentLoaded', async () => {
     zoomOutBtn.addEventListener('click', () => {
       updateZoom(currentZoom - 0.1);
     });
+  }
+
+  function calculateKeywords() {
+    keywordCounts.clear();
+    allCards.forEach(card => {
+      const kws = KeywordExtractor.getKeywords(card);
+      kws.forEach(k => {
+        keywordCounts.set(k, (keywordCounts.get(k) || 0) + 1);
+      });
+    });
+  }
+
+  function initFilterModal() {
+    const filterBtn = document.getElementById('filter-btn');
+    const filterModal = document.getElementById('filter-modal');
+    const closeFilterBtn = document.getElementById('close-filter-btn');
+    const clearFilterBtn = document.getElementById('clear-filter-btn');
+    const container = document.getElementById('filter-keywords-container');
+
+    filterBtn.addEventListener('click', () => {
+      renderFilterCheckboxes();
+      filterModal.style.display = 'flex';
+    });
+
+    closeFilterBtn.addEventListener('click', () => {
+      filterModal.style.display = 'none';
+      render(); // Apply on close? Or immediate? Immediate is better but let's re-render just to be sure.
+    });
+
+    filterModal.addEventListener('click', (e) => {
+      if (e.target === filterModal) filterModal.style.display = 'none';
+    });
+
+    clearFilterBtn.addEventListener('click', () => {
+      activeFilters.clear();
+      renderFilterCheckboxes();
+      render();
+    });
+
+    function renderFilterCheckboxes() {
+      container.innerHTML = '';
+
+      // Sort keywords: Most frequent first, then alpha
+      const sortedKeys = Array.from(keywordCounts.keys()).sort((a, b) => {
+        const diff = keywordCounts.get(b) - keywordCounts.get(a);
+        if (diff !== 0) return diff;
+        return a.localeCompare(b);
+      });
+
+      sortedKeys.forEach(k => {
+        const count = keywordCounts.get(k);
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.alignItems = 'center';
+        label.style.marginRight = '10px';
+        label.style.cursor = 'pointer';
+        label.style.fontSize = '14px';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = k;
+        cb.checked = activeFilters.has(k);
+        cb.style.marginRight = '5px';
+
+        cb.addEventListener('change', () => {
+          if (cb.checked) {
+            activeFilters.add(k);
+          } else {
+            activeFilters.delete(k);
+          }
+          render(); // Immediate update behind modal
+        });
+
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(`${k} (${count})`));
+        container.appendChild(label);
+      });
+    }
   }
 
   function compareByCollectorNumber(a, b) {
