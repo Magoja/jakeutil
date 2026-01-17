@@ -246,7 +246,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('booster-open-button').addEventListener('click', () => {
       if (boosterSetCode) {
-        window.location.href = `booster.html?set=${boosterSetCode}`;
+        const seed = RNG.generateSeed();
+        window.location.href = `booster.html?set=${boosterSetCode}&seed=${seed}`;
       } else {
         alert("Please select a set first.");
       }

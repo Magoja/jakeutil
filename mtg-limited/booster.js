@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
+  const seed = ensureSeed(params);
+
+  // Initialize RNG
+  const rng = RNG.create(seed);
+
   const container = document.getElementById('booster-container');
   const loadingMessage = document.getElementById('loading-message');
   const openAnotherBtn = document.getElementById('open-another-btn');
@@ -55,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getRandomItem(array) {
     if (array.length === 0) return null;
-    return array[Math.floor(Math.random() * array.length)];
+    return array[Math.floor(rng() * array.length)];
   }
 
   // Helper to pick n unique from source array
@@ -69,7 +74,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const indices = new Set();
     while (indices.size < amount) {
-      indices.add(Math.floor(Math.random() * source.length));
+      indices.add(Math.floor(rng() * source.length));
     }
     indices.forEach(i => result.push(source[i]));
     return result;
@@ -77,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getRareSlot(pool) {
     const hasMythics = pool.mythic.length > 0;
-    const isMythic = hasMythics && (Math.random() < 0.125); // 1/8
+    const isMythic = hasMythics && (rng() < 0.125); // 1/8
 
     if (isMythic) {
       return getRandomItem(pool.mythic);
@@ -109,7 +114,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  openAnotherBtn.addEventListener('click', generateBooster);
+  function updateUrlWithSeed(seed, reload = false) {
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('seed', seed);
+    if (reload) {
+      window.location.href = newUrl.toString();
+    } else {
+      window.history.replaceState({}, '', newUrl);
+    }
+  }
+
+  openAnotherBtn.addEventListener('click', () => {
+    updateUrlWithSeed(RNG.generateSeed(), true);
+  });
+
+  function ensureSeed(params) {
+    let seed = params.get('seed');
+    if (!seed) {
+      seed = RNG.generateSeed();
+      updateUrlWithSeed(seed, false);
+    }
+    return seed;
+  }
 
   // Initial fetch
   fetchCards();
