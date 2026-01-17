@@ -23,8 +23,6 @@ const CardUI = {
     }
 
     const imageUrl = Scryfall.getPrimaryImage(card);
-    // Note: Scryfall.getPrimaryImage uses card.image_uris || card.faces[0].image_uris
-    // We can rely on it for the initial image.
 
     // Spinner
     const spinner = this.createSpinner();
@@ -33,12 +31,8 @@ const CardUI = {
     const img = this.createCardImage(imageUrl, face.name);
 
     // Hide spinner when image loads
-    img.onload = () => {
-      spinner.style.display = 'none';
-    };
-    img.onerror = () => {
-      spinner.style.display = 'none';
-    };
+    img.onload = () => { spinner.style.display = 'none'; };
+    img.onerror = () => { spinner.style.display = 'none'; };
 
     cardElement.appendChild(img);
 
@@ -58,6 +52,51 @@ const CardUI = {
       };
 
       cardElement.appendChild(flipBtn);
+    }
+
+    return cardElement;
+  },
+
+  createCardElementForDeck(card) {
+    const cardElement = document.createElement('div');
+    cardElement.classList.add('card-item');
+
+    // Spinner
+    const spinner = this.createSpinner();
+    cardElement.appendChild(spinner);
+
+    // Double-Sided Handling
+    if (card.faces && card.faces.length > 1) { // Double-sided
+      cardElement.classList.add('double-sided');
+
+      const facesContainer = document.createElement('div');
+      facesContainer.classList.add('faces-container');
+
+      card.faces.forEach((face, index) => {
+        const faceImg = this.createCardImage(face.image_uris ? face.image_uris.normal : '', face.name);
+        faceImg.classList.add('face-image');
+        if (index === 0) faceImg.classList.add('front-face');
+        else faceImg.classList.add('back-face');
+
+        // Hide spinner when front image loads
+        if (index === 0) {
+          faceImg.onload = () => { spinner.style.display = 'none'; };
+          faceImg.onerror = () => { spinner.style.display = 'none'; };
+        }
+        facesContainer.appendChild(faceImg);
+      });
+
+      cardElement.appendChild(facesContainer);
+
+    } else { // Single-Sided
+      const imageUrl = Scryfall.getPrimaryImage(card);
+      const img = this.createCardImage(imageUrl, card.name);
+
+      // Hide spinner when image loads
+      img.onload = () => { spinner.style.display = 'none'; };
+      img.onerror = () => { spinner.style.display = 'none'; };
+
+      cardElement.appendChild(img);
     }
 
     return cardElement;
