@@ -979,3 +979,8 @@
       gap: 5px;
     }
   }
+
+  /* Share Modal needs to be above Hand Modal (2000) */
+  #share-modal {
+    z-index: 2500 !important;
+  }

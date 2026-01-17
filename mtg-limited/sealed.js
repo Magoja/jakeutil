@@ -39,8 +39,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (cards.length > 0) {
         basicLands = lands; // Store basics for land station
+
         BoosterLogic.processCards(cards, pool); // Populate source pool logic
         generateSealedPool();
+
+        // Check for deck to restore
+        const deckParam = params.get('deck');
+        if (deckParam) {
+          handleDeckRestoration(deckParam);
+        }
+
         isDataLoaded = true;
         render();
         loadingMessage.style.display = 'none';
@@ -201,6 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Toggle Draw 7 Button
     const draw7Btn = document.getElementById('draw-7-btn');
+
     if (draw7Btn) {
       if (deckCards.length >= 40) {
         draw7Btn.style.display = 'inline-block';
@@ -576,6 +585,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('toggle-view-btn').addEventListener('click', () => {
     isDeckFocus = !isDeckFocus;
+    if (isDeckFocus) {
+      currentSort = 'cmc';
+    } else {
+      currentSort = 'color'; // revert to default or keep? 'color' is usually good for pool
+    }
     render();
   });
 
@@ -798,6 +812,76 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
   }
+
+  function handleDeckRestoration(encodedDeck) {
+    const result = DeckSerializer.deserialize(encodedDeck, allCards);
+
+    // Clear current deck (should be empty anyway after generateSealedPool)
+    deckCards = [];
+    // Assign restored cards
+    if (result.deckCards.length > 0) {
+      result.deckCards.forEach(card => {
+        // Move from pool to deck
+        const idx = poolCards.findIndex(c => c.uniqueId === card.uniqueId);
+        if (idx !== -1) {
+          poolCards.splice(idx, 1);
+          deckCards.push(card);
+          // Update source dataset if element exists (it won't yet, render called after)
+        }
+      });
+    }
+
+    // Add Basics
+    Object.keys(result.landCounts).forEach(type => {
+      const count = result.landCounts[type];
+      for (let i = 0; i < count; i++) {
+        addBasicLand(type);
+      }
+    });
+
+    // Switch to Deck Focus
+    if (deckCards.length > 0) {
+      isDeckFocus = true;
+      currentSort = 'cmc';
+      // Update toggle state
+    }
+  }
+
+  function initShareModal() {
+    const shareBtn = document.getElementById('share-deck-btn');
+    const shareModal = document.getElementById('share-modal');
+    const closeBtn = document.getElementById('share-close-btn');
+    const copyBtn = document.getElementById('share-copy-btn');
+    const urlInput = document.getElementById('share-url-input');
+
+    shareBtn.addEventListener('click', () => {
+      const serialized = DeckSerializer.serialize(allCards, deckCards);
+      const url = new URL(window.location.href);
+      url.searchParams.set('deck', serialized);
+      urlInput.value = url.toString();
+      shareModal.style.display = 'flex';
+      urlInput.select();
+    });
+
+    closeBtn.addEventListener('click', () => {
+      shareModal.style.display = 'none';
+    });
+
+    copyBtn.addEventListener('click', () => {
+      urlInput.select();
+      document.execCommand('copy');
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+    });
+
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) {
+        shareModal.style.display = 'none';
+      }
+    });
+  }
+
+  initShareModal();
 
   // Init
   fetchCards();
