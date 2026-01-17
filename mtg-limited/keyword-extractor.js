@@ -1,8 +1,14 @@
 class KeywordExtractor {
   static rules = {};
+  static ruleDescriptions = {};
 
-  static register(setCode, ruleFn) {
+  static register(setCode, ruleFn, description) {
     KeywordExtractor.rules[setCode] = ruleFn;
+    KeywordExtractor.ruleDescriptions[setCode] = description || "Custom set rules applied.";
+  }
+
+  static getRuleDescription(setCode) {
+    return KeywordExtractor.ruleDescriptions[setCode] || "Default extraction rules (Creature types & Keywords)";
   }
 
   static async loadSetRules(setCode) {

@@ -15,4 +15,4 @@ KeywordExtractor.register('ecl', (card) => {
   }
 
   return extras;
-});
+}, "ECL Rules: -1/-1, Spell 4+ Mana, Tapped Trigger");

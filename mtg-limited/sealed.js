@@ -679,6 +679,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     filterBtn.addEventListener('click', () => {
       renderFilterCheckboxes();
+      const descEl = document.getElementById('filter-rule-description');
+      if (descEl) {
+        descEl.textContent = KeywordExtractor.getRuleDescription(setCode);
+      }
       filterModal.style.display = 'flex';
     });
 
