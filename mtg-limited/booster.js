@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
-  const seed = ensureSeed(params);
+  const seed = SeedUtils.ensureSeed(params);
 
   // Initialize RNG
   const rng = RNG.create(seed);
@@ -18,13 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadingMessage.textContent = "Fetching set data from Scryfall...";
 
   // State
-  const pool = {
-    common: [],
-    uncommon: [],
-    rare: [],
-    mythic: [],
-    land: []
-  };
+  const pool = BoosterLogic.createPool();
 
   let isDataLoaded = false;
 
@@ -35,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cards = await Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`);
 
       if (cards.length > 0) {
-        processCards(cards); // Populate pool
+        BoosterLogic.processCards(cards, pool); // Populate pool
         isDataLoaded = true;
         loadingMessage.style.display = 'none';
         generateBooster();
@@ -49,93 +43,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function processCards(cards) {
-    cards.forEach(card => {
-      if (['common'].includes(card.rarity)) pool.common.push(card);
-      else if (['uncommon'].includes(card.rarity)) pool.uncommon.push(card);
-      else if (['rare'].includes(card.rarity)) pool.rare.push(card);
-      else if (['mythic'].includes(card.rarity)) pool.mythic.push(card);
-    });
-  }
-
-  function getRandomItem(array) {
-    if (array.length === 0) return null;
-    return array[Math.floor(rng() * array.length)];
-  }
-
-  // Helper to pick n unique from source array
-  function pickN(amount, source) {
-    const result = [];
-    // If source is smaller than amount, allow dupes or return all
-    if (source.length < amount) {
-      for (let i = 0; i < amount; i++) result.push(getRandomItem(source));
-      return result;
-    }
-
-    const indices = new Set();
-    while (indices.size < amount) {
-      indices.add(Math.floor(rng() * source.length));
-    }
-    indices.forEach(i => result.push(source[i]));
-    return result;
-  }
-
-  function getRareSlot(pool) {
-    const hasMythics = pool.mythic.length > 0;
-    const isMythic = hasMythics && (rng() < 0.125); // 1/8
-
-    if (isMythic) {
-      return getRandomItem(pool.mythic);
-    } else {
-      if (pool.rare.length > 0) return getRandomItem(pool.rare);
-      else if (pool.mythic.length > 0) return getRandomItem(pool.mythic); // Fallback
-    }
-    return null;
-  }
-
-  function generatePackData() {
-    const pack = [];
-    // Slot 1: Rare/Mythic (Approx 1/8 chance of Mythic)
-    pack.push(getRareSlot(pool));
-    // Slot 2-4: Uncommons (3)
-    pack.push(...pickN(3, pool.uncommon));
-    // Slot 5-14: Commons (10)
-    pack.push(...pickN(10, pool.common));
-    return pack;
-  }
-
   function generateBooster() {
     if (!isDataLoaded) return;
 
     container.innerHTML = '';
 
-    generatePackData().forEach(card => {
+    BoosterLogic.generatePackData(pool, rng).forEach(card => {
       container.appendChild(CardUI.createCardElement(card));
     });
   }
 
-  function updateUrlWithSeed(seed, reload = false) {
-    const newUrl = new URL(window.location);
-    newUrl.searchParams.set('seed', seed);
-    if (reload) {
-      window.location.href = newUrl.toString();
-    } else {
-      window.history.replaceState({}, '', newUrl);
-    }
-  }
-
   openAnotherBtn.addEventListener('click', () => {
-    updateUrlWithSeed(RNG.generateSeed(), true);
+    SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
   });
-
-  function ensureSeed(params) {
-    let seed = params.get('seed');
-    if (!seed) {
-      seed = RNG.generateSeed();
-      updateUrlWithSeed(seed, false);
-    }
-    return seed;
-  }
 
   // Initial fetch
   fetchCards();

@@ -252,6 +252,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert("Please select a set first.");
       }
     });
+
+    document.getElementById('sealed-open-button').addEventListener('click', () => {
+      if (boosterSetCode) {
+        const seed = RNG.generateSeed();
+        window.location.href = `sealed.html?set=${boosterSetCode}&seed=${seed}`;
+      } else {
+        alert("Please select a set first.");
+      }
+    });
   }
 
   init();

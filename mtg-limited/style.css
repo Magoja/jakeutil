@@ -567,3 +567,120 @@
       height: 32px !important;
     }
   }
+
+  /* Sealed Page Styles */
+  .sealed-container {
+    display: flex;
+    flex-direction: row;
+    /* Horizontal layout */
+    height: calc(100vh - 80px);
+    /* Full height minus header */
+    padding: 10px;
+    gap: 10px;
+    overflow: hidden;
+    /* Prevent body scroll if container scrolls */
+  }
+
+  .pool-area {
+    flex: 3;
+    display: flex;
+    overflow-x: auto;
+    gap: 15px;
+    padding: 10px;
+    background: #e9e9e9;
+    border-radius: 8px;
+    align-items: flex-start;
+    /* Align columns to top */
+  }
+
+  .deck-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 250px;
+    background: #dcdcdc;
+    border-radius: 8px;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  .pool-column {
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    /* Width of a card approx (216px) */
+    flex-shrink: 0;
+  }
+
+  .column-header {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    /* More space for sticky header logic if needed */
+    text-transform: capitalize;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 5px;
+    border-radius: 4px;
+  }
+
+  .card-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 300px;
+    /* Space at bottom to allow scrolling past last card */
+  }
+
+  /* Overlapping cards in stack */
+  /* Card Item height is 302px. */
+  /* We want to see name bar. Name bar is at top. */
+  /* So consecutive cards should start ~40px below the previous one. */
+  /* margin-top on the element itself pushes it down. */
+  /* But we want them to OVERLAP. */
+  /* If we use flex column, they stack normally. */
+  /* To overlap, we need negative margin on the item relative to previous? */
+  .card-stack .card-item+.card-item {
+    margin-top: -260px;
+    /* Overlap significantly */
+  }
+
+  .card-stack .card-item:hover {
+    z-index: 100;
+    transform: scale(1.05) translateY(-20px);
+    /* Pop up slightly */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  }
+
+  .deck-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 300px;
+  }
+
+  .deck-list .card-item+.card-item {
+    margin-top: -260px;
+  }
+
+  .deck-list .card-item:hover {
+    z-index: 100;
+    transform: scale(1.05) translateY(-20px);
+  }
+
+  /* Header controls */
+  .header-controls {
+    display: flex;
+    gap: 5px;
+  }
+
+  .action-button.small {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 14px;
+  }
+
+  /* Dragging visual */
+  .card-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed #333;
+  }
