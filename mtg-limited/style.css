@@ -981,10 +981,51 @@
 
   .hand-modal-content {
     width: 90%;
-    max-width: 1000px;
+    max-width: 1100px;
     display: flex;
     flex-direction: column;
     padding: 20px;
+    height: 80vh;
+    /* Fixed height! */
+    box-sizing: border-box;
+  }
+
+  /* Hand Display Scaling */
+  #hand-display {
+    flex: 1;
+    /* Take available space */
+    min-height: 0;
+    /* Allow shrinking */
+    overflow: hidden;
+    /* No scroll, scale instead */
+    /* No scroll, scale instead */
+    display: flex;
+    flex-wrap: wrap;
+    /* Allow wrapping */
+    align-content: flex-start;
+    /* Start from top */
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 0;
+  }
+
+  #hand-display .card-item {
+    width: 200px;
+    /* Base size */
+    height: auto;
+    max-width: none;
+    /* Remove % constraint */
+    max-height: none;
+    /* Remove height constraint */
+    aspect-ratio: 2.5 / 3.5;
+    flex-shrink: 1;
+  }
+
+  /* Ensure buttons don't shrink */
+  .hand-modal-content .modal-buttons {
+    flex-shrink: 0;
+    margin-top: 10px;
   }
 
   /* Modal Content Mobile */

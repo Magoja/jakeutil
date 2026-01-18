@@ -929,21 +929,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function drawNextCard() {
-      // We need to know what remains.
-      // Easiest is to keep a "shuffled deck" state or just pick a random card that isn't in hand?
-      // Since it's just "draw one more", picking random from currently "in deck" implies we need to know the deck order.
-      // Let's re-shuffle the WHOLE deck, ensure current hand is at top (already drawn), then pick next?
-      // Or simpler: Hand is just a subset. 
-      // To simulate "Draw one", we need to pick a card from the deck that is NOT in the current hand (by unique ref if possible, but basic lands might duplicate).
-      // Actually, basic lands have unique IDs now.
-
       const inHandIds = new Set(currentHand.map(c => c.uniqueId));
       const available = deckCards.filter(c => !inHandIds.has(c.uniqueId));
 
       if (available.length > 0) {
         const pick = available[Math.floor(Math.random() * available.length)];
         currentHand.push(pick);
-        renderHand();
+
+        // Append single card instead of full render to avoid flash
+        const el = CardUI.createCardElementForDeck(pick);
+        el.style.transformOrigin = 'top left';
+        el.style.position = 'relative';
+        handDisplay.appendChild(el);
+
+        // Trigger resize check
+        setTimeout(fitHandToScreen, 0);
       }
     }
 
@@ -963,48 +963,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     function fitHandToScreen() {
       if (handModal.style.display === 'none') return;
 
-      // Reset first to measure natural size
+      const cards = Array.from(handDisplay.children);
+      const count = cards.length;
+      if (count === 0) return;
+
+      // Reset styles to measure container accurately
       handDisplay.style.transform = 'none';
       handDisplay.style.zoom = '1';
-      handDisplay.style.width = 'auto'; // allow natural expansion if needed? actually grid constraint is better.
+      cards.forEach(c => c.style.width = '');
 
-      const modalPadding = 40; // approx padding
-      const headerHeight = 50; // approx
-      const footerHeight = 60; // approx
-      const margin = 40;
+      // Dimensions
+      // We want to fit within the modal content area
+      // The modal has fixed height 80vh now. and width 90% (max 1100).
+      // Let's measure the content box of handDisplay
+      // clientHeight includes padding. We need to subtract it to get available space for content.
+      const style = window.getComputedStyle(handDisplay);
+      const padTop = parseFloat(style.paddingTop) || 0;
+      const padBottom = parseFloat(style.paddingBottom) || 0;
+      const padLeft = parseFloat(style.paddingLeft) || 0;
+      const padRight = parseFloat(style.paddingRight) || 0;
 
-      const availableWidth = window.innerWidth - margin;
-      const availableHeight = window.innerHeight - headerHeight - footerHeight - margin;
+      const containerWidth = handDisplay.clientWidth - padLeft - padRight;
+      const containerHeight = handDisplay.clientHeight - padTop - padBottom;
 
-      const naturalWidth = handDisplay.scrollWidth;
-      const naturalHeight = handDisplay.scrollHeight;
+      if (containerWidth <= 0 || containerHeight <= 0) return;
 
-      // We only care if we are overflowing or if it looks huge.
-      // But if cards wrap, scrollHeight increases.
-      // The container width is already constrained by CSS (90% or max 1000px).
-      // So mainly we verify height fit.
+      const gap = 4; // CSS gap
+      const aspectRatio = 2.5 / 3.5;
+      const buffer = 10; // Safety buffer for bottom cutoff
 
-      let scale = 1;
-      const heightRatio = availableHeight / naturalHeight;
-      const widthRatio = availableWidth / naturalWidth; // in case it's wider for some reason
+      let bestWidth = 0;
+      let bestCols = 1;
 
-      scale = Math.min(heightRatio, widthRatio, 1);
+      // Iterate possible column counts from 1 to Count
+      // We also strictly need to satisfy rows * h <= availableHeight
+      for (let cols = 1; cols <= count; cols++) {
+        const rows = Math.ceil(count / cols);
 
-      if (scale < 1) {
-        // Apply scale
-        handDisplay.style.transformOrigin = 'top center';
-        handDisplay.style.transform = `scale(${scale})`;
-        // We might need to adjust the container height to match scaled height so buttons jump up?
-        // transform doesn't affect flow. 
-        // So we should simpler use zoom?
-        // Or set max-height on the grid and use Viewbox logic?
+        // Calculate max width allowed by container Width
+        // W_total = cols * w + (cols - 1) * gap <= containerWidth
+        // w <= (containerWidth - (cols - 1) * gap) / cols
+        const wByWidth = (containerWidth - (cols - 1) * gap) / cols;
 
-        // Let's try Zoom if supported, else transform.
-        // 'zoom' affects layout which is what we want (reducing space taken).
-        // Mac supports zoom in Chrome/Safari which USER uses.
-        handDisplay.style.zoom = scale;
-        handDisplay.style.transform = 'none';
+        // Calculate max width allowed by container Height
+        // H_total = rows * h + (rows - 1) * gap <= containerHeight
+        // h = w / ratio
+        // (rows * w / ratio) + (rows - 1) * gap <= containerHeight - buffer
+        // w <= (containerHeight - buffer - (rows - 1) * gap) * ratio / rows
+        const wByHeight = (containerHeight - buffer - (rows - 1) * gap) * aspectRatio / rows;
+
+        const maxW = Math.min(wByWidth, wByHeight);
+
+        if (maxW > bestWidth) {
+          bestWidth = maxW;
+          bestCols = cols;
+        }
       }
+
+      // Apply best width
+      // Subtract a tiny bit to prevent rounding issues causing wrap
+      const applyWidth = Math.floor(bestWidth - 1);
+
+      cards.forEach(c => {
+        c.style.width = `${applyWidth}px`;
+        c.style.height = `${applyWidth / aspectRatio}px`;
+        c.style.maxWidth = 'none';
+        c.style.maxHeight = 'none';
+      });
     }
 
     window.addEventListener('resize', fitHandToScreen);
