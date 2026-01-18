@@ -655,7 +655,7 @@
     /* Take remaining space */
     display: flex;
     overflow-x: auto;
-    gap: 15px;
+    gap: 1px;
     padding: 10px;
     background: #e9e9e9;
     border-radius: 8px;

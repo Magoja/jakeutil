@@ -133,8 +133,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderViewUI(cards, source) {
     poolArea.innerHTML = '';
-    // Always Columns
-    renderAsColumns(cards, poolArea, source);
+
+    if (currentSort === 'collector' && source === 'pool') {
+      renderAsGrid(cards, poolArea, source);
+    } else {
+      renderAsColumns(cards, poolArea, source);
+    }
   }
 
   function renderPileUI(cards, source, titleLabel) {
@@ -160,14 +164,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderAsColumns(cards, container, source) {
+    if (container.classList.contains('cards-grid')) {
+      container.classList.remove('cards-grid');
+    }
     // Determine sort function based on source
     // Pool: Sort by Collector Number (Default)
     // Deck: Sort by Priority (Type) -> CMC -> Name
     const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
 
-    const groups = groupCards(cards, currentSort, sortFn);
+    // Use CMC text for grouping if collector sort is selected for deck
+    let groupMode = currentSort;
+    if (source === 'deck' && currentSort === 'collector') {
+      groupMode = 'cmc';
+    }
 
-    let keys = sortGroupKeys(Object.keys(groups), currentSort);
+    const groups = groupCards(cards, groupMode, sortFn);
+
+    let keys = sortGroupKeys(Object.keys(groups), groupMode);
 
     keys.forEach(groupKey => {
       const column = document.createElement('div');
@@ -184,6 +197,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       column.appendChild(stack);
       container.appendChild(column);
+    });
+  }
+
+  function renderAsGrid(cards, container, source) {
+    if (!container.classList.contains('cards-grid')) {
+      container.classList.add('cards-grid');
+    }
+
+    const sorted = [...cards].sort(compareByCollectorNumber);
+    sorted.forEach(card => {
+      const el = createDraggableCard(card, source);
+      el.style.margin = '2px';
+      container.appendChild(el);
     });
   }
 
@@ -529,10 +555,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Controls ---
 
-  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; render(); });
-  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; render(); });
-  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; render(); });
-  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; render(); });
+  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-collector').addEventListener('click', () => { currentSort = 'collector'; render(); });
+
+  function resetPoolAreaStyle() {
+    poolArea.style.flexWrap = '';
+    poolArea.style.overflowX = '';
+    poolArea.style.overflowY = '';
+    poolArea.style.alignItems = '';
+    poolArea.style.justifyContent = '';
+  }
 
   // Land Station
   document.querySelectorAll('.mana-btn').forEach(btn => {
@@ -607,6 +642,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('toggle-view-btn').addEventListener('click', () => {
     isDeckFocus = !isDeckFocus;
     activeFilters.clear(); // Reset filters on view toggle
+    resetPoolAreaStyle(); // Reset any grid styles
     if (isDeckFocus) {
       currentSort = 'cmc';
     } else {
