@@ -8,7 +8,7 @@
 
   .container {
     text-align: center;
-    margin-top: 0px;
+    margin-top: 10px;
   }
 
   .set-display {
@@ -1043,4 +1043,43 @@
   /* Share Modal needs to be above Hand Modal (2000) */
   #share-modal {
     z-index: 2500 !important;
+  }
+
+  /* Full Screen Loading Overlay */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+  }
+
+  .loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  /* Reuse the spinner but handle its position relative to content */
+  .loading-content .spinner {
+    position: static;
+    /* Override absolute from helper */
+    transform: none;
+    width: 50px;
+    height: 50px;
+    border-width: 5px;
+  }
+
+  .loading-content p {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
   }

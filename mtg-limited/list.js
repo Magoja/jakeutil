@@ -5,31 +5,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setCode = params.get('set');
   const statusMessage = document.getElementById('status-message');
   const cardsContainer = document.getElementById('cards-container');
+  const loadingOverlay = document.getElementById('global-loading-overlay');
 
   if (!setCode) {
-    statusMessage.textContent = "Error: No set selected.";
-    statusMessage.classList.add('error');
-    return;
-  }
-
-  if (!setCode) {
-    statusMessage.textContent = "Error: No set selected.";
-    statusMessage.classList.add('error');
+    if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "Error: No set selected.";
+    if (statusMessage) {
+      statusMessage.textContent = "Error: No set selected.";
+      statusMessage.classList.add('error');
+    }
     return;
   }
 
   async function init() {
-    statusMessage.textContent = `Loading cards for set: ${setCode.toUpperCase()}...`;
+    // Overlay is visible by default
+    if (loadingOverlay) loadingOverlay.querySelector('p').textContent = `Loading cards for set: ${setCode.toUpperCase()}...`;
 
     try {
       const cards = await Scryfall.fetchCards(`set:${setCode}`);
       if (cards.length === 0) {
-        statusMessage.textContent = `No cards found for set: ${setCode.toUpperCase()}`;
-        statusMessage.classList.add('error');
+        if (loadingOverlay) loadingOverlay.querySelector('p').textContent = `No cards found for set: ${setCode.toUpperCase()}`;
         return;
       }
 
-      statusMessage.style.display = 'none';
+      if (loadingOverlay) loadingOverlay.style.display = 'none';
 
       // Save last viewed set
       localStorage.setItem('mtg_limited_last_set', setCode);
@@ -41,8 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
       console.error("Error loading cards:", error);
-      statusMessage.textContent = "Error loading cards. Please try again later.";
-      statusMessage.classList.add('error');
+      if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "Error loading cards. Please try again later.";
     }
   }
 

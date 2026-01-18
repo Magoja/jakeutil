@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const loadingIndicator = document.getElementById('loading-indicator');
+  const loadingOverlay = document.getElementById('global-loading-overlay');
+  if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
   // Visual Spoiler State
   let visualSpoilerSetCode = null;
@@ -137,7 +138,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (error) {
       console.error("Error fetching sets:", error);
-      loadingIndicator.textContent = "Error loading sets.";
+      if (loadingOverlay) {
+        loadingOverlay.querySelector('p').textContent = "Error loading sets. Please refresh.";
+        // Keep overlay blocks interaction? Or allow close?
+        // For now, blocking on error is safer to prevent broken state interaction, but maybe allow refresh.
+      }
       return [];
     }
   }
@@ -177,11 +182,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const allSets = await fetchAllSets();
 
     if (allSets.length === 0) {
-      loadingIndicator.textContent = "No valid sets found.";
       return;
     }
 
-    loadingIndicator.style.display = 'none';
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
 
     // --- Visual Spoiler Section ---
     // Rules: No 'expansion' check required, just date logic to avoid far future sets.

@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rng = RNG.create(seed);
 
   const container = document.querySelector('.sealed-container');
-  const loadingMessage = document.getElementById('loading-message');
+  const loadingOverlay = document.getElementById('global-loading-overlay');
   const poolArea = document.getElementById('pool-area');
   const deckList = document.getElementById('deck-list');
   let deckCount = document.getElementById('deck-count');
 
   if (!setCode) {
-    loadingMessage.textContent = "No set specified.";
+    if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "No set specified.";
     return;
   }
 
@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Fetch all cards
   async function fetchCards() {
     try {
-      loadingMessage.textContent = "Loading cards...";
+      if (loadingOverlay) loadingOverlay.style.display = 'flex';
+      if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "Loading cards...";
 
       const [cards, lands] = await Promise.all([
         Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`),
@@ -58,14 +59,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         isDataLoaded = true;
         render();
         initFilterModal(); // Init filters after cards loaded
-        loadingMessage.style.display = 'none';
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
       } else {
-        loadingMessage.textContent = "No cards found.";
+        if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "No cards found.";
       }
 
     } catch (e) {
       console.error(e);
-      loadingMessage.textContent = "Error loading cards.";
+      if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "Error loading cards.";
+      // Maybe allow refresh or block? Blocking for now as per plan
     }
   }
 
