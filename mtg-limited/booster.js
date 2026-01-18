@@ -5,20 +5,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize RNG
   const rng = RNG.create(seed);
+  const loading = new LoadingOverlay();
 
   const container = document.getElementById('booster-container');
-  const loadingOverlay = document.getElementById('global-loading-overlay');
   const openAnotherBtn = document.getElementById('open-another-btn');
 
   if (!setCode) {
-    if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "No set specified.";
+    loading.showError("No set specified.");
     return;
   }
 
-  if (loadingOverlay) {
-    loadingOverlay.style.display = 'flex'; // Ensure visible on start
-    loadingOverlay.querySelector('p').textContent = "Fetching set data from Scryfall...";
-  }
+  loading.show("Fetching set data from Scryfall...");
 
   // State
   const pool = BoosterLogic.createPool();
@@ -34,16 +31,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (cards.length > 0) {
         BoosterLogic.processCards(cards, pool); // Populate pool
         isDataLoaded = true;
-        if (loadingOverlay) loadingOverlay.style.display = 'none';
+        loading.hide();
         generateBooster();
       } else {
-        if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "No cards found.";
+        loading.showError("No cards found.");
       }
 
     } catch (e) {
       console.error(e);
-      console.error(e);
-      if (loadingOverlay) loadingOverlay.querySelector('p').textContent = "Error loading cards.";
+      loading.showError("Error loading cards.");
     }
   }
 
