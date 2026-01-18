@@ -16,7 +16,7 @@ class KeywordExtractor {
 
     return new Promise((resolve) => {
       const script = document.createElement('script');
-      script.src = `keywords/keywords-${setCode}.js`;
+      script.src = `keywords/${setCode}.js`;
       script.onload = () => {
         console.log(`Loaded rules for ${setCode}`);
         resolve();
