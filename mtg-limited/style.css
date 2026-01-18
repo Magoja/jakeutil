@@ -907,9 +907,28 @@
 
     /* Adjust Action Buttons in Header */
     .header-controls .action-button.small {
-      padding: 0 8px;
-      min-width: 24px;
+      padding: 0 6px;
+      min-width: 20px;
       font-weight: bold;
+      font-size: 13px;
+    }
+
+    .header {
+      padding: 5px 10px;
+      gap: 5px;
+      flex-wrap: nowrap;
+      /* Force single line */
+      overflow-x: auto;
+      /* Allow scroll if absolutely necessary, but try to fit */
+    }
+
+    .header-controls {
+      gap: 2px;
+    }
+
+    .back-link {
+      padding: 5px 10px;
+      font-size: 12px;
     }
 
     /* Metrics Bar - One line at bottom */
