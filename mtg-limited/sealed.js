@@ -208,7 +208,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sorted = [...cards].sort(compareByCollectorNumber);
     sorted.forEach(card => {
       const el = createDraggableCard(card, source);
-      el.style.margin = '2px';
       container.appendChild(el);
     });
   }
@@ -404,10 +403,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sortFn = destination === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
         insertCardIntoList(listTarget, cardElement, card, sortFn);
       } else {
-        // Use correct sort function
+        // View Mode
         const sortFn = isDeckFocus && destination === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
-        const group = getCardGroupKey(card, currentSort);
-        insertCardIntoColumn(container, cardElement, card, group, sortFn);
+
+        if (container.classList.contains('cards-grid')) {
+          // Grid Mode Insertion
+          insertCardSorted(container, cardElement, card, sortFn);
+        } else {
+          // Column Mode Insertion
+          const group = getCardGroupKey(card, currentSort);
+          insertCardIntoColumn(container, cardElement, card, group, sortFn);
+        }
       }
     }
 
@@ -947,7 +953,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const el = CardUI.createCardElementForDeck(card);
         el.style.transformOrigin = 'top left';
         el.style.position = 'relative'; // Reset from any absolute
-        el.style.margin = '0';
         handDisplay.appendChild(el);
       });
 
