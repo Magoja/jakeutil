@@ -21,27 +21,52 @@ const BoosterLogic = {
     };
   },
 
+  // Helper to group cards by name
+  groupCardsByName(cards) {
+    const groups = {};
+    cards.forEach(c => {
+      if (!groups[c.name]) groups[c.name] = [];
+      groups[c.name].push(c);
+    });
+    return Object.values(groups);
+  },
+
   processCards(cards, pool) {
+    const commons = [];
+    const uncommons = [];
+    const rares = [];
+    const mythics = [];
+    const lands = []; // Non-basic common lands
+    const basics = []; // Just in case basics slipped in by mistake
+
     cards.forEach(card => {
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       const rarity = card.rarity;
 
       if (type.includes('Basic Land')) {
-        pool.basic.push(card);
+        basics.push(card);
         return;
       }
 
       if (rarity === 'common') {
         if (type.includes('Land')) {
-          pool.land.push(card);
+          lands.push(card);
         } else {
-          pool.common.push(card);
+          commons.push(card);
         }
       }
-      else if (rarity === 'uncommon') pool.uncommon.push(card);
-      else if (rarity === 'rare') pool.rare.push(card);
-      else if (rarity === 'mythic') pool.mythic.push(card);
+      else if (rarity === 'uncommon') uncommons.push(card);
+      else if (rarity === 'rare') rares.push(card);
+      else if (rarity === 'mythic') mythics.push(card);
     });
+
+    // Store as Arrays of Groups (Card[][])
+    pool.common = this.groupCardsByName(commons);
+    pool.uncommon = this.groupCardsByName(uncommons);
+    pool.rare = this.groupCardsByName(rares);
+    pool.mythic = this.groupCardsByName(mythics);
+    pool.land = this.groupCardsByName(lands);
+    // Basics handled via addBasics typically
   },
 
   separateBasicLands(cards) {
@@ -62,35 +87,41 @@ const BoosterLogic = {
 
   addBasics(pool, basics) {
     if (basics && Array.isArray(basics)) {
-      pool.basic.push(...basics);
+      pool.basic = this.groupCardsByName(basics);
     }
   },
 
-  getRandomItem(array, rng) {
-    if (!array || array.length === 0) return null;
-    return array[Math.floor(rng() * array.length)];
+  getRandomItem(sourceGroups, rng) {
+    if (!sourceGroups || sourceGroups.length === 0) return null;
+    // 1. Pick a random group (Equal probability per unique card name)
+    const group = sourceGroups[Math.floor(rng() * sourceGroups.length)];
+    // 2. Pick a random card from that group (Equal probability per variant)
+    return group[Math.floor(rng() * group.length)];
   },
 
-  pickN(amount, source, rng) {
+  pickN(amount, sourceGroups, rng) {
     const result = [];
-    if (!source || source.length === 0) return result;
+    if (!sourceGroups || sourceGroups.length === 0) return result;
 
-    // If we need more than we have, just return what we have (or dupe? usually limited means unique pulls per pack but duplication across packs. 
-    // real packs don't duplicate usually. But for simulation if pool is small, unique is better.)
-    // Let's stick to unique indices logic if possible, but fallback if not enough.
+    // Pick N unique names (groups) if possible
 
-    if (source.length < amount) {
+    if (sourceGroups.length < amount) {
       for (let i = 0; i < amount; i++) {
-        result.push(this.getRandomItem(source, rng));
+        result.push(this.getRandomItem(sourceGroups, rng));
       }
       return result;
     }
 
     const indices = new Set();
     while (indices.size < amount) {
-      indices.add(Math.floor(rng() * source.length));
+      indices.add(Math.floor(rng() * sourceGroups.length));
     }
-    indices.forEach(i => result.push(source[i]));
+
+    indices.forEach(i => {
+      const group = sourceGroups[i];
+      result.push(group[Math.floor(rng() * group.length)]);
+    });
+
     return result;
   },
 
