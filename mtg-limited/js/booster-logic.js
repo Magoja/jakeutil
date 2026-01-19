@@ -40,6 +40,9 @@ const BoosterLogic = {
     const basics = []; // Just in case basics slipped in by mistake
 
     cards.forEach(card => {
+      // Filter out promos (keep only if promo field exists AND is strictly false)
+      if (card.promo !== false) return;
+
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       const rarity = card.rarity;
 
@@ -87,7 +90,8 @@ const BoosterLogic = {
 
   addBasics(pool, basics) {
     if (basics && Array.isArray(basics)) {
-      pool.basic = this.groupCardsByName(basics);
+      const nonPromos = basics.filter(c => !c.promo);
+      pool.basic = this.groupCardsByName(nonPromos);
     }
   },
 
