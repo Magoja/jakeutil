@@ -37,16 +37,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       loading.show("Loading cards...");
 
-      const [cards, lands] = await Promise.all([
-        Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`),
-        Scryfall.fetchCards(`set:${setCode} unique:prints type:basic`),
+      const [allSetCards] = await Promise.all([
+        Scryfall.fetchCards(`set:${setCode} unique:prints`),
         KeywordExtractor.loadSetRules(setCode)
       ]);
 
-      if (cards.length > 0) {
-        basicLands = lands; // Store basics for land station
+      if (allSetCards.length > 0) {
+        // Separate Basic Lands and Pool Cards
+        const { basics, others: poolInput } = BoosterLogic.separateBasicLands(allSetCards);
+        basicLands = basics;
 
-        BoosterLogic.processCards(cards, pool); // Populate source pool logic
+        BoosterLogic.processCards(poolInput, pool); // Populate source pool logic
+        BoosterLogic.addBasics(pool, basicLands);
         generateSealedPool();
 
         // Check for deck to restore
@@ -331,9 +333,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     } else {
       // Move from deck to pool
-      // Special Case: Basic Lands (user added) -> Delete
-      const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
-      if (type.includes('Basic Land')) {
+      // Special Case: Added Basic Lands -> Delete
+      // Pulled Basic Lands -> Move to Pool
+      if (card.isAddedLand) {
         removeBasicLand(uniqueId);
         return;
       }
@@ -625,6 +627,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const landCard = JSON.parse(JSON.stringify(pick)); // Clone
     landCard.uniqueId = `land-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    landCard.isAddedLand = true; // Mark as added land
 
     deckCards.push(landCard);
     allCards.push(landCard); // Track source

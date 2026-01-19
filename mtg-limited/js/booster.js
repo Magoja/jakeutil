@@ -25,11 +25,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Fetch all cards
   async function fetchCards() {
     try {
-      // Include unique:cards and -type:basic as before
-      const cards = await Scryfall.fetchCards(`set:${setCode} unique:cards -type:basic`);
+      // Include unique:prints to get basics and variants
+      const cards = await Scryfall.fetchCards(`set:${setCode} unique:prints`);
 
       if (cards.length > 0) {
-        BoosterLogic.processCards(cards, pool); // Populate pool
+        const { basics, others } = BoosterLogic.separateBasicLands(cards);
+
+        BoosterLogic.processCards(others, pool); // Populate pool
+        BoosterLogic.addBasics(pool, basics);
+
         isDataLoaded = true;
         loading.hide();
         generateBooster();
