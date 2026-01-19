@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderViewUI(cards, source) {
     poolArea.innerHTML = '';
 
-    if (currentSort === 'collector' && source === 'pool') {
+    if (currentSort === 'collector') {
       renderAsGrid(cards, poolArea, source);
     } else {
       renderAsColumns(cards, poolArea, source);
@@ -175,11 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Deck: Sort by Priority (Type) -> CMC -> Name
     const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
 
-    // Use CMC text for grouping if collector sort is selected for deck
     let groupMode = currentSort;
-    if (source === 'deck' && currentSort === 'collector') {
-      groupMode = 'cmc';
-    }
 
     const groups = groupCards(cards, groupMode, sortFn);
 
