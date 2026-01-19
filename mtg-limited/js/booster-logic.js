@@ -42,6 +42,8 @@ const BoosterLogic = {
     cards.forEach(card => {
       // Filter out promos (keep only if promo field exists AND is strictly false)
       if (card.promo !== false) return;
+      // Filter out meld cards
+      if (card.layout === 'meld') return;
 
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       const rarity = card.rarity;
