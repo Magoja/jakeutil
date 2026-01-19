@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let basicLands = []; // Basic lands
   let isDataLoaded = false;
   let currentSort = 'color'; // Default sort
+  let isGridView = false; // Layout mode
   let isDeckFocus = false;
 
 
@@ -137,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderViewUI(cards, source) {
     poolArea.innerHTML = '';
 
-    if (currentSort === 'collector') {
+    if (isGridView) {
       renderAsGrid(cards, poolArea, source);
     } else {
       renderAsColumns(cards, poolArea, source);
@@ -204,7 +205,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       container.classList.add('cards-grid');
     }
 
-    const sorted = [...cards].sort(compareByCollectorNumber);
+    // Grid View: Respect Current Grouping
+    // 1. Group cards just like columns
+    const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
+    const groups = groupCards(cards, currentSort, sortFn);
+
+    // 2. Get sorted keys
+    const keys = sortGroupKeys(Object.keys(groups), currentSort);
+
+    // 3. Flatten into simple list
+    const sorted = [];
+    keys.forEach(key => {
+      sorted.push(...groups[key]);
+    });
+
     sorted.forEach(card => {
       const el = createDraggableCard(card, source);
       container.appendChild(el);
@@ -560,11 +574,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Controls ---
 
-  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-collector').addEventListener('click', () => { currentSort = 'collector'; render(); });
+  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; isGridView = false; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; isGridView = false; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; isGridView = false; resetPoolAreaStyle(); render(); });
+  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; isGridView = false; resetPoolAreaStyle(); render(); });
+
+  document.getElementById('btn-layout').addEventListener('click', () => {
+    isGridView = !isGridView;
+    render();
+  });
 
   function resetPoolAreaStyle() {
     poolArea.style.flexWrap = '';
@@ -654,6 +672,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       currentSort = 'color'; // revert to default or keep? 'color' is usually good for pool
     }
+    isGridView = false;
     render();
   });
 
