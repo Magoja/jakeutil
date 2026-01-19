@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let poolCards = []; // Cards in pool
   let basicLands = []; // Basic lands
   let isDataLoaded = false;
-  let currentSort = 'color'; // Default sort
+  let currentSort = 'rarity'; // Default sort
   let isGridView = false; // Layout mode
   let isDeckFocus = false;
 
