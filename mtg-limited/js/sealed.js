@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   let deckCards = []; // Cards in deck
   let poolCards = []; // Cards in pool
   let basicLands = []; // Basic lands
-  let isDataLoaded = false;
   let currentSort = 'rarity'; // Default sort
   let isGridView = false; // Layout mode
   let isDeckFocus = false;
@@ -58,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         calculateKeywords();
-        isDataLoaded = true;
         render();
         initFilterModal(); // Init filters after cards loaded
         loading.hide();
