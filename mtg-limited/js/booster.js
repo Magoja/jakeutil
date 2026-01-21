@@ -61,6 +61,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
   });
 
+  UIUtils.initModal({
+    triggerId: 'btn-view-rules',
+    modalId: 'rules-modal',
+    closeId: 'close-rules-btn',
+    onOpen: () => {
+      const rulesContent = document.getElementById('rules-content');
+      if (rulesContent) {
+        rulesContent.innerHTML = UIUtils.renderRulesTableHTML(BoosterLogic.rules);
+      }
+    }
+  });
+
+  // Zoom Logic
   UIUtils.initZoomControl();
   fetchCards();
 });

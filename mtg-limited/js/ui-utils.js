@@ -56,5 +56,57 @@ const UIUtils = {
         updateZoom(currentZoom - 0.1);
       });
     }
+  },
+
+  renderRulesTableHTML(rules) {
+    let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;">';
+    html += '<thead><tr><th style="border-bottom: 2px solid #ddd; padding: 8px;">Slot Name</th><th style="border-bottom: 2px solid #ddd; padding: 8px;">Count</th><th style="border-bottom: 2px solid #ddd; padding: 8px;">Pool Logic</th></tr></thead>';
+    html += '<tbody>';
+
+    rules.forEach(rule => {
+      html += '<tr>';
+      html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${rule.name}</td>`;
+      html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${rule.count}</td>`;
+
+      let poolDesc = '';
+      if (rule.pool) {
+        const parts = [];
+        for (const [key, weight] of Object.entries(rule.pool)) {
+          parts.push(`<b>${key}</b>: ${weight}`);
+        }
+        poolDesc = parts.join(', ');
+      }
+
+      html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${poolDesc}</td>`;
+      html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    return html;
+  },
+
+  initModal({ triggerId, modalId, closeId, onOpen }) {
+    const trigger = document.getElementById(triggerId);
+    const modal = document.getElementById(modalId);
+    const closeBtn = document.getElementById(closeId);
+
+    if (!trigger || !modal) return;
+
+    trigger.addEventListener('click', () => {
+      if (onOpen) onOpen();
+      modal.style.display = 'flex';
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
   }
 };
