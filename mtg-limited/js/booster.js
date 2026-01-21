@@ -61,6 +61,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
   });
 
-  // Initial fetch
+  UIUtils.initZoomControl();
   fetchCards();
 });
