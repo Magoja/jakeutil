@@ -2,9 +2,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
   const seed = SeedUtils.ensureSeed(params);
-
-  // Initialize RNG
-  const rng = RNG.create(seed);
   const loading = new LoadingOverlay();
 
   const container = document.getElementById('booster-container');
@@ -36,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         isDataLoaded = true;
         loading.hide();
-        generateBooster();
+        generateBooster(seed);
       } else {
         loading.showError("No cards found.");
       }
@@ -47,18 +44,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function generateBooster() {
+  function generateBooster(seed) {
     if (!isDataLoaded) return;
 
+    const rng = RNG.create(seed);
     container.innerHTML = '';
-
     BoosterLogic.generatePackData(pool, rng).forEach(card => {
       container.appendChild(CardUI.createCardElement(card));
     });
   }
 
   openAnotherBtn.addEventListener('click', () => {
-    SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
+    const newSeed = RNG.generateSeed();
+    SeedUtils.updateUrlWithSeed(newSeed, false);
+    generateBooster(newSeed);
   });
 
   UIUtils.initModal({
