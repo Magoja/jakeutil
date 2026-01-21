@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  loading.show("Fetching set data from Scryfall...");
+  loading.show("Fetching set data...");
 
   // State
   const pool = BoosterLogic.createPool();
