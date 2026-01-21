@@ -10,6 +10,24 @@
 // 15	Non-Playable Card	65% Token/Ad card, 30% Art card, 5% Art card with gold-foil signature.
 
 const BoosterLogic = {
+  // Default Configuration (Play Booster)
+  // Generic Configuration
+  rules: [
+    { count: 6, name: "Common Slots", pool: { "common": 1 } },
+    { count: 1, name: "List/Common Slot", pool: { "common": 1 } },
+    { count: 3, name: "Uncommon Slots", pool: { "uncommon": 1 } },
+    { count: 1, name: "Rare/Mythic Slot", pool: { "rare": 7, "mythic": 1 } },
+    { count: 1, name: "Land Slot", pool: { "basic": 4, "land": 1 } }, // 80% Basic, 20% Non-Basic Common
+    { count: 1, name: "Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 10, "mythic": 5 } },
+    { count: 1, name: "Foil Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 10, "mythic": 5 } }
+  ],
+
+  setRules(newRules) {
+    if (Array.isArray(newRules)) {
+      this.rules = newRules;
+    }
+  },
+
   createPool() {
     return {
       common: [],
@@ -105,84 +123,40 @@ const BoosterLogic = {
     return group[Math.floor(rng() * group.length)];
   },
 
-  pickN(amount, sourceGroups, rng) {
-    const result = [];
-    if (!sourceGroups || sourceGroups.length === 0) return result;
+  // Helper: Generic Weighted Picker
+  // items: array of objects with 'weight' property
+  pickWeighted(items, rng) {
+    if (!items || items.length === 0) return null;
 
-    // Pick N unique names (groups) if possible
+    let totalWeight = 0;
+    items.forEach(o => totalWeight += o.weight);
 
-    if (sourceGroups.length < amount) {
-      for (let i = 0; i < amount; i++) {
-        result.push(this.getRandomItem(sourceGroups, rng));
+    let random = rng() * totalWeight;
+    for (const item of items) {
+      if (random < item.weight) {
+        return item;
       }
-      return result;
+      random -= item.weight;
     }
-
-    const indices = new Set();
-    while (indices.size < amount) {
-      indices.add(Math.floor(rng() * sourceGroups.length));
-    }
-
-    indices.forEach(i => {
-      const group = sourceGroups[i];
-      result.push(group[Math.floor(rng() * group.length)]);
-    });
-
-    return result;
+    return items[items.length - 1];
   },
 
-  // 1–6 Commons
-  // 7 Common or "The List" (1/8 chance). For now, just Common.
-  // 8–10 Uncommons
-  // 11 Rare/Mythic
-  // 12 Land (Basic or Common Dual)
-  // 13 Non-Foil Wildcard
-  // 14 Traditional Foil Wildcard (Simulated as random card)
+  // Helper: Weighted Selection for Pools
+  // Inputs: poolConfig object (key: weight), poolData source, RNG
+  selectPoolKey(poolConfig, poolData, rng) {
+    // Filter out pools that are empty to avoid trying to pick from them
+    const validOptions = [];
 
-  getTheListOrCommonSlot(pool, rng) {
-    // 12.5% chance of List. User said: "Ignore The list... generate 1 common card."
-    return this.getRandomItem(pool.common, rng);
-  },
+    for (const [key, weight] of Object.entries(poolConfig)) {
+      const w = weight !== undefined ? weight : 1;
 
-  getLandSlot(pool, rng) {
-    // 20% chance of Common Non-Basic Land (e.g. Duals)
-    const wantCommonLand = rng() < 0.2;
-
-    if (wantCommonLand && pool.land.length > 0) {
-      return this.getRandomItem(pool.land, rng);
+      if (poolData[key] && poolData[key].length > 0) {
+        validOptions.push({ key, weight: w });
+      }
     }
 
-    // 80% or Fallback: Basic Land
-    if (pool.basic.length > 0) {
-      return this.getRandomItem(pool.basic, rng);
-    }
-
-    return null;
-  },
-
-  getWildcardSlot(pool, rng) {
-    // "Any rarity". Weighted?
-    // Common: ~50%, Uncommon: ~25%, Rare/Mythic: ~10%?
-    // Or just pure random across all cards? pure random biases heavily to common.
-    // Let's use a rough rarity weight.
-    const roll = rng();
-    if (roll < 0.05) return this.getRandomItem(pool.mythic, rng) || this.getRandomItem(pool.rare, rng);
-    if (roll < 0.15) return this.getRandomItem(pool.rare, rng);
-    if (roll < 0.40) return this.getRandomItem(pool.uncommon, rng);
-    return this.getRandomItem(pool.common, rng);
-  },
-
-  getRareSlot(pool, rng) {
-    const hasMythics = pool.mythic.length > 0;
-    const isMythic = hasMythics && (rng() < 0.14); // ~1/7
-
-    if (isMythic) {
-      return this.getRandomItem(pool.mythic, rng);
-    } else {
-      if (pool.rare.length > 0) return this.getRandomItem(pool.rare, rng);
-      else if (pool.mythic.length > 0) return this.getRandomItem(pool.mythic, rng);
-    }
-    return null;
+    const selected = this.pickWeighted(validOptions, rng);
+    return selected ? selected.key : null;
   },
 
   deepCopy(array) {
@@ -192,31 +166,23 @@ const BoosterLogic = {
   generatePackData(pool, rng) {
     const pack = [];
 
-    // 1-6: Commons (6)
-    pack.push(...this.pickN(6, pool.common, rng));
+    this.rules.forEach(rule => {
+      // Validate rule structure
+      if (!rule.pool || typeof rule.pool !== 'object') {
+        console.warn('Invalid rule: missing pool object', rule);
+        return;
+      }
 
-    // 7: Common/List (1)
-    const slot7 = this.getTheListOrCommonSlot(pool, rng);
-    if (slot7) pack.push(slot7);
+      for (let i = 0; i < rule.count; i++) {
+        // Select which pool to pull from based on map weights
+        const poolKey = this.selectPoolKey(rule.pool, pool, rng);
 
-    // 8-10: Uncommons (3)
-    pack.push(...this.pickN(3, pool.uncommon, rng));
-
-    // 11: Main Rare/Mythic (1)
-    const rare = this.getRareSlot(pool, rng);
-    if (rare) pack.push(rare);
-
-    // 12: Land (1)
-    const land = this.getLandSlot(pool, rng);
-    if (land) pack.push(land);
-
-    // 13: Wildcard (1)
-    const wc1 = this.getWildcardSlot(pool, rng);
-    if (wc1) pack.push(wc1);
-
-    // 14: Regular Foil Wildcard (1) -> Treated as non-foil wildcard for logic
-    const wc2 = this.getWildcardSlot(pool, rng);
-    if (wc2) pack.push(wc2);
+        if (poolKey) {
+          const card = this.getRandomItem(pool[poolKey], rng);
+          if (card) pack.push(card);
+        }
+      }
+    });
 
     return this.deepCopy(pack);
   }
