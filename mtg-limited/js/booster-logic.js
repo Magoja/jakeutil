@@ -11,15 +11,14 @@
 
 const BoosterLogic = {
   // Default Configuration (Play Booster)
-  // Generic Configuration
   rules: [
     { count: 6, name: "Common Slots", pool: { "common": 1 } },
     { count: 1, name: "List/Common Slot", pool: { "common": 1 } },
     { count: 3, name: "Uncommon Slots", pool: { "uncommon": 1 } },
     { count: 1, name: "Rare/Mythic Slot", pool: { "rare": 7, "mythic": 1 } },
     { count: 1, name: "Land Slot", pool: { "basic": 4, "land": 1 } }, // 80% Basic, 20% Non-Basic Common
-    { count: 1, name: "Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 10, "mythic": 5 } },
-    { count: 1, name: "Foil Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 10, "mythic": 5 } }
+    { count: 1, name: "Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+    { count: 1, name: "Foil Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
   ],
 
   setRules(newRules) {
