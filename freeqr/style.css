@@ -94,6 +94,7 @@ button:disabled {
   font-size: 1em;
   z-index: 100;
 }
+
 .sticky-footer a {
   color: #90caf9;
   text-decoration: underline;

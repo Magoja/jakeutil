@@ -1094,3 +1094,48 @@
     color: #333;
     margin: 0;
   }
+
+  /* Transform/Flip Button Styles */
+  .transformable {
+    position: relative;
+  }
+
+  .flip-button {
+    position: absolute;
+    top: 50%;
+    right: auto;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    /* Above card content */
+    padding: 0;
+    transition: all 0.2s ease;
+    opacity: 0;
+  }
+
+  .transformable:hover .flip-button {
+    opacity: 0.8;
+  }
+
+  .flip-button:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(0, 0, 0, 0.85);
+    border-color: #fff;
+    opacity: 1 !important;
+  }
+
+  .flip-button svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  }
