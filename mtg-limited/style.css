@@ -1139,3 +1139,36 @@
     fill: white;
     filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
   }
+
+  /* Floating Back Button */
+  .floating-back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #333;
+    text-decoration: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 2000;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+    line-height: 1;
+    padding-bottom: 2px;
+    /* Visual center tweak for arrow */
+  }
+
+  .floating-back-btn:hover {
+    background-color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    color: #000;
+    text-decoration: none;
+  }
