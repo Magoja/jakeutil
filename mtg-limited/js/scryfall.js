@@ -101,41 +101,28 @@ const Scryfall = {
    */
   parseCardData(cardData) {
     try {
-      const parsed = { ...cardData };
-      parsed.is_transform = false;
-      parsed.faces = [];
+      const mapFace = (face) => ({
+        name: face.name,
+        mana_cost: face.mana_cost,
+        type_line: face.type_line,
+        colors: face.colors || [],
+        power: face.power,
+        toughness: face.toughness,
+        oracle_text: face.oracle_text,
+        image_uris: face.image_uris,
+        rarity: cardData.rarity,
+        set_name: cardData.set_name,
+        ...(face.cmc !== undefined ? { cmc: face.cmc } : {})
+      });
 
-      if (cardData.card_faces && !cardData.image_uris) {
-        // Transform card (double-faced)
-        parsed.is_transform = true;
-        parsed.faces = cardData.card_faces.map(face => ({
-          name: face.name,
-          mana_cost: face.mana_cost,
-          type_line: face.type_line,
-          colors: face.colors || [],
-          power: face.power,
-          toughness: face.toughness,
-          oracle_text: face.oracle_text,
-          image_uris: face.image_uris,
-          rarity: cardData.rarity, // Rarity is on the main card object usually
-          set_name: cardData.set_name
-        }));
-      } else {
-        // Normal card (single-faced)
-        parsed.faces.push({
-          name: cardData.name,
-          mana_cost: cardData.mana_cost,
-          cmc: cardData.cmc,
-          type_line: cardData.type_line,
-          colors: cardData.colors || [],
-          power: cardData.power,
-          toughness: cardData.toughness,
-          oracle_text: cardData.oracle_text,
-          image_uris: cardData.image_uris,
-          rarity: cardData.rarity,
-          set_name: cardData.set_name
-        });
-      }
+      const parsed = { ...cardData };
+
+      const isTransform = !!(cardData.card_faces && !cardData.image_uris);
+      const sourceFaces = isTransform ? cardData.card_faces : [cardData];
+
+      parsed.is_transform = isTransform;
+      parsed.faces = sourceFaces.map(mapFace);
+
       return parsed;
     } catch (e) {
       console.warn("Failed to parse card:", cardData, e);
