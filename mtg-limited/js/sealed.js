@@ -674,7 +674,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  // Zoom Logic
   UIUtils.initZoomControl();
 
   function calculateKeywords() {

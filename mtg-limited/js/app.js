@@ -108,43 +108,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function createSetShortcuts(shortcutContainer, sets, count) {
-    const latest = sets.slice(0, count);
+    const latest = filterLimitedGameSets(sets).slice(0, count);
     latest.forEach(set => {
       shortcutContainer.appendChild(createSetButton(set));
     });
   }
 
-  async function fetchAllSets() {
-    let url = 'https://api.scryfall.com/sets/';
-    let allSets = [];
-    let hasMore = true;
-
-    try {
-      while (hasMore) {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.data) {
-          allSets = allSets.concat(data.data);
-        }
-
-        hasMore = data.has_more;
-        if (hasMore) {
-          url = data.next_page;
-        }
-      }
-      return allSets;
-
-    } catch (error) {
-      console.error("Error fetching sets:", error);
-      loading.showError("Error loading sets. Please refresh.");
-      return [];
-    }
+  function filterLimitedGameSets(sets) {
+    const validTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
+    return sets.filter(set => validTypes.includes(set.set_type));
   }
 
   function findDefaultSet(sets) {
-    const validTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
-    return sets.find(set => validTypes.includes(set.set_type)) || sets[0];
+    return filterLimitedGameSets(sets)[0];
   }
 
   function findPreferredSet(sets) {
@@ -173,8 +149,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function filterSets(sets, { maxAgeDays = Infinity, validTypes = [] } = {}) {
+    return sets.filter(set => {
+      if (!set.released_at) return false;
+      const days = daysFromToday(set.released_at);
+      if (days > maxAgeDays) return false;
+      if (validTypes.length > 0 && !validTypes.includes(set.set_type)) return false;
+      return true;
+    });
+  }
+
   async function init() {
-    const allSets = await fetchAllSets();
+    const allSets = await Scryfall.fetchAllSets();
 
     if (allSets.length === 0) {
       return;
@@ -184,11 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Visual Spoiler Section ---
     // Rules: No 'expansion' check required, just date logic to avoid far future sets.
-    const visualSets = allSets.filter(set => {
-      if (!set.released_at) return false;
-      const days = daysFromToday(set.released_at);
-      return days <= 14;
-    });
+    const visualSets = filterSets(allSets, { maxAgeDays: 180 });
 
     const initVisualSet = findPreferredSet(visualSets);
 
@@ -221,16 +203,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     updateQuickStartButton(findDefaultSet(visualSets));
 
-
     // --- Open Boosters Section ---
     // Rules: Limited relevant sets only (core, expansion, masters, draft_innovation)
     const limitedTypes = ['core', 'expansion', 'masters', 'draft_innovation'];
-    const boosterSets = allSets.filter(set => {
-      if (!set.released_at) return false;
-      const days = daysFromToday(set.released_at);
-      if (days > 14) return false; // Not too far in future
-      return limitedTypes.includes(set.set_type);
-    });
+    const boosterSets = filterSets(allSets, { maxAgeDays: 14, validTypes: limitedTypes });
 
     // Default to latest
     const initBoosterSet = boosterSets[0]; // Since validTypes are usually what we want, and it's sorted by release usually? 

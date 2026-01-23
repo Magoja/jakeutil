@@ -49,7 +49,7 @@ const Scryfall = {
       await this.fetchPaginated('https://api.scryfall.com/sets/', (data) => {
         allSets = allSets.concat(data);
       });
-      return allSets;
+      return allSets.filter(set => set.card_count > 0);
     } catch (error) {
       console.error("Error fetching sets:", error);
       throw error;
