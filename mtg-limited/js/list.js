@@ -185,6 +185,10 @@ function sortCards(cards, order) {
       // Secondary sort by collector number
       return compareCollectorNumber(a, b);
     });
+  } else if (order === 'name') {
+    cards.sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
   } else {
     // Default: set (collector number)
     cards.sort(compareCollectorNumber);
