@@ -3,9 +3,16 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
+  const uniqueParam = params.get('unique');
+  const orderParam = params.get('order');
   const statusMessage = document.getElementById('status-message');
   const cardsContainer = document.getElementById('cards-container');
   const loading = new LoadingOverlay();
+
+  let currentUniqueMode = uniqueParam || 'cards'; // Default mode
+  let currentOrder = orderParam || 'set'; // Default order
+  let allCardsGlobal = []; // Store all cards globally to re-filter
+  let filterState = new Set(); // Stores keys of filters that are ACTIVE (Filtering OUT)
 
   if (!setCode) {
     loading.showError("Error: No set selected.");
@@ -16,12 +23,70 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  async function init() {
+  // Options Menu Logic
+  const optionsBtn = document.getElementById('options-btn');
+  const optionsMenu = document.getElementById('options-menu');
+  const uniqueSelect = document.getElementById('unique-mode-select');
+  const orderSelect = document.getElementById('sort-order-select');
+
+  if (optionsBtn && optionsMenu) {
+    optionsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      optionsMenu.style.display = optionsMenu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Close menu when clicking outside
+    window.addEventListener('click', (e) => {
+      if (!optionsMenu.contains(e.target) && e.target !== optionsBtn) {
+        optionsMenu.style.display = 'none';
+      }
+    });
+  }
+
+  if (uniqueSelect) {
+    // Set initial value
+    uniqueSelect.value = currentUniqueMode;
+
+    uniqueSelect.addEventListener('change', async (e) => {
+      currentUniqueMode = e.target.value;
+      updateUrlAndReload();
+    });
+  }
+
+  if (orderSelect) {
+    orderSelect.value = currentOrder;
+    orderSelect.addEventListener('change', async (e) => {
+      currentOrder = e.target.value;
+      updateUrlAndReload(false);
+    });
+  }
+
+  async function updateUrlAndReload(reloadApi = true) {
+    optionsMenu.style.display = 'none'; // Close menu
+
+    // Update URL
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('unique', currentUniqueMode);
+    newUrl.searchParams.set('order', currentOrder);
+    window.history.pushState({}, '', newUrl);
+
+    if (reloadApi) {
+      await loadCards(); // Reload cards
+    } else {
+      applyFilters(); // Re-sort and re-render without fetch
+    }
+  }
+
+  async function loadCards() {
     // Overlay is visible by default
-    loading.show(`Loading cards for set: ${setCode.toUpperCase()}...`);
+    loading.show(`Loading ${currentUniqueMode} for set: ${setCode.toUpperCase()}...`);
+
+    // Clear current View
+    cardsContainer.innerHTML = '';
+    allCardsGlobal = [];
 
     try {
-      const cards = await Scryfall.fetchCards(`set:${setCode}`);
+      const cards = await Scryfall.fetchCards(`set:${setCode}`, currentUniqueMode);
       if (cards.length === 0) {
         if (loading) loading.showError(`No cards found for set: ${setCode.toUpperCase()}`);
         return;
@@ -35,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Initialize Filters
       allCardsGlobal = cards; // Global update
       createFilterBar();
-      renderCards(cards);
+      applyFilters(); // Initial render with sort
 
     } catch (error) {
       console.error("Error loading cards:", error);
@@ -43,9 +108,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  init();
-});
+  function createFilterBar() {
+    const container = document.getElementById('filter-container');
+    if (!container) return;
+    container.innerHTML = '';
 
+    const filters = [
+      { key: 'W', icon: 'icons/icon-3.png', label: 'W' },
+      { key: 'U', icon: 'icons/icon-2.png', label: 'U' },
+      { key: 'B', icon: 'icons/icon-4.png', label: 'B' },
+      { key: 'R', icon: 'icons/icon-5.png', label: 'R' },
+      { key: 'G', icon: 'icons/icon-1.png', label: 'G' },
+      { key: 'C', icon: 'icons/icon-6.png', label: 'C' },
+      { key: 'M', icon: 'icons/rainbow.png', label: 'M' },
+      { key: 'L', icon: 'icons/icon-9.png', label: 'L' }
+    ];
+
+    filters.forEach(f => {
+      const btn = document.createElement('div');
+      btn.classList.add('filter-btn');
+      btn.title = f.title || f.label;
+
+      if (f.icon) {
+        btn.innerHTML = `<img src="${f.icon}" alt="${f.label}">`;
+      } else {
+        btn.textContent = f.label;
+      }
+
+      btn.onclick = () => {
+        if (filterState.has(f.key)) {
+          filterState.delete(f.key);
+          btn.classList.remove('active');
+        } else {
+          filterState.add(f.key);
+          btn.classList.add('active');
+        }
+        applyFilters();
+      };
+
+      container.appendChild(btn);
+    });
+  }
+
+  function applyFilters() {
+    const filtered = allCardsGlobal.filter(card => {
+      return filterState.size === 0 || checkCardPassesFilter(filterState, card);
+    });
+    sortCards(filtered, currentOrder);
+    renderCards(filtered);
+  }
+
+  loadCards();
+});
 
 function renderCards(cards) {
   const container = document.getElementById('cards-container');
@@ -61,98 +175,18 @@ function renderCards(cards) {
   });
 }
 
-// Filtering Logic
-let allCardsGlobal = []; // Store all cards globally to re-filter
-let filterState = new Set(); // Stores keys of filters that are ACTIVE (Filtering OUT)
-
-function createFilterBar() {
-  const container = document.getElementById('filter-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const filters = [
-    { key: 'W', icon: 'icons/icon-3.png', label: 'W' },
-    { key: 'U', icon: 'icons/icon-2.png', label: 'U' },
-    { key: 'B', icon: 'icons/icon-4.png', label: 'B' },
-    { key: 'R', icon: 'icons/icon-5.png', label: 'R' },
-    { key: 'G', icon: 'icons/icon-1.png', label: 'G' },
-    { key: 'C', icon: 'icons/icon-6.png', label: 'C' },
-    { key: 'M', icon: 'icons/rainbow.png', label: 'M' },
-    { key: 'L', icon: 'icons/icon-9.png', label: 'L' }
-  ];
-
-  filters.forEach(f => {
-    const btn = document.createElement('div');
-    btn.classList.add('filter-btn');
-    btn.title = f.title || f.label;
-
-    if (f.icon) {
-      btn.innerHTML = `<img src="${f.icon}" alt="${f.label}">`;
-    } else {
-      btn.textContent = f.label;
-    }
-
-    btn.onclick = () => {
-      if (filterState.has(f.key)) {
-        filterState.delete(f.key);
-        btn.classList.remove('active');
-      } else {
-        filterState.add(f.key);
-        btn.classList.add('active');
-      }
-      applyFilters();
-    };
-
-    container.appendChild(btn);
-  });
-}
-
-// Helper to get colors safely (handling transform cards)
-function getCardColors(card) {
-  if (card.is_transform && card.faces && card.faces.length > 0) {
-    return card.faces[0].colors || [];
+function sortCards(cards, order) {
+  if (order === 'rarity') {
+    const rarityRank = { 'mythic': 0, 'rare': 1, 'uncommon': 2, 'common': 3, 'bonus': 4, 'special': 4 };
+    cards.sort((a, b) => {
+      const rankA = rarityRank[a.rarity] !== undefined ? rarityRank[a.rarity] : 5;
+      const rankB = rarityRank[b.rarity] !== undefined ? rarityRank[b.rarity] : 5;
+      if (rankA !== rankB) return rankA - rankB;
+      // Secondary sort by collector number
+      return compareCollectorNumber(a, b);
+    });
+  } else {
+    // Default: set (collector number)
+    cards.sort(compareCollectorNumber);
   }
-  return card.colors || [];
-}
-
-// Helper to get type_line safely
-function getCardTypeLine(card) {
-  if (card.is_transform && card.faces && card.faces.length > 0) {
-    return card.faces[0].type_line || "";
-  }
-  return card.type_line || "";
-}
-
-function applyFilters() {
-  if (filterState.size === 0) {
-    renderCards(allCardsGlobal);
-    return;
-  }
-
-  const filtered = allCardsGlobal.filter(card => {
-    // Logic: Show card if it matches ANY of the active filters.
-    // If multiple filters are active, it's a UNION (OR).
-
-    const colors = getCardColors(card);
-    const typeLine = getCardTypeLine(card);
-
-    const isLand = typeLine.includes('Land');
-    const isMulticolor = colors.length > 1;
-    const isColorless = colors.length === 0 && !isLand;
-
-    // Check Matches
-    if (!isMulticolor && filterState.has('W') && colors.includes('W')) return true;
-    if (!isMulticolor && filterState.has('U') && colors.includes('U')) return true;
-    if (!isMulticolor && filterState.has('B') && colors.includes('B')) return true;
-    if (!isMulticolor && filterState.has('R') && colors.includes('R')) return true;
-    if (!isMulticolor && filterState.has('G') && colors.includes('G')) return true;
-
-    if (filterState.has('C') && isColorless) return true;
-    if (filterState.has('M') && isMulticolor) return true;
-    if (filterState.has('L') && isLand) return true;
-
-    return false; // No match
-  });
-
-  renderCards(filtered);
 }

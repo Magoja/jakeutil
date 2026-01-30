@@ -1172,3 +1172,21 @@
     color: #000;
     text-decoration: none;
   }
+
+  /* Options Menu */
+  .options-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 10px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 2000;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
