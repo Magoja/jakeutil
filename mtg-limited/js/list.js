@@ -1,5 +1,76 @@
 // list.js
 
+class OptionsMenu {
+  constructor(config = {}) {
+    this.ids = {
+      button: 'options-btn',
+      menu: 'options-menu',
+      uniqueSelect: 'unique-mode-select',
+      orderSelect: 'sort-order-select',
+      ...config.ids
+    };
+
+    this.optionsBtn = document.getElementById(this.ids.button);
+    this.optionsMenu = document.getElementById(this.ids.menu);
+    this.uniqueSelect = document.getElementById(this.ids.uniqueSelect);
+    this.orderSelect = document.getElementById(this.ids.orderSelect);
+
+    this.onModeChange = config.onModeChange || (() => { });
+
+    // Set initial values
+    if (this.uniqueSelect && config.initialUniqueMode) {
+      this.uniqueSelect.value = config.initialUniqueMode;
+    }
+    if (this.orderSelect && config.initialOrder) {
+      this.orderSelect.value = config.initialOrder;
+    }
+
+    this.initListeners();
+  }
+
+  initListeners() {
+    if (this.optionsBtn && this.optionsMenu) {
+      this.optionsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleMenu();
+      });
+
+      window.addEventListener('click', (e) => {
+        if (!this.optionsMenu.contains(e.target) && e.target !== this.optionsBtn) {
+          this.closeMenu();
+        }
+      });
+    }
+
+    if (this.uniqueSelect) {
+      this.uniqueSelect.addEventListener('change', (e) => {
+        this.onModeChange('unique', e.target.value);
+        this.closeMenu();
+      });
+    }
+
+    if (this.orderSelect) {
+      this.orderSelect.addEventListener('change', (e) => {
+        this.onModeChange('order', e.target.value);
+        this.closeMenu();
+      });
+    }
+  }
+
+  toggleMenu() {
+    if (this.optionsMenu) {
+      this.optionsMenu.style.display = this.optionsMenu.style.display === 'none' ? 'block' : 'none';
+    }
+  }
+
+  closeMenu() {
+    if (this.optionsMenu) {
+      this.optionsMenu.style.display = 'none';
+    }
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const setCode = params.get('set');
@@ -24,45 +95,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Options Menu Logic
-  const optionsBtn = document.getElementById('options-btn');
-  const optionsMenu = document.getElementById('options-menu');
-  const uniqueSelect = document.getElementById('unique-mode-select');
-  const orderSelect = document.getElementById('sort-order-select');
-
-  if (optionsBtn && optionsMenu) {
-    optionsBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      optionsMenu.style.display = optionsMenu.style.display === 'none' ? 'block' : 'none';
-    });
-
-    // Close menu when clicking outside
-    window.addEventListener('click', (e) => {
-      if (!optionsMenu.contains(e.target) && e.target !== optionsBtn) {
-        optionsMenu.style.display = 'none';
+  const optionsMenu = new OptionsMenu({
+    initialUniqueMode: currentUniqueMode,
+    initialOrder: currentOrder,
+    onModeChange: (type, value) => {
+      if (type === 'unique') {
+        currentUniqueMode = value;
+        updateUrlAndReload(true);
+      } else if (type === 'order') {
+        currentOrder = value;
+        updateUrlAndReload(false);
       }
-    });
-  }
-
-  if (uniqueSelect) {
-    // Set initial value
-    uniqueSelect.value = currentUniqueMode;
-
-    uniqueSelect.addEventListener('change', async (e) => {
-      currentUniqueMode = e.target.value;
-      updateUrlAndReload();
-    });
-  }
-
-  if (orderSelect) {
-    orderSelect.value = currentOrder;
-    orderSelect.addEventListener('change', async (e) => {
-      currentOrder = e.target.value;
-      updateUrlAndReload(false);
-    });
-  }
+    }
+  });
 
   async function updateUrlAndReload(reloadApi = true) {
-    optionsMenu.style.display = 'none'; // Close menu
+    optionsMenu.closeMenu(); // Close menu
 
     // Update URL
     const newUrl = new URL(window.location);
