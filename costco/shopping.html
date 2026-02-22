@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Costco Shopping List</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Specific overrides for shopping view */
+    .color-bar {
+      width: 8px;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .swipe-container {
+      padding-left: 8px;
+      /* account for color bar */
+    }
+  </style>
+</head>
+
+<body>
+
+  <header style="justify-content: space-between; padding: 16px 20px;">
+    <span>Shopping List</span>
+    <button onclick="shopping.cloneAndEdit()"
+      style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 12px; border-radius: 4px; cursor:pointer;">Clone
+      & Edit</button>
+  </header>
+
+  <!-- Pull down to clear -->
+  <div id="pull-down" style="text-align:center; padding: 10px; color: var(--text-light); display: none;">Release to
+    clear completed</div>
+
+  <div id="shopping-view" class="view active">
+    <ul class="list" id="shopping-list" style="padding-bottom: 20px;">
+      <!-- Ordered items rendered here -->
+    </ul>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="total-summary" style="margin: 0 auto; color: var(--text);">
+      <span id="completed-count">0</span> / <span id="total-count">0</span> Items Completed
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="shopping.js"></script>
+</body>
+
+</html>

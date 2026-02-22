@@ -1,0 +1,155 @@
+{
+  "categories": [
+    {
+      "name": "Liquer",
+      "items": [
+        "Wine",
+        "Beer",
+        "Whiskey"
+      ]
+    },
+    {
+      "name": "Fruits",
+      "items": [
+        "Apples",
+        "Avocado",
+        "Bananas",
+        "Cantaloupe",
+        "Honeydew",
+        "Mangoes",
+        "Oranges",
+        "Peaches",
+        "Pineapple",
+        "Plums",
+        "Tangerines",
+        "Watermelon"
+      ]
+    },
+    {
+      "name": "Freshes",
+      "items": [
+        "Asparagus",
+        "Blackberries",
+        "Blueberries",
+        "Broccoli",
+        "Carrots",
+        "Cherry",
+        "Grapes",
+        "Raspberries",
+        "Romaine Hearts",
+        "Salad Mix",
+        "Shitake Mushrooms",
+        "Strawberries"
+      ]
+    },
+    {
+      "name": "Bakery",
+      "items": [
+        "Bagels",
+        "Baguette",
+        "Croissants",
+        "Sourdough"
+      ]
+    },
+    {
+      "name": "Meat",
+      "items": [
+        "Briskets",
+        "Chicken Breasts",
+        "Chicken Thighs",
+        "Chicken Wings",
+        "Dungeness Crab",
+        "Fresh Shrimp",
+        "New York Strip",
+        "Pork Shoulder",
+        "Porkbelly",
+        "Ribeye",
+        "Salmon",
+        "Shabu Shabu",
+        "Tenderloin",
+        "Tri-Tip"
+      ]
+    },
+    {
+      "name": "Cooked Food",
+      "items": [
+        "BBQ Beef Ribs",
+        "Rotisserie Chicken",
+        "Salmon Poke",
+        "Tuna Poke"
+      ]
+    },
+    {
+      "name": "Dairy",
+      "items": [
+        "Milk",
+        "Lactose Free Milk",
+        "Eggs",
+        "Egg Whites",
+        "Butter"
+      ]
+    },
+    {
+      "name": "Snacks",
+      "items": [
+        "Chips",
+        "Cookies",
+        "Popcorn"
+      ]
+    },
+    {
+      "name": "Refrigerated",
+      "items": [
+        "Drinking yogurt",
+        "Frozen fruits",
+        "Green beans",
+        "Panko Shrimp",
+        "Shrimps",
+        "Yogurt"
+      ]
+    },
+    {
+      "name": "Condiments",
+      "items": [
+        "Cooking oil",
+        "Seasoning",
+        "Seaweed"
+      ]
+    },
+    {
+      "name": "Starches",
+      "items": [
+        "Bread",
+        "Ramen",
+        "Sushi Rice",
+        "Tortillas"
+      ]
+    },
+    {
+      "name": "Medicine",
+      "items": [
+        "Eye Drops",
+        "Metamucil"
+      ]
+    },
+    {
+      "name": "Bath Products",
+      "items": [
+        "Body Wash",
+        "Floss",
+        "Mouthwash",
+        "Shampoo",
+        "Toothpaste"
+      ]
+    },
+    {
+      "name": "Snaks 2",
+      "items": [
+        "Chestnuts",
+        "Energy Bars",
+        "Jerky",
+        "Peanuts"
+      ]
+    }
+  ]
+}

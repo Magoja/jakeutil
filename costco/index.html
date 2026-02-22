@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Costco Shopping Builder</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header>
+    <button class="back-btn" id="back-btn" onclick="app.showCategories()">❮</button>
+    <span id="header-title">Categories</span>
+    <div class="menu-container">
+      <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
+      <div class="menu-dropdown" id="menu-dropdown">
+        <div onclick="app.openClearModal()">Clear List</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Categories View -->
+  <div id="category-view" class="view active">
+    <ul class="list" id="category-list">
+      <!-- Categories rendered here -->
+    </ul>
+
+    <!-- Special Category -->
+    <div class="list-item" onclick="app.showItems('Special')">
+      <div class="cat-color" style="background:#000;"></div>
+      <div class="cat-name">Special</div>
+      <div class="item-count" id="count-Special">0</div>
+    </div>
+  </div>
+
+  <!-- Items View -->
+  <div id="item-view" class="view">
+    <ul class="list" id="item-list">
+      <!-- Items rendered here -->
+    </ul>
+    <div class="add-custom" id="add-custom-container">
+      <input type="text" id="custom-item-name" placeholder="Add custom item...">
+      <button onclick="app.addCustomItem()">Add</button>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="total-summary" onclick="app.showSelectedSummary()">
+      <span id="total-count">0</span> items selected
+    </div>
+    <button class="share-btn" onclick="app.openShareModal()">Share List</button>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal-content">
+      <h3>Share Shopping List</h3>
+      <p>Send this link to whoever is shopping!</p>
+      <input type="text" id="share-link-input" readonly onclick="this.select()">
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="app.closeShareModal()">Close</button>
+        <button class="btn-primary" onclick="app.copyShareLink()">Copy Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Confirmation Modal -->
+  <div class="modal-overlay" id="clear-modal">
+    <div class="modal-content">
+      <h3>Clear Entire List?</h3>
+      <p>This will remove all item selections and cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="app.closeClearModal()">Cancel</button>
+        <button class="btn-primary" style="background: var(--danger);" onclick="app.clearList()">Clear
+          Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="shared.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
