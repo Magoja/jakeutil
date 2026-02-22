@@ -33,6 +33,23 @@ const BoosterLogic = {
     }
   },
 
+  async fetchSetCards(setCode) {
+    const setInfo = await Scryfall.fetchSet(setCode).catch(() => null);
+    let releaseDate = null;
+    if (setInfo && setInfo.released_at) {
+      releaseDate = setInfo.released_at;
+    }
+
+    const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:prints`);
+    let spgPromise = Promise.resolve([]);
+    if (releaseDate) {
+      spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:prints`).catch(() => []);
+    }
+
+    const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
+    return { mainCards, spgCards };
+  },
+
   async fetchAndBuildPool(setCode) {
     if (this.isDataLoaded && this.currentSetCode === setCode) {
       return true;
@@ -44,19 +61,7 @@ const BoosterLogic = {
     this.isDataLoaded = false;
 
     try {
-      const setInfo = await Scryfall.fetchSet(setCode).catch(() => null);
-      let releaseDate = null;
-      if (setInfo && setInfo.released_at) {
-        releaseDate = setInfo.released_at;
-      }
-
-      const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:prints`);
-      let spgPromise = Promise.resolve([]);
-      if (releaseDate) {
-        spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:prints`).catch(() => []);
-      }
-
-      const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
+      const { mainCards, spgCards } = await this.fetchSetCards(setCode);
 
       if (mainCards && mainCards.length > 0) {
         const { basics, others } = this.separateBasicLands(mainCards);
