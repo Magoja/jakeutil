@@ -40,6 +40,20 @@ const Scryfall = {
   },
 
   /**
+   * Fetch a single set's information from Scryfall.
+   * @param {string} setCode
+   * @returns {Promise<Object>} The set object.
+   */
+  async fetchSet(setCode) {
+    const url = `https://api.scryfall.com/sets/${setCode}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    return await response.json();
+  },
+
+  /**
    * Fetch all sets from Scryfall.
    * @returns {Promise<Array>} Array of set objects.
    */
@@ -90,6 +104,11 @@ const Scryfall = {
    */
   sortByCollectorNumber(cards) {
     return cards.sort((a, b) => {
+      const setA = (a.set || "").toLowerCase();
+      const setB = (b.set || "").toLowerCase();
+      if (setA !== setB) {
+        return setA.localeCompare(setB);
+      }
       const numA = (a.collector_number || "0").toString();
       const numB = (b.collector_number || "0").toString();
       return numA.localeCompare(numB, undefined, { numeric: true, sensitivity: 'base' });

@@ -125,6 +125,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  async function fetchCards(setCode, uniqueMode) {
+    const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:${uniqueMode}`);
+    let spgPromise = Promise.resolve([]);
+
+    try {
+      const setInfo = await Scryfall.fetchSet(setCode);
+      if (setInfo && setInfo.released_at) {
+        spgPromise = Scryfall.fetchCards(`set:spg date:${setInfo.released_at} unique:${uniqueMode}`).catch(() => []);
+      }
+    } catch (e) {
+      console.warn(`Could not load set info for ${setCode}`, e);
+    }
+
+    const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
+
+    return mainCards.concat(spgCards);
+  }
+
   async function loadCards() {
     // Overlay is visible by default
     loading.show(`Loading ${currentUniqueMode} for set: ${setCode.toUpperCase()}...`);
@@ -134,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCardsGlobal = [];
 
     try {
-      const cards = await Scryfall.fetchCards(`set:${setCode} unique:${currentUniqueMode}`);
+      const cards = await fetchCards(setCode, currentUniqueMode);
       if (cards.length === 0) {
         if (loading) loading.showError(`No cards found for set: ${setCode.toUpperCase()}`);
         return;
@@ -238,7 +256,6 @@ function sortCards(cards, order) {
       return a.name.localeCompare(b.name);
     });
   } else {
-    // Default: set (collector number)
-    cards.sort(compareCollectorNumber);
+    cards = Scryfall.sortByCollectorNumber(cards);
   }
 }
