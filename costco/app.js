@@ -387,11 +387,11 @@ const app = {
     this.closeClearModal();
 
     // Refresh the view depending on what is open
-    if (document.getElementById('category-view').classList.contains('active')) {
-      this.renderCategories();
-    } else {
+    if (document.getElementById('item-view').classList.contains('active')) {
       const cat = this.config.categories.find(c => c.name === this.state.currentCategory);
       this.renderItemList(cat);
+    } else {
+      this.renderCategories();
     }
   }
 };
