@@ -8,7 +8,6 @@ class BoosterApp {
     this.container = document.getElementById('booster-container');
     this.openAnotherBtn = document.getElementById('open-another-btn');
 
-    this.pool = BoosterLogic.createPool();
     this.isDataLoaded = false;
   }
 
@@ -53,15 +52,9 @@ class BoosterApp {
 
   async fetchCards() {
     try {
-      // Include unique:prints to get basics and variants
-      const cards = await Scryfall.fetchCards(`set:${this.setCode} unique:prints`);
+      const success = await BoosterLogic.fetchAndBuildPool(this.setCode);
 
-      if (cards.length > 0) {
-        const { basics, others } = BoosterLogic.separateBasicLands(cards);
-
-        BoosterLogic.processCards(others, this.pool); // Populate pool
-        BoosterLogic.addBasics(this.pool, basics);
-
+      if (success) {
         this.isDataLoaded = true;
         this.loading.hide();
         this.generateBooster();
@@ -80,7 +73,7 @@ class BoosterApp {
 
     const rng = RNG.create(this.seed);
     this.container.innerHTML = '';
-    BoosterLogic.generatePackData(this.pool, rng).forEach(card => {
+    BoosterLogic.generatePack(rng).forEach(card => {
       this.container.appendChild(CardUI.createCardElement(card));
     });
   }

@@ -13,7 +13,6 @@ class SealedApp {
     this.deckList = document.getElementById('deck-list');
 
     // State
-    this.pool = BoosterLogic.createPool();
     this.allCards = [];
     this.deckCards = [];
     this.poolCards = [];
@@ -40,17 +39,14 @@ class SealedApp {
     try {
       this.loading.show("Loading cards...");
 
-      const [allSetCards] = await Promise.all([
-        Scryfall.fetchCards(`set:${this.setCode} unique:prints`),
+      const [poolSuccess] = await Promise.all([
+        BoosterLogic.fetchAndBuildPool(this.setCode),
         KeywordExtractor.loadSetRules(this.setCode)
       ]);
 
-      if (allSetCards.length > 0) {
-        const { basics, others: poolInput } = BoosterLogic.separateBasicLands(allSetCards);
-        this.basicLands = basics;
+      if (poolSuccess) {
+        this.basicLands = BoosterLogic.getBasicLands();
 
-        BoosterLogic.processCards(poolInput, this.pool);
-        BoosterLogic.addBasics(this.pool, this.basicLands);
         this.generateSealedPool();
 
         if (this.deckParam) {
@@ -86,7 +82,7 @@ class SealedApp {
   openPacks(count) {
     const cards = [];
     for (let i = 0; i < count; i++) {
-      const pack = BoosterLogic.generatePackData(this.pool, this.rng);
+      const pack = BoosterLogic.generatePack(this.rng);
       cards.push(...pack);
     }
     return cards;

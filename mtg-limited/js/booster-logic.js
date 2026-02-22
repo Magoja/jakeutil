@@ -10,6 +10,12 @@
 // 15	Non-Playable Card	65% Token/Ad card, 30% Art card, 5% Art card with gold-foil signature.
 
 const BoosterLogic = {
+  // Set-specific state
+  currentSetCode: null,
+  pool: null,
+  basicLands: [],
+  isDataLoaded: false,
+
   // Default Configuration (Play Booster)
   rules: [
     { count: 6, name: "Common Slots", pool: { "common": 1 } },
@@ -25,6 +31,42 @@ const BoosterLogic = {
     if (Array.isArray(newRules)) {
       this.rules = newRules;
     }
+  },
+
+  async fetchAndBuildPool(setCode) {
+    if (this.isDataLoaded && this.currentSetCode === setCode) {
+      return true;
+    }
+
+    this.currentSetCode = setCode;
+    this.pool = this.createPool();
+    this.basicLands = [];
+    this.isDataLoaded = false;
+
+    try {
+      const cards = await Scryfall.fetchCards(`set:${setCode} unique:prints`);
+      if (cards && cards.length > 0) {
+        const { basics, others } = this.separateBasicLands(cards);
+        this.basicLands = basics;
+        this.processCards(others, this.pool);
+        this.addBasics(this.pool, this.basicLands);
+        this.isDataLoaded = true;
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error("Error building booster pool:", e);
+      throw e;
+    }
+  },
+
+  getBasicLands() {
+    return this.basicLands || [];
+  },
+
+  generatePack(rng) {
+    if (!this.isDataLoaded || !this.pool) return [];
+    return this.generatePackData(this.pool, rng);
   },
 
   createPool() {
