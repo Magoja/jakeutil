@@ -12,8 +12,10 @@
 <body>
 
   <header>
-    <button class="back-btn" id="back-btn" onclick="app.showCategories()">❮</button>
-    <span id="header-title">Categories</span>
+    <button class="back-btn" id="back-btn"
+      onclick="event.stopPropagation(); event.preventDefault(); app.showCategories()">❮</button>
+    <span id="header-title" style="cursor: pointer;"
+      onclick="if(document.getElementById('back-btn').style.display !== 'none') { event.stopPropagation(); event.preventDefault(); app.showCategories(); }">Categories</span>
     <div class="menu-container">
       <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
       <div class="menu-dropdown" id="menu-dropdown">
@@ -23,27 +25,29 @@
   </header>
 
   <!-- Categories View -->
-  <div id="category-view" class="view active">
-    <ul class="list" id="category-list">
-      <!-- Categories rendered here -->
-    </ul>
+  <div class="view-wrapper">
+    <div id="category-view" class="view">
+      <ul class="list" id="category-list">
+        <!-- Categories rendered here -->
+      </ul>
 
-    <!-- Special Category -->
-    <div class="list-item" onclick="app.showItems('Special')">
-      <div class="cat-color" style="background:#000;"></div>
-      <div class="cat-name">Special</div>
-      <div class="item-count" id="count-Special">0</div>
+      <!-- Special Category -->
+      <div class="list-item" onclick="app.showItems('Special')" id="category-special">
+        <div class="cat-color" style="background:#666;"></div>
+        <div class="cat-name">Special</div>
+        <div class="item-count" id="count-Special">0</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Items View -->
-  <div id="item-view" class="view">
-    <ul class="list" id="item-list">
-      <!-- Items rendered here -->
-    </ul>
-    <div class="add-custom" id="add-custom-container">
-      <input type="text" id="custom-item-name" placeholder="Add custom item...">
-      <button onclick="app.addCustomItem()">Add</button>
+    <!-- Items View -->
+    <div id="item-view" class="view">
+      <ul class="list" id="item-list">
+        <!-- Items rendered here -->
+      </ul>
+      <div class="add-custom" id="add-custom-container">
+        <input type="text" id="custom-item-name" placeholder="Add custom item...">
+        <button onclick="app.addCustomItem()">Add</button>
+      </div>
     </div>
   </div>
 
@@ -58,7 +62,12 @@
   <div class="modal-overlay" id="share-modal">
     <div class="modal-content">
       <h3>Share Shopping List</h3>
-      <p>Send this link to whoever is shopping!</p>
+      <div id="share-review-list"
+        style="max-height: 250px; overflow-y: auto; text-align: left; margin: 16px 0; border: 1px solid var(--border); border-radius: 6px; padding: 8px;">
+        <!-- Items go here -->
+      </div>
+      <p style="margin: 0 0 16px 0; font-size: 0.9em; color: var(--text-light);">Send this link to whoever is shopping!
+      </p>
       <input type="text" id="share-link-input" readonly onclick="this.select()">
       <div class="modal-actions">
         <button class="btn-secondary" onclick="app.closeShareModal()">Close</button>

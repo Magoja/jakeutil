@@ -71,18 +71,25 @@ const shopping = {
       // Left for options (missing/cancel) (red right bg)
       let rightBgText = item.status === 'pending' ? 'Missing' : 'Undo';
       let leftBgText = item.status === 'pending' ? 'Complete' : 'Undo';
-      let leftColor = item.status === 'pending' ? 'var(--success)' : 'var(--primary)';
-      let rightColor = item.status === 'pending' ? 'var(--danger)' : 'var(--primary)';
+      let leftColor = item.status === 'pending' ? 'var(--success)' : 'var(--text-light)';
+      let rightColor = item.status === 'pending' ? 'var(--danger)' : 'var(--text-light)';
+
+      // Styling based on status
+      let contentColor = item.color;
+      let textColor = 'white';
+      if (item.status === 'completed') {
+        contentColor = '#e0e0e0';
+        textColor = '#333';
+      }
 
       li.innerHTML = `
         <div class="swipe-background">
           <div class="swipe-bg-left" style="background:${leftColor}"><span>${leftBgText}</span></div>
           <div class="swipe-bg-right" style="background:${rightColor}"><span>${rightBgText}</span></div>
         </div>
-        <div class="swipe-content ${statusClass}" data-index="${index}">
-          <div class="color-bar" style="background:${item.color}"></div>
+        <div class="swipe-content ${statusClass}" data-index="${index}" style="background:${contentColor}; color:${textColor}; border-bottom: 1px solid rgba(255,255,255,0.2);">
           <span>${item.name}</span>
-          <span class="item-count">${item.count}</span>
+          <span class="item-count" style="background: rgba(0,0,0,0.3); color: white; ${item.count <= 1 ? 'display: none;' : ''}">${item.count}</span>
         </div>
       `;
       listEl.appendChild(li);
@@ -100,13 +107,15 @@ const shopping = {
     let startX = 0;
     let currentX = 0;
     let isSwiping = false;
+    let isTouch = false;
 
     // Touch support
     content.addEventListener('touchstart', (e) => {
+      isTouch = true;
       startX = e.touches[0].clientX;
       isSwiping = true;
       content.classList.add('swiping');
-    });
+    }, { passive: true });
 
     content.addEventListener('touchmove', (e) => {
       if (!isSwiping) return;
@@ -117,9 +126,14 @@ const shopping = {
     });
 
     content.addEventListener('touchend', (e) => {
-      if (!isSwiping) {
-        // handle click
-        content.classList.remove('swiping');
+      if (!isSwiping) return;
+
+      isSwiping = false;
+      content.classList.remove('swiping');
+
+      // handle click
+      if (Math.abs(currentX) < 10) {
+        currentX = 0;
         content.style.transition = 'transform 0.2s ease-out';
         content.style.transform = `translateX(150px)`;
 
@@ -131,19 +145,20 @@ const shopping = {
           }
           this.renderList();
           content.style.transform = `translateX(0px)`;
+          setTimeout(() => isTouch = false, 300);
         }, 200);
         return;
       }
-      isSwiping = false;
-      content.classList.remove('swiping');
-      content.style.transform = `translateX(0px)`;
 
+      content.style.transform = `translateX(0px)`;
       this.handleSwipe(index, currentX);
       currentX = 0;
+      setTimeout(() => isTouch = false, 300);
     });
 
     // Mouse support
     content.addEventListener('mousedown', (e) => {
+      if (isTouch) return;
       startX = e.clientX;
       isSwiping = true;
       content.classList.add('swiping');
@@ -158,9 +173,14 @@ const shopping = {
     });
 
     window.addEventListener('mouseup', (e) => {
-      if (!isSwiping) {
-        // handle click
-        content.classList.remove('swiping');
+      if (!isSwiping) return;
+
+      isSwiping = false;
+      content.classList.remove('swiping');
+
+      // handle click
+      if (Math.abs(currentX) < 10) {
+        currentX = 0;
         content.style.transition = 'transform 0.2s ease-out';
         content.style.transform = `translateX(150px)`;
 
@@ -175,10 +195,8 @@ const shopping = {
         }, 200);
         return;
       }
-      isSwiping = false;
-      content.classList.remove('swiping');
-      content.style.transform = `translateX(0px)`;
 
+      content.style.transform = `translateX(0px)`;
       this.handleSwipe(index, currentX);
       currentX = 0;
     });

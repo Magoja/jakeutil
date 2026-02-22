@@ -7,21 +7,6 @@
   <title>Costco Shopping List</title>
   <link rel="icon" type="image/png" href="../favicon.png">
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* Specific overrides for shopping view */
-    .color-bar {
-      width: 8px;
-      height: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-    }
-
-    .swipe-container {
-      padding-left: 8px;
-      /* account for color bar */
-    }
-  </style>
 </head>
 
 <body>
@@ -37,10 +22,12 @@
   <div id="pull-down" style="text-align:center; padding: 10px; color: var(--text-light); display: none;">Release to
     clear completed</div>
 
-  <div id="shopping-view" class="view active">
-    <ul class="list" id="shopping-list" style="padding-bottom: 20px;">
-      <!-- Ordered items rendered here -->
-    </ul>
+  <div class="view-wrapper">
+    <div id="shopping-view" class="view active">
+      <ul class="list" id="shopping-list">
+        <!-- Ordered items rendered here -->
+      </ul>
+    </div>
   </div>
 
   <div class="bottom-bar">
