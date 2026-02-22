@@ -125,23 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function fetchCards(setCode, uniqueMode) {
-    const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:${uniqueMode}`);
-    let spgPromise = Promise.resolve([]);
 
-    try {
-      const setInfo = await Scryfall.fetchSet(setCode);
-      if (setInfo && setInfo.released_at) {
-        spgPromise = Scryfall.fetchCards(`set:spg date:${setInfo.released_at} unique:${uniqueMode}`).catch(() => []);
-      }
-    } catch (e) {
-      console.warn(`Could not load set info for ${setCode}`, e);
-    }
-
-    const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
-
-    return mainCards.concat(spgCards);
-  }
 
   async function loadCards() {
     // Overlay is visible by default
@@ -152,7 +136,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCardsGlobal = [];
 
     try {
-      const cards = await fetchCards(setCode, currentUniqueMode);
+      const { mainCards, spgCards } = await BoosterLogic.fetchSetCards(setCode, currentUniqueMode);
+      const cards = mainCards.concat(spgCards);
       if (cards.length === 0) {
         if (loading) loading.showError(`No cards found for set: ${setCode.toUpperCase()}`);
         return;

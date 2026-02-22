@@ -33,17 +33,17 @@ const BoosterLogic = {
     }
   },
 
-  async fetchSetCards(setCode) {
+  async fetchSetCards(setCode, uniqueMode = 'prints') {
     const setInfo = await Scryfall.fetchSet(setCode).catch(() => null);
     let releaseDate = null;
     if (setInfo && setInfo.released_at) {
       releaseDate = setInfo.released_at;
     }
 
-    const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:prints`);
+    const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:${uniqueMode}`);
     let spgPromise = Promise.resolve([]);
     if (releaseDate) {
-      spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:prints`).catch(() => []);
+      spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:${uniqueMode}`).catch(() => []);
     }
 
     const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
