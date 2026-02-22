@@ -125,8 +125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-
-
   async function loadCards() {
     // Overlay is visible by default
     loading.show(`Loading ${currentUniqueMode} for set: ${setCode.toUpperCase()}...`);
