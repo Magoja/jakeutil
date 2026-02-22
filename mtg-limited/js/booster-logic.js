@@ -34,16 +34,23 @@ const BoosterLogic = {
   },
 
   async fetchSetCards(setCode, uniqueMode = 'prints') {
-    const setInfo = await Scryfall.fetchSet(setCode).catch(() => null);
-    let releaseDate = null;
-    if (setInfo && setInfo.released_at) {
-      releaseDate = setInfo.released_at;
-    }
-
     const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:${uniqueMode}`);
     let spgPromise = Promise.resolve([]);
-    if (releaseDate) {
-      spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:${uniqueMode}`).catch(() => []);
+
+    try {
+      const allSets = await Scryfall.fetchAllSets();
+      const masterpieceSet = allSets.find(s => s.set_type === "masterpiece" && s.parent_set_code === setCode);
+
+      if (masterpieceSet) {
+        spgPromise = Scryfall.fetchCards(`set:${masterpieceSet.code} unique:${uniqueMode}`).catch(() => []);
+      } else {
+        const setInfo = allSets.find(s => s.code === setCode) || await Scryfall.fetchSet(setCode).catch(() => null);
+        if (setInfo && setInfo.released_at) {
+          spgPromise = Scryfall.fetchCards(`set:spg date:${setInfo.released_at} unique:${uniqueMode}`).catch(() => []);
+        }
+      }
+    } catch (e) {
+      console.warn(`Error figuring out SPG/Masterpiece for ${setCode}`, e);
     }
 
     const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
