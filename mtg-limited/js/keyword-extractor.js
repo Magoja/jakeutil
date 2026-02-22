@@ -2,13 +2,6 @@ class KeywordExtractor {
   static customRulesLoaded = false;
   static setCustomConfig = {};
 
-  static getRuleDescription(setCode) {
-    if (KeywordExtractor.setCustomConfig[setCode]) {
-      return KeywordExtractor.setCustomConfig[setCode].description || "Custom set rules applied.";
-    }
-    return "Default extraction rules (Creature types & Keywords)";
-  }
-
   static getCustomKeywordConfigs(setCode) {
     if (KeywordExtractor.setCustomConfig[setCode]) {
       return KeywordExtractor.setCustomConfig[setCode].keywords || {};

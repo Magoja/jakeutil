@@ -26,6 +26,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Clear existing options
     optionsContainer.innerHTML = '';
 
+    // Create Search Wrapper and Input
+    const searchWrapper = document.createElement('div');
+    searchWrapper.classList.add('custom-select__search-wrapper');
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.classList.add('custom-select__search');
+    searchInput.placeholder = 'Search sets...';
+    searchWrapper.appendChild(searchInput);
+
+    // Prevent click on search input from closing the dropdown, but do not stop propagation to window
+    // so we handle it more carefully. Actually stopPropagation on wrapper is fine if we also handle window close correctly.
+    searchWrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    optionsContainer.appendChild(searchWrapper);
+
+    const matchElements = [];
+
     function updateTrigger(set) {
       trigger.innerHTML = `
             <div style="display: flex; align-items: center;">
@@ -48,7 +67,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span>${set.name}${releasedText}</span>
             `;
 
-      option.addEventListener('click', function () {
+      // Store references for search filtering
+      matchElements.push({ element: option, name: set.name.toLowerCase() });
+
+      option.addEventListener('click', function (e) {
+        e.stopPropagation(); // Prevent bubble to select/window
         select.classList.remove('open');
 
         // Update UI
@@ -64,12 +87,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       optionsContainer.appendChild(option);
     });
 
+    // Search Filtering Logic
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      matchElements.forEach(item => {
+        if (item.name.includes(term)) {
+          item.element.style.display = 'flex';
+        } else {
+          item.element.style.display = 'none';
+        }
+      });
+    });
+
     // Trigger Click
     const triggerBtn = wrapper.querySelector('.custom-select__trigger');
     triggerBtn.addEventListener('click', function (e) {
       e.stopPropagation(); // Prevent bubble to window
-      // Close other dropdowns? For now just toggle this one.
-      select.classList.toggle('open');
+      // Close other dropdowns
+      document.querySelectorAll('.custom-select.open').forEach(openSelect => {
+        if (openSelect !== select) {
+          openSelect.classList.remove('open');
+        }
+      });
+
+      const isOpen = select.classList.contains('open');
+      if (isOpen) {
+        select.classList.remove('open');
+      } else {
+        select.classList.add('open');
+        // Reset Search
+        searchInput.value = '';
+        matchElements.forEach(item => {
+          item.element.style.display = 'flex';
+        });
+        // Focus the input
+        searchInput.focus();
+      }
     });
 
     // Default Selection

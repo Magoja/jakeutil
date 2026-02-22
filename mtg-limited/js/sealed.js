@@ -770,8 +770,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       customKws.forEach(k => {
         container.appendChild(createCheckboxLabel(k, true, customConfigs[k]));
       });
-
-      container.appendChild(createRuleDescription());
     }
 
     function renderGenericFiltersSection(genericKws) {
@@ -792,18 +790,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       header.textContent = title;
       return header;
-    }
-
-    function createRuleDescription() {
-      const descEl = document.createElement('div');
-      descEl.style.width = '100%';
-      descEl.style.marginTop = '5px';
-      descEl.style.marginBottom = '15px';
-      descEl.style.fontStyle = 'italic';
-      descEl.style.color = '#666';
-      descEl.style.fontSize = '0.9em';
-      descEl.textContent = KeywordExtractor.getRuleDescription(setCode);
-      return descEl;
     }
 
     function createCheckboxLabel(k, isCustom, rules) {

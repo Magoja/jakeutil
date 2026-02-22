@@ -92,6 +92,31 @@
     border-radius: 0 0 8px 8px;
   }
 
+  .custom-select__search-wrapper {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    padding: 10px 15px;
+    border-bottom: 1px solid #c7ccd1;
+    z-index: 3;
+    border-radius: 0 0 0 0;
+  }
+
+  .custom-select__search {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #c7ccd1;
+    border-radius: 6px;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  .custom-select__search:focus {
+    border-color: #5d9cec;
+    box-shadow: 0 0 0 2px rgba(93, 156, 236, 0.2);
+  }
+
   .custom-select.open .custom-select__options {
     opacity: 1;
     visibility: visible;

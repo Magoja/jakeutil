@@ -1,6 +1,5 @@
 {
   "ecl": {
-    "description": "ECL Rules: -1/-1 synergy, Spell 4+ Mana, Tapped Trigger, Tribes (Elf, Goblin, Elemental, Kithkin, Merfolk, Shapeshifter)",
     "keywords": {
       "-1/-1 synergy": [
         {
@@ -71,7 +70,6 @@
     }
   },
   "tmt": {
-    "description": "TMT Rules: Sneak, Disappear, Alliance, Mutagen, Tribal (Artifact, Turtle, Mutant, Ninja, Food)",
     "keywords": {
       "Sneak": [
         {
