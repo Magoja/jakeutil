@@ -1,0 +1,136 @@
+{
+  "ecl": {
+    "description": "ECL Rules: -1/-1 synergy, Spell 4+ Mana, Tapped Trigger, Tribes (Elf, Goblin, Elemental, Kithkin, Merfolk, Shapeshifter)",
+    "keywords": {
+      "-1/-1 synergy": [
+        {
+          "property": "oracle_text",
+          "regex": "-1/-1"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Blight"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Persist"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Wither"
+        }
+      ],
+      "Spell 4+ Mana": [
+        {
+          "property": "oracle_text",
+          "regex": "Whenever you cast a spell with mana value 4 or greater"
+        }
+      ],
+      "Tapped Trigger": [
+        {
+          "property": "oracle_text",
+          "regex": "becomes tapped"
+        }
+      ],
+      "Elf": [
+        {
+          "property": "type_line",
+          "regex": "Elf"
+        }
+      ],
+      "Goblin": [
+        {
+          "property": "type_line",
+          "regex": "Goblin"
+        }
+      ],
+      "Elemental": [
+        {
+          "property": "type_line",
+          "regex": "Elemental"
+        }
+      ],
+      "Kithkin": [
+        {
+          "property": "type_line",
+          "regex": "Kithkin"
+        }
+      ],
+      "Merfolk": [
+        {
+          "property": "type_line",
+          "regex": "Merfolk"
+        }
+      ],
+      "Shapeshifter": [
+        {
+          "property": "type_line",
+          "regex": "Shapeshifter"
+        }
+      ]
+    }
+  },
+  "tmt": {
+    "description": "TMT Rules: Sneak, Disappear, Alliance, Mutagen, Tribal (Artifact, Turtle, Mutant, Ninja, Food)",
+    "keywords": {
+      "Sneak": [
+        {
+          "property": "oracle_text",
+          "regex": "Sneak"
+        }
+      ],
+      "Disappear": [
+        {
+          "property": "oracle_text",
+          "regex": "Disappear"
+        }
+      ],
+      "Alliance": [
+        {
+          "property": "oracle_text",
+          "regex": "Alliance"
+        }
+      ],
+      "Mutagen": [
+        {
+          "property": "oracle_text",
+          "regex": "Mutagen"
+        }
+      ],
+      "Artifact": [
+        {
+          "property": "type_line",
+          "regex": "Artifact"
+        }
+      ],
+      "Turtle": [
+        {
+          "property": "type_line",
+          "regex": "Turtle"
+        }
+      ],
+      "Mutant": [
+        {
+          "property": "type_line",
+          "regex": "Mutant"
+        }
+      ],
+      "Ninja": [
+        {
+          "property": "type_line",
+          "regex": "Ninja"
+        }
+      ],
+      "Food": [
+        {
+          "property": "type_line",
+          "regex": "Food"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Food"
+        }
+      ]
+    }
+  }
+}

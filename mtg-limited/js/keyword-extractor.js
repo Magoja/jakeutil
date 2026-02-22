@@ -1,46 +1,41 @@
 class KeywordExtractor {
-  static rules = {};
-  static ruleDescriptions = {};
-
-  static register(setCode, ruleFn, description) {
-    KeywordExtractor.rules[setCode] = ruleFn;
-    KeywordExtractor.ruleDescriptions[setCode] = description || "Custom set rules applied.";
-  }
+  static customRulesLoaded = false;
+  static setCustomConfig = {};
 
   static getRuleDescription(setCode) {
-    return KeywordExtractor.ruleDescriptions[setCode] || "Default extraction rules (Creature types & Keywords)";
+    if (KeywordExtractor.setCustomConfig[setCode]) {
+      return KeywordExtractor.setCustomConfig[setCode].description || "Custom set rules applied.";
+    }
+    return "Default extraction rules (Creature types & Keywords)";
+  }
+
+  static getCustomKeywordConfigs(setCode) {
+    if (KeywordExtractor.setCustomConfig[setCode]) {
+      return KeywordExtractor.setCustomConfig[setCode].keywords || {};
+    }
+    return {};
   }
 
   static async loadSetRules(setCode) {
-    if (KeywordExtractor.rules[setCode]) return; // Already loaded
+    if (KeywordExtractor.customRulesLoaded) return;
 
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = `keywords/${setCode}.js`;
-      script.onload = () => {
-        console.log(`Loaded rules for ${setCode}`);
-        resolve();
-      };
-      script.onerror = () => {
-        // No specific rules for this set, ignore
-        resolve();
-      };
-      document.body.appendChild(script);
-    });
+    try {
+      const response = await fetch('keyword.json');
+      if (response.ok) {
+        const config = await response.json();
+        KeywordExtractor.setCustomConfig = config;
+      }
+    } catch (e) {
+      console.error("Failed to load keyword.json", e);
+    }
+    KeywordExtractor.customRulesLoaded = true;
   }
 
   static getKeywords(card) {
     const keywords = new Set();
     const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
-    const oracleText = card.oracle_text || (card.faces ? card.faces[0].oracle_text : '') || '';
-
-    // Only for creatures? User said "return creature types and ability keyword", "show only matching creature cards".
-    // But extraction might happen on non-creatures? Not usually useful for "Kithkin" unless Tribal. 
-    // Assuming we process all cards but UI might filter. 
-    // However, user said "Click it, to show only the matching CREATURE cards".
 
     // 1. Subtypes (for all cards)
-    // We generally split by "—" and take the right side.
     if (typeLine.includes('—')) {
       const subtypes = typeLine.split('—')[1].trim().split(' ');
       subtypes.forEach(Type => keywords.add(Type));
@@ -53,10 +48,24 @@ class KeywordExtractor {
 
     // 3. Set Specific Rules
     const setCode = card.set;
-    if (KeywordExtractor.rules[setCode]) {
-      const extra = KeywordExtractor.rules[setCode](card);
-      if (extra && Array.isArray(extra)) {
-        extra.forEach(k => keywords.add(k));
+    if (KeywordExtractor.setCustomConfig[setCode]) {
+      const customKws = KeywordExtractor.setCustomConfig[setCode].keywords;
+      if (customKws) {
+        for (const [kw, rules] of Object.entries(customKws)) {
+          const matches = rules.some(rule => {
+            let propValue = card[rule.property];
+            if (!propValue && card.faces) {
+              propValue = card.faces[0][rule.property];
+            }
+            if (!propValue) propValue = '';
+
+            const regex = new RegExp(rule.regex, 'i');
+            return regex.test(propValue);
+          });
+          if (matches) {
+            keywords.add(kw);
+          }
+        }
       }
     }
 

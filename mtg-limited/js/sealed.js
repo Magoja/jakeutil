@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const [allSetCards] = await Promise.all([
         Scryfall.fetchCards(`set:${setCode} unique:prints`),
-        KeywordExtractor.loadSetRules(setCode)
+        KeywordExtractor.loadSetRules(setCode) // unconditionally load keyword.json
       ]);
 
       if (allSetCards.length > 0) {
@@ -59,6 +59,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         calculateKeywords();
         render();
         initFilterModal(); // Init filters after cards loaded
+
+        // Add indicator to the Filter button if we have custom keywords
+        const customKws = KeywordExtractor.getCustomKeywordConfigs(setCode);
+        if (Object.keys(customKws).length > 0) {
+          const filterBtn = document.getElementById('filter-btn');
+          if (filterBtn) {
+            const shortLabel = filterBtn.querySelector('.short-label');
+            if (shortLabel) shortLabel.textContent = 'F★';
+            const fullLabel = filterBtn.querySelector('.full-label');
+            if (fullLabel) fullLabel.textContent = 'Filter ★';
+          }
+        }
+
         loading.hide();
       } else {
         loading.showError("No cards found.");
@@ -695,10 +708,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     filterBtn.addEventListener('click', () => {
       renderFilterCheckboxes();
-      const descEl = document.getElementById('filter-rule-description');
-      if (descEl) {
-        descEl.textContent = KeywordExtractor.getRuleDescription(setCode);
-      }
       filterModal.style.display = 'flex';
     });
 
@@ -720,7 +729,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderFilterCheckboxes() {
       container.innerHTML = '';
 
-      // Sort keywords: Most frequent first, then alpha
+      const customConfigs = KeywordExtractor.getCustomKeywordConfigs(setCode);
+      const customKwNames = new Set(Object.keys(customConfigs));
+
+      const { customKws, genericKws } = sortAndGroupKeywords(customKwNames);
+
+      if (customKws.length > 0) {
+        renderCustomFiltersSection(customKws, customConfigs);
+      }
+
+      renderGenericFiltersSection(genericKws);
+    }
+
+    function sortAndGroupKeywords(customKwNames) {
+      const customKws = [];
+      const genericKws = [];
+
       const sortedKeys = Array.from(keywordCounts.keys()).sort((a, b) => {
         const diff = keywordCounts.get(b) - keywordCounts.get(a);
         if (diff !== 0) return diff;
@@ -728,33 +752,115 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       sortedKeys.forEach(k => {
-        const count = keywordCounts.get(k);
-        const label = document.createElement('label');
-        label.style.display = 'flex';
-        label.style.alignItems = 'center';
-        label.style.marginRight = '10px';
-        label.style.cursor = 'pointer';
-        label.style.fontSize = '14px';
-
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.value = k;
-        cb.checked = activeFilters.has(k);
-        cb.style.marginRight = '5px';
-
-        cb.addEventListener('change', () => {
-          if (cb.checked) {
-            activeFilters.add(k);
-          } else {
-            activeFilters.delete(k);
-          }
-          render(); // Immediate update behind modal
-        });
-
-        label.appendChild(cb);
-        label.appendChild(document.createTextNode(`${k} (${count})`));
-        container.appendChild(label);
+        if (!customKwNames.has(k)) {
+          genericKws.push(k);
+        }
       });
+
+      customKwNames.forEach(k => {
+        customKws.push(k);
+      });
+
+      return { customKws, genericKws };
+    }
+
+    function renderCustomFiltersSection(customKws, customConfigs) {
+      container.appendChild(createSectionHeader('Custom Set Filters', false));
+
+      customKws.forEach(k => {
+        container.appendChild(createCheckboxLabel(k, true, customConfigs[k]));
+      });
+
+      container.appendChild(createRuleDescription());
+    }
+
+    function renderGenericFiltersSection(genericKws) {
+      container.appendChild(createSectionHeader('Generic Filters', true));
+
+      genericKws.forEach(k => {
+        container.appendChild(createCheckboxLabel(k, false));
+      });
+    }
+
+    function createSectionHeader(title, hasTopMargin) {
+      const header = document.createElement('div');
+      header.style.width = '100%';
+      header.style.fontWeight = 'bold';
+      header.style.marginBottom = '5px';
+      if (hasTopMargin) {
+        header.style.marginTop = '10px';
+      }
+      header.textContent = title;
+      return header;
+    }
+
+    function createRuleDescription() {
+      const descEl = document.createElement('div');
+      descEl.style.width = '100%';
+      descEl.style.marginTop = '5px';
+      descEl.style.marginBottom = '15px';
+      descEl.style.fontStyle = 'italic';
+      descEl.style.color = '#666';
+      descEl.style.fontSize = '0.9em';
+      descEl.textContent = KeywordExtractor.getRuleDescription(setCode);
+      return descEl;
+    }
+
+    function createCheckboxLabel(k, isCustom, rules) {
+      const count = keywordCounts.get(k) || 0;
+      const label = document.createElement('label');
+
+      applyLabelStyles(label, isCustom);
+
+      if (isCustom && rules) {
+        applyCustomLabelAttributes(label, rules);
+      }
+
+      const cb = createCheckboxInput(k);
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(`${k} (${count})`));
+
+      return label;
+    }
+
+    function applyLabelStyles(label, isCustom) {
+      label.style.display = 'flex';
+      label.style.alignItems = 'center';
+      label.style.marginRight = '10px';
+      label.style.cursor = 'pointer';
+      label.style.fontSize = isCustom ? '16px' : '14px';
+
+      if (isCustom) {
+        label.style.padding = '5px 10px';
+        label.style.backgroundColor = '#e1d5eb';
+        label.style.border = '1px solid #967adc';
+        label.style.borderRadius = '4px';
+        label.style.marginBottom = '5px';
+      }
+    }
+
+    function applyCustomLabelAttributes(label, rules) {
+      const ruleText = rules.map(r => `${r.property} ~= /${r.regex}/`).join(" OR ");
+      label.title = `Looking for:\n${ruleText}`;
+    }
+
+    function createCheckboxInput(k) {
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = k;
+      cb.checked = activeFilters.has(k);
+      cb.style.marginRight = '5px';
+
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          activeFilters.add(k);
+        } else {
+          activeFilters.delete(k);
+        }
+        render(); // Immediate update behind modal
+      });
+
+      return cb;
     }
   }
 
