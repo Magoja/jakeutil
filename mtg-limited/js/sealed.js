@@ -1,67 +1,67 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  const setCode = params.get('set');
-  const seed = SeedUtils.ensureSeed(params);
-  const deckParam = params.get('deck');
+class SealedApp {
+  constructor() {
+    this.params = new URLSearchParams(window.location.search);
+    this.setCode = this.params.get('set');
+    this.seed = SeedUtils.ensureSeed(this.params);
+    this.deckParam = this.params.get('deck');
 
-  // Initialize RNG
-  const rng = RNG.create(seed);
-  const loading = new LoadingOverlay();
+    this.rng = RNG.create(this.seed);
+    this.loading = new LoadingOverlay();
 
-  const container = document.querySelector('.sealed-container');
-  const poolArea = document.getElementById('pool-area');
-  const deckList = document.getElementById('deck-list');
-  let deckCount = document.getElementById('deck-count');
+    this.container = document.querySelector('.sealed-container');
+    this.poolArea = document.getElementById('pool-area');
+    this.deckList = document.getElementById('deck-list');
 
-  if (!setCode) {
-    loading.showError("No set specified.");
-    return;
+    // State
+    this.pool = BoosterLogic.createPool();
+    this.allCards = [];
+    this.deckCards = [];
+    this.poolCards = [];
+    this.basicLands = [];
+    this.currentSort = 'rarity';
+    this.isGridView = false;
+    this.isDeckFocus = false;
+
+    this.activeFilters = new Set();
+    this.keywordCounts = new Map();
   }
 
-  // State
-  const pool = BoosterLogic.createPool(); // Helper pool structure
-  let allCards = []; // All opened physical cards
-  let deckCards = []; // Cards in deck
-  let poolCards = []; // Cards in pool
-  let basicLands = []; // Basic lands
-  let currentSort = 'rarity'; // Default sort
-  let isGridView = false; // Layout mode
-  let isDeckFocus = false;
+  async init() {
+    if (!this.setCode) {
+      this.loading.showError("No set specified.");
+      return;
+    }
+    await this.fetchCards();
+    this.setupEventListeners();
+    this.initModals();
+  }
 
-
-  let activeFilters = new Set();
-  const keywordCounts = new Map();
-
-  // Fetch all cards
-  async function fetchCards() {
+  async fetchCards() {
     try {
-      loading.show("Loading cards...");
+      this.loading.show("Loading cards...");
 
       const [allSetCards] = await Promise.all([
-        Scryfall.fetchCards(`set:${setCode} unique:prints`),
-        KeywordExtractor.loadSetRules(setCode) // unconditionally load keyword.json
+        Scryfall.fetchCards(`set:${this.setCode} unique:prints`),
+        KeywordExtractor.loadSetRules(this.setCode)
       ]);
 
       if (allSetCards.length > 0) {
-        // Separate Basic Lands and Pool Cards
         const { basics, others: poolInput } = BoosterLogic.separateBasicLands(allSetCards);
-        basicLands = basics;
+        this.basicLands = basics;
 
-        BoosterLogic.processCards(poolInput, pool); // Populate source pool logic
-        BoosterLogic.addBasics(pool, basicLands);
-        generateSealedPool();
+        BoosterLogic.processCards(poolInput, this.pool);
+        BoosterLogic.addBasics(this.pool, this.basicLands);
+        this.generateSealedPool();
 
-        // Check for deck to restore
-        if (deckParam) {
-          handleDeckRestoration(deckParam);
+        if (this.deckParam) {
+          this.handleDeckRestoration(this.deckParam);
         }
 
-        calculateKeywords();
-        render();
-        initFilterModal(); // Init filters after cards loaded
+        this.calculateKeywords();
+        this.render();
+        this.initFilterModal();
 
-        // Add indicator to the Filter button if we have custom keywords
-        const customKws = KeywordExtractor.getCustomKeywordConfigs(setCode);
+        const customKws = KeywordExtractor.getCustomKeywordConfigs(this.setCode);
         if (Object.keys(customKws).length > 0) {
           const filterBtn = document.getElementById('filter-btn');
           if (filterBtn) {
@@ -72,126 +72,104 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
 
-        loading.hide();
+        this.loading.hide();
       } else {
-        loading.showError("No cards found.");
+        this.loading.showError("No cards found.");
       }
 
     } catch (e) {
       console.error(e);
-      loading.showError("Error loading cards.");
-      // Maybe allow refresh or block? Blocking for now as per plan
+      this.loading.showError("Error loading cards.");
     }
   }
 
-  function openPacks(count) {
+  openPacks(count) {
     const cards = [];
     for (let i = 0; i < count; i++) {
-      const pack = BoosterLogic.generatePackData(pool, rng);
+      const pack = BoosterLogic.generatePackData(this.pool, this.rng);
       cards.push(...pack);
     }
     return cards;
   }
 
-  function assignUniqueId(cards) {
+  assignUniqueId(cards) {
     cards.forEach((card, index) => {
       card.uniqueId = `card-${index}`;
     });
   }
 
-  function generateSealedPool() {
-    // Generate 6 packs
-    const packs = openPacks(6);
-    allCards.push(...packs);
-
-    assignUniqueId(allCards);
-
-    poolCards = [...allCards]; // Initially all in pool
-    deckCards = [];
+  generateSealedPool() {
+    const packs = this.openPacks(6);
+    this.allCards.push(...packs);
+    this.assignUniqueId(this.allCards);
+    this.poolCards = [...this.allCards];
+    this.deckCards = [];
   }
 
-  // --- Rendering & Sorting ---
-
-  function render() {
+  // UI Rendering Core
+  render() {
     const landStation = document.getElementById('land-station');
     if (landStation) {
-      landStation.style.display = isDeckFocus ? 'flex' : 'none';
+      landStation.style.display = this.isDeckFocus ? 'flex' : 'none';
     }
 
-    let filteredPool = poolCards;
-    let filteredDeck = deckCards;
+    let filteredPool = this.poolCards;
+    let filteredDeck = this.deckCards;
 
-    if (activeFilters.size > 0) {
+    if (this.activeFilters.size > 0) {
       const filterFn = (c) => {
         const kws = KeywordExtractor.getKeywords(c);
-        // OR logic: Match any
-        return kws.some(k => activeFilters.has(k));
+        return kws.some(k => this.activeFilters.has(k));
       };
 
-      filteredPool = poolCards.filter(filterFn);
-      filteredDeck = deckCards.filter(filterFn);
+      filteredPool = this.poolCards.filter(filterFn);
+      filteredDeck = this.deckCards.filter(filterFn);
     }
 
-    if (isDeckFocus) {
-      // Focus: Main=Deck, Side=Pool
-      container.classList.add('deck-focus');
-      renderViewUI(filteredDeck, 'deck');
-      renderPileUI(filteredPool, 'pool', 'Pile');
+    if (this.isDeckFocus) {
+      this.container.classList.add('deck-focus');
+      this.renderViewUI(filteredDeck, 'deck');
+      this.renderPileUI(filteredPool, 'pool', 'Pile');
     } else {
-      // Normal: Main=Pool, Side=Deck
-      container.classList.remove('deck-focus');
-      renderViewUI(filteredPool, 'pool');
-      renderPileUI(filteredDeck, 'deck', 'Deck');
+      this.container.classList.remove('deck-focus');
+      this.renderViewUI(filteredPool, 'pool');
+      this.renderPileUI(filteredDeck, 'deck', 'Deck');
     }
-    updateMetrics();
+    this.updateMetrics();
   }
 
-  function renderViewUI(cards, source) {
-    poolArea.innerHTML = '';
-
-    if (isGridView) {
-      renderAsGrid(cards, poolArea, source);
+  renderViewUI(cards, source) {
+    this.poolArea.innerHTML = '';
+    if (this.isGridView) {
+      this.renderAsGrid(cards, this.poolArea, source);
     } else {
-      renderAsColumns(cards, poolArea, source);
+      this.renderAsColumns(cards, this.poolArea, source);
     }
   }
 
-  function renderPileUI(cards, source, titleLabel) {
-    deckList.innerHTML = '';
-
-    // Update Title logic
+  renderPileUI(cards, source, titleLabel) {
+    this.deckList.innerHTML = '';
     const pileHeader = document.querySelector('#deck-area h5');
     if (pileHeader) {
-      // Rebuild header keeping ID for deck-count
       pileHeader.innerHTML = `${titleLabel} (<span id="deck-count">${cards.length}</span>)`;
-      // Update the global deckCount reference
-      deckCount = document.getElementById('deck-count');
+      this.deckCount = document.getElementById('deck-count');
 
       if (titleLabel === 'Pool') {
-        pileHeader.style.color = '#967adc'; // Highlight color
+        pileHeader.style.color = '#967adc';
       } else {
         pileHeader.style.color = '';
       }
     }
-
-    // Always List
-    renderAsList(cards, deckList, source);
+    this.renderAsList(cards, this.deckList, source);
   }
 
-  function renderAsColumns(cards, container, source) {
+  renderAsColumns(cards, container, source) {
     if (container.classList.contains('cards-grid')) {
       container.classList.remove('cards-grid');
     }
-    // Determine sort function based on source
-    // Pool: Sort by Collector Number (Default)
-    // Deck: Sort by Priority (Type) -> CMC -> Name
-    const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
-
-    let groupMode = currentSort;
-
-    const groups = groupCards(cards, groupMode, sortFn);
-
-    let keys = sortGroupKeys(Object.keys(groups), groupMode);
+    const sortFn = source === 'deck' ? this.compareCardsForDeck.bind(this) : this.compareByCollectorNumber.bind(this);
+    const groups = this.groupCards(cards, this.currentSort, sortFn);
+    let keys = this.sortGroupKeys(Object.keys(groups), this.currentSort);
 
     keys.forEach(groupKey => {
       const column = document.createElement('div');
@@ -202,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       stack.classList.add('card-stack');
 
       groups[groupKey].forEach(card => {
-        const el = createDraggableCard(card, source);
+        const el = this.createDraggableCard(card, source);
         stack.appendChild(el);
       });
 
@@ -211,37 +189,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function renderAsGrid(cards, container, source) {
+  renderAsGrid(cards, container, source) {
     if (!container.classList.contains('cards-grid')) {
       container.classList.add('cards-grid');
     }
+    const sortFn = source === 'deck' ? this.compareCardsForDeck.bind(this) : this.compareByCollectorNumber.bind(this);
+    const groups = this.groupCards(cards, this.currentSort, sortFn);
+    const keys = this.sortGroupKeys(Object.keys(groups), this.currentSort);
 
-    // Grid View: Respect Current Grouping
-    // 1. Group cards just like columns
-    const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
-    const groups = groupCards(cards, currentSort, sortFn);
-
-    // 2. Get sorted keys
-    const keys = sortGroupKeys(Object.keys(groups), currentSort);
-
-    // 3. Flatten into simple list
     const sorted = [];
     keys.forEach(key => {
       sorted.push(...groups[key]);
     });
 
     sorted.forEach(card => {
-      const el = createDraggableCard(card, source);
+      const el = this.createDraggableCard(card, source);
       container.appendChild(el);
     });
   }
 
-  function renderAsList(cards, container, source) {
-    const sortFn = source === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
+  renderAsList(cards, container, source) {
+    const sortFn = source === 'deck' ? this.compareCardsForDeck.bind(this) : this.compareByCollectorNumber.bind(this);
     const sorted = [...cards].sort(sortFn);
 
     let target = container;
-    // Only create wrapper if container is not already a deck-list key container
     if (!container.classList.contains('deck-list')) {
       let wrapper = container.querySelector('.deck-list');
       if (!wrapper) {
@@ -255,19 +226,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     sorted.forEach(card => {
-      const el = createDraggableCard(card, source);
+      const el = this.createDraggableCard(card, source);
       target.appendChild(el);
     });
   }
 
-  function updateMetrics() {
-    let creatures = 0;
-    let lands = 0;
-    let spells = 0;
+  updateMetrics() {
+    let creatures = 0, lands = 0, spells = 0;
 
-    deckCards.forEach(card => {
+    this.deckCards.forEach(card => {
       const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
-
       if (typeLine.includes('Creature')) {
         creatures++;
       } else if (typeLine.includes('Land')) {
@@ -277,33 +245,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
-    // Toggle Draw 7 Button
     const draw7Btn = document.getElementById('draw-7-btn');
-
     if (draw7Btn) {
-      if (deckCards.length >= 40) {
-        draw7Btn.style.display = 'inline-block';
-      } else {
-        draw7Btn.style.display = 'none';
-      }
+      draw7Btn.style.display = this.deckCards.length >= 40 ? 'inline-block' : 'none';
     }
 
-    document.getElementById('metric-total').textContent = deckCards.length;
+    document.getElementById('metric-total').textContent = this.deckCards.length;
     document.getElementById('metric-creatures').textContent = creatures;
     document.getElementById('metric-spells').textContent = spells;
     document.getElementById('metric-lands').textContent = lands;
   }
 
-  function groupCards(cards, mode, sortFn = compareByCollectorNumber) {
+  groupCards(cards, mode, sortFn = this.compareByCollectorNumber.bind(this)) {
     const groups = {};
-
     cards.forEach(card => {
-      let key = getCardGroupKey(card, mode);
+      let key = this.getCardGroupKey(card, mode);
       if (!groups[key]) groups[key] = [];
       groups[key].push(card);
     });
 
-    // Sort each group
     Object.keys(groups).forEach(key => {
       groups[key].sort(sortFn);
     });
@@ -311,13 +271,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     return groups;
   }
 
-  // --- Drag and Drop ---
-
-  function createDraggableCard(card, source) {
+  // Drag & Drop
+  createDraggableCard(card, source) {
     const el = CardUI.createCardElementForDeck(card);
     el.draggable = true;
     el.dataset.uniqueId = card.uniqueId;
-    el.dataset.source = source; // 'pool' or 'deck'
+    el.dataset.source = source;
 
     el.addEventListener('dragstart', (e) => {
       e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -331,129 +290,271 @@ document.addEventListener('DOMContentLoaded', async () => {
       el.classList.remove('dragging');
     });
 
-    // Click to move functionality as alternative
-    el.addEventListener('click', (e) => {
+    el.addEventListener('click', () => {
       const currentSource = el.dataset.source;
-      moveCard(card.uniqueId, currentSource === 'pool' ? 'deck' : 'pool');
+      this.moveCard(card.uniqueId, currentSource === 'pool' ? 'deck' : 'pool');
     });
 
     return el;
   }
 
-  function moveCard(uniqueId, destination) {
-    const cardIndex = allCards.findIndex(c => c.uniqueId === uniqueId);
+  moveCard(uniqueId, destination) {
+    const cardIndex = this.allCards.findIndex(c => c.uniqueId === uniqueId);
     if (cardIndex === -1) return;
-    const card = allCards[cardIndex];
+    const card = this.allCards[cardIndex];
 
-    // Data Update
     if (destination === 'deck') {
-      const idx = poolCards.findIndex(c => c.uniqueId === uniqueId);
+      const idx = this.poolCards.findIndex(c => c.uniqueId === uniqueId);
       if (idx !== -1) {
-        poolCards.splice(idx, 1);
-        deckCards.push(card);
+        this.poolCards.splice(idx, 1);
+        this.deckCards.push(card);
       }
     } else {
-      // Move from deck to pool
-      // Special Case: Added Basic Lands -> Delete
-      // Pulled Basic Lands -> Move to Pool
       if (card.isAddedLand) {
-        removeBasicLand(uniqueId);
+        this.removeBasicLand(uniqueId);
         return;
       }
-
-      const idx = deckCards.findIndex(c => c.uniqueId === uniqueId);
+      const idx = this.deckCards.findIndex(c => c.uniqueId === uniqueId);
       if (idx !== -1) {
-        deckCards.splice(idx, 1);
-        poolCards.push(card);
+        this.deckCards.splice(idx, 1);
+        this.poolCards.push(card);
       }
     }
 
-    // DOM Update
     const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
     if (cardElement) {
       const parent = cardElement.parentElement;
-      // Remove from current parent
       cardElement.remove();
 
       if (parent && parent.classList.contains('card-stack') && parent.children.length === 0) {
         const column = parent.parentElement;
         parent.remove();
-        if (column && column.classList.contains('pool-column')) {
-          column.remove();
-        }
+        if (column && column.classList.contains('pool-column')) column.remove();
       }
-      // Update source dataset
-      cardElement.dataset.source = destination;
-      // Re-bind click event? Logic is generic "toggle", so it holds.
-      // But verify if event listeners persist on moved element. Yes they do.
 
-      // Determine Target Container & Mode
-      let container = null;
+      cardElement.dataset.source = destination;
+
+      let targetContainer = null;
       let isListMode = false;
 
-      if (isDeckFocus) {
-        // Focus Mode: Deck is in View (Main), Pool is in Pile (Sidebar)
+      if (this.isDeckFocus) {
         if (destination === 'deck') {
-          container = poolArea; // Deck is in View
+          targetContainer = this.poolArea;
           isListMode = false;
         } else {
-          container = deckList; // Pool is in Pile
+          targetContainer = this.deckList;
           isListMode = true;
         }
       } else {
-        // Normal Mode: Pool is in View (Main), Deck is in Pile (Sidebar)
         if (destination === 'pool') {
-          container = poolArea; // Pool is in View
+          targetContainer = this.poolArea;
           isListMode = false;
         } else {
-          container = deckList; // Deck is in Pile
+          targetContainer = this.deckList;
           isListMode = true;
         }
       }
 
       if (isListMode) {
-        let listTarget = container;
-        if (!container.classList.contains('deck-list')) {
-          let wrapper = container.querySelector('.deck-list');
+        let listTarget = targetContainer;
+        if (!targetContainer.classList.contains('deck-list')) {
+          let wrapper = targetContainer.querySelector('.deck-list');
           if (!wrapper) {
             wrapper = document.createElement('div');
             wrapper.classList.add('deck-list');
             wrapper.style.paddingBottom = '300px';
             wrapper.style.width = '100%';
-            container.appendChild(wrapper);
+            targetContainer.appendChild(wrapper);
           }
           listTarget = wrapper;
         }
-        const sortFn = destination === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
-        insertCardIntoList(listTarget, cardElement, card, sortFn);
+        const sortFn = destination === 'deck' ? this.compareCardsForDeck.bind(this) : this.compareByCollectorNumber.bind(this);
+        this.insertCardIntoList(listTarget, cardElement, card, sortFn);
       } else {
-        // View Mode
-        const sortFn = isDeckFocus && destination === 'deck' ? compareCardsForDeck : compareByCollectorNumber;
-
-        if (container.classList.contains('cards-grid')) {
-          // Grid Mode Insertion
-          insertCardSorted(container, cardElement, card, sortFn);
+        const sortFn = (this.isDeckFocus && destination === 'deck') ? this.compareCardsForDeck.bind(this) : this.compareByCollectorNumber.bind(this);
+        if (targetContainer.classList.contains('cards-grid')) {
+          this.insertCardSorted(targetContainer, cardElement, card, sortFn);
         } else {
-          // Column Mode Insertion
-          const group = getCardGroupKey(card, currentSort);
-          insertCardIntoColumn(container, cardElement, card, group, sortFn);
+          const group = this.getCardGroupKey(card, this.currentSort);
+          this.insertCardIntoColumn(targetContainer, cardElement, card, group, sortFn);
         }
       }
     }
 
-    updateMetrics();
-    // Update pile count
-    deckCount = document.getElementById('deck-count');
-    if (deckCount) {
-      if (isDeckFocus) {
-        deckCount.textContent = poolCards.length;
+    this.updateMetrics();
+    this.deckCount = document.getElementById('deck-count');
+    if (this.deckCount) {
+      if (this.isDeckFocus) {
+        this.deckCount.textContent = this.poolCards.length;
       } else {
-        deckCount.textContent = deckCards.length;
+        this.deckCount.textContent = this.deckCards.length;
       }
     }
   }
 
-  function sortGroupKeys(keys, mode) {
+  insertCardIntoList(container, el, card, sortFn = this.compareByCollectorNumber.bind(this)) {
+    this.insertCardSorted(container, el, card, sortFn);
+  }
+
+  insertCardSorted(container, el, card, sortFn = this.compareByCollectorNumber.bind(this)) {
+    const children = Array.from(container.children).filter(c => c.classList.contains('card-item'));
+    let insertBefore = null;
+
+    for (const child of children) {
+      const childId = child.dataset.uniqueId;
+      const childCard = this.allCards.find(c => c.uniqueId === childId);
+      if (childCard && sortFn(card, childCard) < 0) {
+        insertBefore = child;
+        break;
+      }
+    }
+
+    if (insertBefore) {
+      container.insertBefore(el, insertBefore);
+    } else {
+      container.appendChild(el);
+    }
+  }
+
+  insertCardIntoColumn(container, el, card, groupKey, sortFn) {
+    let column = Array.from(container.children).find(col => col.dataset.groupKey === groupKey);
+
+    if (!column) {
+      column = document.createElement('div');
+      column.classList.add('pool-column');
+      column.dataset.groupKey = groupKey;
+      const stack = document.createElement('div');
+      stack.classList.add('card-stack');
+      column.appendChild(stack);
+      container.appendChild(column);
+    }
+
+    const stack = column.querySelector('.card-stack');
+    this.insertCardSorted(stack, el, card, sortFn);
+  }
+
+  handleDrop(destination) {
+    return (e) => {
+      e.preventDefault();
+      try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (data.source !== destination) {
+          this.moveCard(data.uniqueId, destination);
+        }
+      } catch (err) {
+        console.error("Drop error", err);
+      }
+    };
+  }
+
+  setupEventListeners() {
+    this.poolArea.addEventListener('dragover', e => e.preventDefault());
+    this.poolArea.addEventListener('drop', this.handleDrop('pool'));
+
+    this.deckList.addEventListener('dragover', e => e.preventDefault());
+    this.deckList.addEventListener('drop', this.handleDrop('deck'));
+
+    document.getElementById('sort-color').addEventListener('click', () => { this.currentSort = 'color'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
+    document.getElementById('sort-rarity').addEventListener('click', () => { this.currentSort = 'rarity'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
+    document.getElementById('sort-type').addEventListener('click', () => { this.currentSort = 'type'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
+    document.getElementById('sort-cmc').addEventListener('click', () => { this.currentSort = 'cmc'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
+
+    document.getElementById('btn-layout').addEventListener('click', () => {
+      this.isGridView = !this.isGridView;
+      this.render();
+    });
+
+    document.querySelectorAll('.mana-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const colorKey = e.currentTarget.dataset.color;
+        this.addBasicLand(colorKey);
+      });
+    });
+
+    document.getElementById('toggle-view-btn').addEventListener('click', () => {
+      this.isDeckFocus = !this.isDeckFocus;
+      this.activeFilters.clear();
+      this.resetPoolAreaStyle();
+      this.currentSort = this.isDeckFocus ? 'cmc' : 'color';
+      this.isGridView = false;
+      this.render();
+    });
+
+    UIUtils.initZoomControl();
+  }
+
+  resetPoolAreaStyle() {
+    this.poolArea.style.flexWrap = '';
+    this.poolArea.style.overflowX = '';
+    this.poolArea.style.overflowY = '';
+    this.poolArea.style.alignItems = '';
+    this.poolArea.style.justifyContent = '';
+  }
+
+  removeBasicLand(uniqueId) {
+    const idx = this.deckCards.findIndex(c => c.uniqueId === uniqueId);
+    if (idx !== -1) this.deckCards.splice(idx, 1);
+
+    const acIdx = this.allCards.findIndex(c => c.uniqueId === uniqueId);
+    if (acIdx !== -1) this.allCards.splice(acIdx, 1);
+
+    const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
+    if (cardElement) cardElement.remove();
+
+    this.updateMetrics();
+    this.deckCount = document.getElementById('deck-count');
+    if (this.deckCount) {
+      if (!this.isDeckFocus) this.deckCount.textContent = this.deckCards.length;
+    }
+  }
+
+  addBasicLand(colorKey) {
+    const landMap = { 'W': 'Plains', 'U': 'Island', 'B': 'Swamp', 'R': 'Mountain', 'G': 'Forest' };
+    const landName = landMap[colorKey];
+    const variants = this.basicLands.filter(c => c.name === landName);
+    let pick = null;
+
+    if (variants.length > 0) {
+      const fullArts = variants.filter(c => c.full_art);
+      if (fullArts.length > 0) {
+        pick = fullArts[Math.floor(Math.random() * fullArts.length)];
+      } else {
+        pick = variants[Math.floor(Math.random() * variants.length)];
+      }
+    } else return;
+
+    const landCard = JSON.parse(JSON.stringify(pick));
+    landCard.uniqueId = `land-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    landCard.isAddedLand = true;
+
+    this.deckCards.push(landCard);
+    this.allCards.push(landCard);
+
+    const el = this.createDraggableCard(landCard, 'deck');
+
+    if (this.isDeckFocus) {
+      const group = this.getCardGroupKey(landCard, this.currentSort);
+      this.insertCardIntoColumn(this.poolArea, el, landCard, group, this.compareCardsForDeck.bind(this));
+      if (this.deckCount) this.deckCount.textContent = this.deckCards.length;
+    } else {
+      this.insertCardIntoList(this.deckList, el, landCard, this.compareCardsForDeck.bind(this));
+    }
+
+    this.updateMetrics();
+  }
+
+  calculateKeywords() {
+    this.keywordCounts.clear();
+    this.allCards.forEach(card => {
+      const kws = KeywordExtractor.getKeywords(card);
+      kws.forEach(k => {
+        this.keywordCounts.set(k, (this.keywordCounts.get(k) || 0) + 1);
+      });
+    });
+  }
+
+  // Sorting utilities
+  sortGroupKeys(keys, mode) {
     if (mode === 'color') {
       const order = ['W', 'U', 'B', 'R', 'G', 'Multicolor', 'Colorless', 'Land'];
       return keys.sort((a, b) => {
@@ -482,31 +583,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         return idxA - idxB;
       });
     }
-    return keys.sort(); // Default alphabetical
+    return keys.sort();
   }
 
-  function getCardGroupKey(card, mode) {
+  getCardGroupKey(card, mode) {
+    const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
     if (mode === 'color') {
-      const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
-
       const colors = card.colors || (card.faces ? card.faces[0].colors : []) || [];
-      if (colors.length === 0) return 'Colorless';
-      else if (colors.length > 1) return 'Multicolor';
-      else return colors[0];
       if (colors.length === 0) return 'Colorless';
       else if (colors.length > 1) return 'Multicolor';
       else return colors[0];
     } else if (mode === 'rarity') {
       return card.rarity;
     } else if (mode === 'type') {
-      const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
       if (typeLine.includes('Creature')) return 'Creature';
-      else if (typeLine.includes('Instant')) return 'Instant';
-      else if (typeLine.includes('Sorcery')) return 'Sorcery';
-      else if (typeLine.includes('Enchantment')) return 'Enchantment';
-      else if (typeLine.includes('Artifact')) return 'Artifact';
-      else if (typeLine.includes('Land')) return 'Land';
-      else if (typeLine.includes('Planeswalker')) return 'Planeswalker';
+      if (typeLine.includes('Instant')) return 'Instant';
+      if (typeLine.includes('Sorcery')) return 'Sorcery';
+      if (typeLine.includes('Enchantment')) return 'Enchantment';
+      if (typeLine.includes('Artifact')) return 'Artifact';
+      if (typeLine.includes('Land')) return 'Land';
+      if (typeLine.includes('Planeswalker')) return 'Planeswalker';
       return 'Other';
     } else if (mode === 'cmc') {
       const cmc = Math.floor(card.cmc || 0);
@@ -515,350 +611,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     return 'Other';
   }
 
-  function insertCardIntoList(container, el, card) {
-    insertCardSorted(container, el, card, compareByCollectorNumber);
-  }
-
-  function insertCardSorted(container, el, card, sortFn = compareByCollectorNumber) {
-    const children = Array.from(container.children).filter(c => c.classList.contains('card-item'));
-    let insertBefore = null;
-
-    for (const child of children) {
-      const childId = child.dataset.uniqueId;
-      const childCard = allCards.find(c => c.uniqueId === childId);
-      if (childCard && sortFn(card, childCard) < 0) {
-        insertBefore = child;
-        break;
-      }
-    }
-
-    if (insertBefore) {
-      container.insertBefore(el, insertBefore);
-    } else {
-      container.appendChild(el);
-    }
-  }
-
-  function insertCardIntoColumn(container, el, card, groupKey, sortFn) {
-    let column = Array.from(container.children).find(col => {
-      return col.dataset.groupKey === groupKey;
-    });
-
-    if (!column) {
-      // Create new column
-      column = document.createElement('div');
-      column.classList.add('pool-column');
-      column.dataset.groupKey = groupKey;
-
-      const stack = document.createElement('div');
-      stack.classList.add('card-stack');
-      column.appendChild(stack);
-
-      // Where to insert column? We don't have stric sorting of groups yet. Appending is fine.
-      container.appendChild(column);
-    }
-
-    const stack = column.querySelector('.card-stack');
-    insertCardSorted(stack, el, card, sortFn);
-  }
-
-  // Drop Zones
-  poolArea.addEventListener('dragover', e => e.preventDefault());
-  poolArea.addEventListener('drop', handleDrop('pool'));
-
-  deckList.addEventListener('dragover', e => e.preventDefault());
-  deckList.addEventListener('drop', handleDrop('deck'));
-
-  function handleDrop(destination) {
-    return (e) => {
-      e.preventDefault();
-      try {
-        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-        if (data.source !== destination) {
-          moveCard(data.uniqueId, destination);
-        }
-      } catch (err) {
-        console.error("Drop error", err);
-      }
-    };
-  }
-
-  // --- Controls ---
-
-  document.getElementById('sort-color').addEventListener('click', () => { currentSort = 'color'; isGridView = false; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-rarity').addEventListener('click', () => { currentSort = 'rarity'; isGridView = false; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-type').addEventListener('click', () => { currentSort = 'type'; isGridView = false; resetPoolAreaStyle(); render(); });
-  document.getElementById('sort-cmc').addEventListener('click', () => { currentSort = 'cmc'; isGridView = false; resetPoolAreaStyle(); render(); });
-
-  document.getElementById('btn-layout').addEventListener('click', () => {
-    isGridView = !isGridView;
-    render();
-  });
-
-  function resetPoolAreaStyle() {
-    poolArea.style.flexWrap = '';
-    poolArea.style.overflowX = '';
-    poolArea.style.overflowY = '';
-    poolArea.style.alignItems = '';
-    poolArea.style.justifyContent = '';
-  }
-
-  // Land Station
-  document.querySelectorAll('.mana-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const colorKey = e.currentTarget.dataset.color;
-      addBasicLand(colorKey);
-    });
-  });
-
-  function removeBasicLand(uniqueId) {
-    const idx = deckCards.findIndex(c => c.uniqueId === uniqueId);
-    if (idx !== -1) deckCards.splice(idx, 1);
-
-    // Cleanup allCards
-    const acIdx = allCards.findIndex(c => c.uniqueId === uniqueId);
-    if (acIdx !== -1) allCards.splice(acIdx, 1);
-
-    // DOM Cleanup
-    const cardElement = document.querySelector(`.card-item[data-unique-id="${uniqueId}"]`);
-    if (cardElement) cardElement.remove();
-
-    updateMetrics();
-    // Update count
-    deckCount = document.getElementById('deck-count');
-    if (deckCount) {
-      if (!isDeckFocus) deckCount.textContent = deckCards.length;
-    }
-  }
-
-  function addBasicLand(colorKey) {
-    const landMap = { 'W': 'Plains', 'U': 'Island', 'B': 'Swamp', 'R': 'Mountain', 'G': 'Forest' };
-    const landName = landMap[colorKey];
-
-    const variants = basicLands.filter(c => c.name === landName);
-    let pick = null;
-
-    if (variants.length > 0) {
-      const fullArts = variants.filter(c => c.full_art);
-      if (fullArts.length > 0) {
-        pick = fullArts[Math.floor(Math.random() * fullArts.length)];
-      } else {
-        pick = variants[Math.floor(Math.random() * variants.length)];
-      }
-    } else {
-      // No basics in set?
-      return;
-    }
-
-    const landCard = JSON.parse(JSON.stringify(pick)); // Clone
-    landCard.uniqueId = `land-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    landCard.isAddedLand = true; // Mark as added land
-
-    deckCards.push(landCard);
-    allCards.push(landCard); // Track source
-
-    // Incremental DOM Update (instead of full render)
-    const el = createDraggableCard(landCard, 'deck');
-
-    if (isDeckFocus) {
-      // Deck is in Pool View (Columns)
-      const group = getCardGroupKey(landCard, currentSort);
-      insertCardIntoColumn(poolArea, el, landCard, group, compareCardsForDeck);
-      deckCount.textContent = deckCards.length;
-    } else {
-      // Deck is in List View (Pile)
-      // Note: This case is unlikely if Land Station is only visible in Deck Focus, but handling it is safe
-      insertCardIntoList(deckList, el, landCard, compareCardsForDeck);
-    }
-
-    updateMetrics();
-  }
-
-  document.getElementById('toggle-view-btn').addEventListener('click', () => {
-    isDeckFocus = !isDeckFocus;
-    activeFilters.clear(); // Reset filters on view toggle
-    resetPoolAreaStyle(); // Reset any grid styles
-    if (isDeckFocus) {
-      currentSort = 'cmc';
-    } else {
-      currentSort = 'color'; // revert to default or keep? 'color' is usually good for pool
-    }
-    isGridView = false;
-    render();
-  });
-
-  UIUtils.initZoomControl();
-
-  function calculateKeywords() {
-    keywordCounts.clear();
-    allCards.forEach(card => {
-      const kws = KeywordExtractor.getKeywords(card);
-      kws.forEach(k => {
-        keywordCounts.set(k, (keywordCounts.get(k) || 0) + 1);
-      });
-    });
-  }
-
-  function initFilterModal() {
-    const filterBtn = document.getElementById('filter-btn');
-    const filterModal = document.getElementById('filter-modal');
-    const closeFilterBtn = document.getElementById('close-filter-btn');
-    const clearFilterBtn = document.getElementById('clear-filter-btn');
-    const container = document.getElementById('filter-keywords-container');
-
-    filterBtn.addEventListener('click', () => {
-      renderFilterCheckboxes();
-      filterModal.style.display = 'flex';
-    });
-
-    closeFilterBtn.addEventListener('click', () => {
-      filterModal.style.display = 'none';
-      render(); // Apply on close? Or immediate? Immediate is better but let's re-render just to be sure.
-    });
-
-    filterModal.addEventListener('click', (e) => {
-      if (e.target === filterModal) filterModal.style.display = 'none';
-    });
-
-    clearFilterBtn.addEventListener('click', () => {
-      activeFilters.clear();
-      renderFilterCheckboxes();
-      render();
-    });
-
-    function renderFilterCheckboxes() {
-      container.innerHTML = '';
-
-      const customConfigs = KeywordExtractor.getCustomKeywordConfigs(setCode);
-      const customKwNames = new Set(Object.keys(customConfigs));
-
-      const { customKws, genericKws } = sortAndGroupKeywords(customKwNames);
-
-      if (customKws.length > 0) {
-        renderCustomFiltersSection(customKws, customConfigs);
-      }
-
-      renderGenericFiltersSection(genericKws);
-    }
-
-    function sortAndGroupKeywords(customKwNames) {
-      const customKws = [];
-      const genericKws = [];
-
-      const sortedKeys = Array.from(keywordCounts.keys()).sort((a, b) => {
-        const diff = keywordCounts.get(b) - keywordCounts.get(a);
-        if (diff !== 0) return diff;
-        return a.localeCompare(b);
-      });
-
-      sortedKeys.forEach(k => {
-        if (!customKwNames.has(k)) {
-          genericKws.push(k);
-        }
-      });
-
-      customKwNames.forEach(k => {
-        customKws.push(k);
-      });
-
-      return { customKws, genericKws };
-    }
-
-    function renderCustomFiltersSection(customKws, customConfigs) {
-      container.appendChild(createSectionHeader('Custom Set Filters', false));
-
-      customKws.forEach(k => {
-        container.appendChild(createCheckboxLabel(k, true, customConfigs[k]));
-      });
-    }
-
-    function renderGenericFiltersSection(genericKws) {
-      container.appendChild(createSectionHeader('Generic Filters', true));
-
-      genericKws.forEach(k => {
-        container.appendChild(createCheckboxLabel(k, false));
-      });
-    }
-
-    function createSectionHeader(title, hasTopMargin) {
-      const header = document.createElement('div');
-      header.style.width = '100%';
-      header.style.fontWeight = 'bold';
-      header.style.marginBottom = '5px';
-      if (hasTopMargin) {
-        header.style.marginTop = '10px';
-      }
-      header.textContent = title;
-      return header;
-    }
-
-    function createCheckboxLabel(k, isCustom, rules) {
-      const count = keywordCounts.get(k) || 0;
-      const label = document.createElement('label');
-
-      applyLabelStyles(label, isCustom);
-
-      if (isCustom && rules) {
-        applyCustomLabelAttributes(label, rules);
-      }
-
-      const cb = createCheckboxInput(k);
-      label.appendChild(cb);
-      label.appendChild(document.createTextNode(`${k} (${count})`));
-
-      return label;
-    }
-
-    function applyLabelStyles(label, isCustom) {
-      label.style.display = 'flex';
-      label.style.alignItems = 'center';
-      label.style.marginRight = '10px';
-      label.style.cursor = 'pointer';
-      label.style.fontSize = isCustom ? '16px' : '14px';
-
-      if (isCustom) {
-        label.style.padding = '5px 10px';
-        label.style.backgroundColor = '#e1d5eb';
-        label.style.border = '1px solid #967adc';
-        label.style.borderRadius = '4px';
-        label.style.marginBottom = '5px';
-      }
-    }
-
-    function applyCustomLabelAttributes(label, rules) {
-      const ruleText = rules.map(r => `${r.property} ~= /${r.regex}/`).join(" OR ");
-      label.title = `Looking for:\n${ruleText}`;
-    }
-
-    function createCheckboxInput(k) {
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.value = k;
-      cb.checked = activeFilters.has(k);
-      cb.style.marginRight = '5px';
-
-      cb.addEventListener('change', () => {
-        if (cb.checked) {
-          activeFilters.add(k);
-        } else {
-          activeFilters.delete(k);
-        }
-        render(); // Immediate update behind modal
-      });
-
-      return cb;
-    }
-  }
-
-  function compareByCollectorNumber(a, b) {
+  compareByCollectorNumber(a, b) {
     const numA = parseInt(a.collector_number) || 0;
     const numB = parseInt(b.collector_number) || 0;
-    // Handle variants if needed (e.g. 100a vs 100b), but simple numeric is usually fine for general sort
     if (numA !== numB) return numA - numB;
     return a.name.localeCompare(b.name);
   }
 
-  function compareCardsForDeck(a, b) {
+  compareCardsForDeck(a, b) {
     const getPriority = (card) => {
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       if (type.includes('Creature')) return 1;
@@ -868,15 +628,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (type.includes('Artifact')) return 5;
       if (type.includes('Planeswalker')) return 6;
       if (type.includes('Land')) return 7;
-      return 8; // Other
+      return 8;
     };
 
     const priA = getPriority(a);
     const priB = getPriority(b);
     if (priA !== priB) return priA - priB;
 
-    // Special Sort for Lands: WUBRG
-    if (priA === 7) { // Both are lands
+    if (priA === 7) {
       const getLandSortIndex = (card) => {
         const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
         if (type.includes('Plains')) return 0;
@@ -886,301 +645,246 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (type.includes('Forest')) return 4;
         return 5;
       };
-
       const sortA = getLandSortIndex(a);
       const sortB = getLandSortIndex(b);
-
       if (sortA !== sortB) return sortA - sortB;
     }
 
-    // CMC
     const cmcA = a.cmc || 0;
     const cmcB = b.cmc || 0;
     if (cmcA !== cmcB) return cmcA - cmcB;
 
-    // Name
     return a.name.localeCompare(b.name);
   }
 
-  function initRerollModal() {
-    const rerollModal = document.getElementById('reroll-modal');
-    const openAnotherBtn = document.getElementById('open-another-btn');
-    const rerollConfirmBtn = document.getElementById('reroll-confirm');
-    const rerollCancelBtn = document.getElementById('reroll-cancel');
-
-    openAnotherBtn.addEventListener('click', () => {
-      rerollModal.style.display = 'flex';
-    });
-
-    rerollConfirmBtn.addEventListener('click', () => {
-      SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true);
-    });
-
-    rerollCancelBtn.addEventListener('click', () => {
-      rerollModal.style.display = 'none';
-    });
-
-    // Close modal on outside click
-    rerollModal.addEventListener('click', (e) => {
-      if (e.target === rerollModal) {
-        rerollModal.style.display = 'none';
-      }
-    });
-  }
-
-  function initRulesModal() {
-    const rulesModal = document.getElementById('rules-modal');
-    const viewRulesBtn = document.getElementById('btn-view-rules');
-    const closeRulesBtn = document.getElementById('close-rules-btn');
-    const content = document.getElementById('rules-content');
-
-    viewRulesBtn.addEventListener('click', () => {
-      renderRulesTable();
-      rulesModal.style.display = 'flex';
-    });
-
-    closeRulesBtn.addEventListener('click', () => {
-      rulesModal.style.display = 'none';
-    });
-
-    rulesModal.addEventListener('click', (e) => {
-      if (e.target === rulesModal) {
-        rulesModal.style.display = 'none';
-      }
-    });
-
-    function renderRulesTable() {
-      const rules = BoosterLogic.rules;
-      let html = '<table style="width: 100%; border-collapse: collapse; text-align: left;">';
-      html += '<thead><tr><th style="border-bottom: 2px solid #ddd; padding: 8px;">Slot Name</th><th style="border-bottom: 2px solid #ddd; padding: 8px;">Count</th><th style="border-bottom: 2px solid #ddd; padding: 8px;">Pool Logic</th></tr></thead>';
-      html += '<tbody>';
-
-      rules.forEach(rule => {
-        html += '<tr>';
-        html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${rule.name}</td>`;
-        html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${rule.count}</td>`;
-
-        let poolDesc = '';
-        if (rule.pool) {
-          const parts = [];
-          for (const [key, weight] of Object.entries(rule.pool)) {
-            parts.push(`<b>${key}</b>: ${weight}`);
-          }
-          poolDesc = parts.join(', ');
+  handleDeckRestoration(encodedDeck) {
+    const result = DeckSerializer.deserialize(encodedDeck, this.allCards);
+    this.deckCards = [];
+    if (result.deckCards.length > 0) {
+      result.deckCards.forEach(card => {
+        const idx = this.poolCards.findIndex(c => c.uniqueId === card.uniqueId);
+        if (idx !== -1) {
+          this.poolCards.splice(idx, 1);
+          this.deckCards.push(card);
         }
-
-        html += `<td style="border-bottom: 1px solid #ddd; padding: 8px;">${poolDesc}</td>`;
-        html += '</tr>';
       });
+    }
 
-      html += '</tbody></table>';
-      content.innerHTML = html;
+    Object.keys(result.landCounts).forEach(type => {
+      for (let i = 0; i < result.landCounts[type]; i++) {
+        this.addBasicLand(type);
+      }
+    });
+
+    if (this.deckCards.length > 0) {
+      this.isDeckFocus = true;
+      this.currentSort = 'cmc';
     }
   }
 
-  initRerollModal();
-  initHandModal();
+  // Modals Initialization
+  initModals() {
+    this.initFilterModal();
+    this.initRerollModal();
+    this.initHandModal();
+    this.initShareModal();
+  }
 
-  function initHandModal() {
+  initFilterModal() {
+    const filterBtn = document.getElementById('filter-btn');
+    if (!filterBtn) return;
+    const filterModal = document.getElementById('filter-modal');
+    const closeFilterBtn = document.getElementById('close-filter-btn');
+    const clearFilterBtn = document.getElementById('clear-filter-btn');
+    const container = document.getElementById('filter-keywords-container');
+
+    const renderFilterCheckboxes = () => {
+      container.innerHTML = '';
+      const customConfigs = KeywordExtractor.getCustomKeywordConfigs(this.setCode);
+      const customKwNames = new Set(Object.keys(customConfigs));
+      const { customKws, genericKws } = this.sortAndGroupKeywords(customKwNames);
+
+      if (customKws.length > 0) {
+        container.appendChild(this.createSectionHeader('Custom Set Filters', false));
+        customKws.forEach(k => container.appendChild(this.createCheckboxLabel(k, true, customConfigs[k])));
+      }
+
+      container.appendChild(this.createSectionHeader('Generic Filters', true));
+      genericKws.forEach(k => container.appendChild(this.createCheckboxLabel(k, false)));
+    };
+
+    filterBtn.addEventListener('click', () => {
+      renderFilterCheckboxes();
+      filterModal.style.display = 'flex';
+    });
+
+    closeFilterBtn.addEventListener('click', () => { filterModal.style.display = 'none'; this.render(); });
+    filterModal.addEventListener('click', (e) => { if (e.target === filterModal) filterModal.style.display = 'none'; });
+    clearFilterBtn.addEventListener('click', () => { this.activeFilters.clear(); renderFilterCheckboxes(); this.render(); });
+  }
+
+  sortAndGroupKeywords(customKwNames) {
+    const customKws = [];
+    const genericKws = [];
+    const sortedKeys = Array.from(this.keywordCounts.keys()).sort((a, b) => {
+      const diff = this.keywordCounts.get(b) - this.keywordCounts.get(a);
+      if (diff !== 0) return diff;
+      return a.localeCompare(b);
+    });
+
+    sortedKeys.forEach(k => {
+      if (!customKwNames.has(k)) genericKws.push(k);
+    });
+    customKwNames.forEach(k => customKws.push(k));
+
+    return { customKws, genericKws };
+  }
+
+  createSectionHeader(title, hasTopMargin) {
+    const header = document.createElement('div');
+    header.style.width = '100%';
+    header.style.fontWeight = 'bold';
+    header.style.marginBottom = '5px';
+    if (hasTopMargin) header.style.marginTop = '10px';
+    header.textContent = title;
+    return header;
+  }
+
+  createCheckboxLabel(k, isCustom, rules) {
+    const count = this.keywordCounts.get(k) || 0;
+    const label = document.createElement('label');
+
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.marginRight = '10px';
+    label.style.cursor = 'pointer';
+    label.style.fontSize = isCustom ? '16px' : '14px';
+
+    if (isCustom) {
+      label.style.padding = '5px 10px';
+      label.style.backgroundColor = '#e1d5eb';
+      label.style.border = '1px solid #967adc';
+      label.style.borderRadius = '4px';
+      label.style.marginBottom = '5px';
+      const ruleText = rules.map(r => `${r.property} ~= /${r.regex}/`).join(" OR ");
+      label.title = `Looking for:\n${ruleText}`;
+    }
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = k;
+    cb.checked = this.activeFilters.has(k);
+    cb.style.marginRight = '5px';
+
+    cb.addEventListener('change', () => {
+      if (cb.checked) this.activeFilters.add(k);
+      else this.activeFilters.delete(k);
+      this.render();
+    });
+
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(`${k} (${count})`));
+    return label;
+  }
+
+  initRerollModal() {
+    const rerollModal = document.getElementById('reroll-modal');
+    document.getElementById('open-another-btn').addEventListener('click', () => rerollModal.style.display = 'flex');
+    document.getElementById('reroll-confirm').addEventListener('click', () => SeedUtils.updateUrlWithSeed(RNG.generateSeed(), true));
+    document.getElementById('reroll-cancel').addEventListener('click', () => rerollModal.style.display = 'none');
+    rerollModal.addEventListener('click', (e) => { if (e.target === rerollModal) rerollModal.style.display = 'none'; });
+  }
+
+
+
+  initHandModal() {
     const draw7Btn = document.getElementById('draw-7-btn');
+    if (!draw7Btn) return;
     const handModal = document.getElementById('hand-modal');
-    const closeHandBtn = document.getElementById('close-hand-btn');
-    const mulliganBtn = document.getElementById('mulligan-btn');
-    const drawOneBtn = document.getElementById('draw-one-btn');
     const handDisplay = document.getElementById('hand-display');
-
     let currentHand = [];
 
-    // Open Modal
-    draw7Btn.addEventListener('click', () => {
-      drawHand(7);
-      handModal.style.display = 'flex';
-    });
-
-    // Close Modal
-    closeHandBtn.addEventListener('click', () => {
-      handModal.style.display = 'none';
-    });
-
-    handModal.addEventListener('click', (e) => {
-      if (e.target === handModal) {
-        handModal.style.display = 'none';
-      }
-    });
-
-    // Actions
-    mulliganBtn.addEventListener('click', () => {
-      drawHand(7);
-    });
-
-    drawOneBtn.addEventListener('click', () => {
-      drawNextCard();
-    });
-
-    function drawHand(count) {
-      currentHand = [];
-      const deckCopy = [...deckCards];
-      // Shuffle check? We can just pick random indices or shuffle copy.
-      // Standard shuffle
-      for (let i = deckCopy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deckCopy[i], deckCopy[j]] = [deckCopy[j], deckCopy[i]];
-      }
-
-      currentHand = deckCopy.slice(0, count);
-      renderHand();
-    }
-
-    function drawNextCard() {
-      const inHandIds = new Set(currentHand.map(c => c.uniqueId));
-      const available = deckCards.filter(c => !inHandIds.has(c.uniqueId));
-
-      if (available.length > 0) {
-        const pick = available[Math.floor(Math.random() * available.length)];
-        currentHand.push(pick);
-
-        // Append single card instead of full render to avoid flash
-        const el = CardUI.createCardElementForDeck(pick);
-        el.style.transformOrigin = 'top left';
-        el.style.position = 'relative';
-        handDisplay.appendChild(el);
-
-        // Trigger resize check
-        setTimeout(fitHandToScreen, 0);
-      }
-    }
-
-    function renderHand() {
-      handDisplay.innerHTML = '';
-      currentHand.forEach(card => {
-        const el = CardUI.createCardElementForDeck(card);
-        el.style.transformOrigin = 'top left';
-        el.style.position = 'relative'; // Reset from any absolute
-        handDisplay.appendChild(el);
-      });
-
-      // Auto-scale to fit screen
-      setTimeout(fitHandToScreen, 0);
-    }
-
-    function fitHandToScreen() {
+    const fitHandToScreen = () => {
       if (handModal.style.display === 'none') return;
-
       const cards = Array.from(handDisplay.children);
       const count = cards.length;
       if (count === 0) return;
 
-      // Reset styles to measure container accurately
       handDisplay.style.transform = 'none';
       handDisplay.style.zoom = '1';
       cards.forEach(c => c.style.width = '');
 
-      // Dimensions
-      // We want to fit within the modal content area
-      // The modal has fixed height 80vh now. and width 90% (max 1100).
-      // Let's measure the content box of handDisplay
-      // clientHeight includes padding. We need to subtract it to get available space for content.
       const style = window.getComputedStyle(handDisplay);
-      const padTop = parseFloat(style.paddingTop) || 0;
-      const padBottom = parseFloat(style.paddingBottom) || 0;
-      const padLeft = parseFloat(style.paddingLeft) || 0;
-      const padRight = parseFloat(style.paddingRight) || 0;
-
-      const containerWidth = handDisplay.clientWidth - padLeft - padRight;
-      const containerHeight = handDisplay.clientHeight - padTop - padBottom;
+      const containerWidth = handDisplay.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+      const containerHeight = handDisplay.clientHeight - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0);
 
       if (containerWidth <= 0 || containerHeight <= 0) return;
-
-      const gap = 4; // CSS gap
-      const aspectRatio = 2.5 / 3.5;
-      const buffer = 10; // Safety buffer for bottom cutoff
-
+      const gap = 4, aspectRatio = 2.5 / 3.5, buffer = 10;
       let bestWidth = 0;
-      let bestCols = 1;
 
-      // Iterate possible column counts from 1 to Count
-      // We also strictly need to satisfy rows * h <= availableHeight
       for (let cols = 1; cols <= count; cols++) {
         const rows = Math.ceil(count / cols);
-
-        // Calculate max width allowed by container Width
-        // W_total = cols * w + (cols - 1) * gap <= containerWidth
-        // w <= (containerWidth - (cols - 1) * gap) / cols
         const wByWidth = (containerWidth - (cols - 1) * gap) / cols;
-
-        // Calculate max width allowed by container Height
-        // H_total = rows * h + (rows - 1) * gap <= containerHeight
-        // h = w / ratio
-        // (rows * w / ratio) + (rows - 1) * gap <= containerHeight - buffer
-        // w <= (containerHeight - buffer - (rows - 1) * gap) * ratio / rows
         const wByHeight = (containerHeight - buffer - (rows - 1) * gap) * aspectRatio / rows;
-
         const maxW = Math.min(wByWidth, wByHeight);
-
-        if (maxW > bestWidth) {
-          bestWidth = maxW;
-          bestCols = cols;
-        }
+        if (maxW > bestWidth) { bestWidth = maxW; }
       }
 
-      // Apply best width
-      // Subtract a tiny bit to prevent rounding issues causing wrap
       const applyWidth = Math.floor(bestWidth - 1);
-
       cards.forEach(c => {
         c.style.width = `${applyWidth}px`;
         c.style.height = `${applyWidth / aspectRatio}px`;
         c.style.maxWidth = 'none';
         c.style.maxHeight = 'none';
       });
-    }
+    };
+
+    const drawHand = (count) => {
+      currentHand = [];
+      const deckCopy = [...this.deckCards];
+      for (let i = deckCopy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deckCopy[i], deckCopy[j]] = [deckCopy[j], deckCopy[i]];
+      }
+      currentHand = deckCopy.slice(0, count);
+      handDisplay.innerHTML = '';
+      currentHand.forEach(card => {
+        const el = CardUI.createCardElementForDeck(card);
+        el.style.transformOrigin = 'top left';
+        el.style.position = 'relative';
+        handDisplay.appendChild(el);
+      });
+      setTimeout(fitHandToScreen, 0);
+    };
+
+    document.getElementById('draw-7-btn').addEventListener('click', () => { drawHand(7); handModal.style.display = 'flex'; });
+    document.getElementById('close-hand-btn').addEventListener('click', () => handModal.style.display = 'none');
+    handModal.addEventListener('click', (e) => { if (e.target === handModal) handModal.style.display = 'none'; });
+    document.getElementById('mulligan-btn').addEventListener('click', () => drawHand(7));
+    document.getElementById('draw-one-btn').addEventListener('click', () => {
+      const inHandIds = new Set(currentHand.map(c => c.uniqueId));
+      const available = this.deckCards.filter(c => !inHandIds.has(c.uniqueId));
+      if (available.length > 0) {
+        const pick = available[Math.floor(Math.random() * available.length)];
+        currentHand.push(pick);
+        const el = CardUI.createCardElementForDeck(pick);
+        el.style.transformOrigin = 'top left';
+        el.style.position = 'relative';
+        handDisplay.appendChild(el);
+        setTimeout(fitHandToScreen, 0);
+      }
+    });
 
     window.addEventListener('resize', fitHandToScreen);
   }
 
-  function handleDeckRestoration(encodedDeck) {
-    const result = DeckSerializer.deserialize(encodedDeck, allCards);
-
-    // Clear current deck (should be empty anyway after generateSealedPool)
-    deckCards = [];
-    // Assign restored cards
-    if (result.deckCards.length > 0) {
-      result.deckCards.forEach(card => {
-        // Move from pool to deck
-        const idx = poolCards.findIndex(c => c.uniqueId === card.uniqueId);
-        if (idx !== -1) {
-          poolCards.splice(idx, 1);
-          deckCards.push(card);
-          // Update source dataset if element exists (it won't yet, render called after)
-        }
-      });
-    }
-
-    // Add Basics
-    Object.keys(result.landCounts).forEach(type => {
-      const count = result.landCounts[type];
-      for (let i = 0; i < count; i++) {
-        addBasicLand(type);
-      }
-    });
-
-    // Switch to Deck Focus
-    if (deckCards.length > 0) {
-      isDeckFocus = true;
-      currentSort = 'cmc';
-      // Update toggle state
-    }
-  }
-
-  function initShareModal() {
-    const shareBtn = document.getElementById('share-deck-btn');
+  initShareModal() {
     const shareModal = document.getElementById('share-modal');
-    const closeBtn = document.getElementById('share-close-btn');
-    const copyBtn = document.getElementById('share-copy-btn');
     const urlInput = document.getElementById('share-url-input');
+    const copyBtn = document.getElementById('share-copy-btn');
 
-    shareBtn.addEventListener('click', () => {
-      const serialized = DeckSerializer.serialize(deckCards);
+    document.getElementById('share-deck-btn').addEventListener('click', () => {
+      const serialized = DeckSerializer.serialize(this.deckCards);
       const url = new URL(window.location.href);
       url.searchParams.set('deck', serialized);
       urlInput.value = url.toString();
@@ -1188,9 +892,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       urlInput.select();
     });
 
-    closeBtn.addEventListener('click', () => {
-      shareModal.style.display = 'none';
-    });
+    document.getElementById('share-close-btn').addEventListener('click', () => shareModal.style.display = 'none');
 
     copyBtn.addEventListener('click', () => {
       urlInput.select();
@@ -1200,14 +902,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     shareModal.addEventListener('click', (e) => {
-      if (e.target === shareModal) {
-        shareModal.style.display = 'none';
-      }
+      if (e.target === shareModal) shareModal.style.display = 'none';
     });
   }
+}
 
-  initShareModal();
-
-  // Init
-  fetchCards();
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new SealedApp();
+  app.init();
 });

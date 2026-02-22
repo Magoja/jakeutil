@@ -1,78 +1,92 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const params = new URLSearchParams(window.location.search);
-  const setCode = params.get('set');
-  const seed = SeedUtils.ensureSeed(params);
-  const loading = new LoadingOverlay();
+class BoosterApp {
+  constructor() {
+    const params = new URLSearchParams(window.location.search);
+    this.setCode = params.get('set');
+    this.seed = SeedUtils.ensureSeed(params);
+    this.loading = new LoadingOverlay();
 
-  const container = document.getElementById('booster-container');
-  const openAnotherBtn = document.getElementById('open-another-btn');
+    this.container = document.getElementById('booster-container');
+    this.openAnotherBtn = document.getElementById('open-another-btn');
 
-  if (!setCode) {
-    loading.showError("No set specified.");
-    return;
+    this.pool = BoosterLogic.createPool();
+    this.isDataLoaded = false;
   }
 
-  loading.show("Fetching set data...");
+  async init() {
+    if (!this.setCode) {
+      this.loading.showError("No set specified.");
+      return;
+    }
 
-  // State
-  const pool = BoosterLogic.createPool();
+    this.loading.show("Fetching set data...");
 
-  let isDataLoaded = false;
+    this.setupEventListeners();
+    this.setupUI();
 
-  // Fetch all cards
-  async function fetchCards() {
+    await this.fetchCards();
+  }
+
+  setupEventListeners() {
+    this.openAnotherBtn.addEventListener('click', () => {
+      this.seed = RNG.generateSeed();
+      SeedUtils.updateUrlWithSeed(this.seed, false);
+      this.generateBooster();
+    });
+  }
+
+  setupUI() {
+    UIUtils.initModal({
+      triggerId: 'btn-view-rules',
+      modalId: 'rules-modal',
+      closeId: 'close-rules-btn',
+      onOpen: () => {
+        const rulesContent = document.getElementById('rules-content');
+        if (rulesContent) {
+          rulesContent.innerHTML = UIUtils.renderRulesTableHTML(BoosterLogic.rules);
+        }
+      }
+    });
+
+    // Zoom Logic
+    UIUtils.initZoomControl();
+  }
+
+  async fetchCards() {
     try {
       // Include unique:prints to get basics and variants
-      const cards = await Scryfall.fetchCards(`set:${setCode} unique:prints`);
+      const cards = await Scryfall.fetchCards(`set:${this.setCode} unique:prints`);
 
       if (cards.length > 0) {
         const { basics, others } = BoosterLogic.separateBasicLands(cards);
 
-        BoosterLogic.processCards(others, pool); // Populate pool
-        BoosterLogic.addBasics(pool, basics);
+        BoosterLogic.processCards(others, this.pool); // Populate pool
+        BoosterLogic.addBasics(this.pool, basics);
 
-        isDataLoaded = true;
-        loading.hide();
-        generateBooster(seed);
+        this.isDataLoaded = true;
+        this.loading.hide();
+        this.generateBooster();
       } else {
-        loading.showError("No cards found.");
+        this.loading.showError("No cards found.");
       }
 
     } catch (e) {
       console.error(e);
-      loading.showError("Error loading cards.");
+      this.loading.showError("Error loading cards.");
     }
   }
 
-  function generateBooster(seed) {
-    if (!isDataLoaded) return;
+  generateBooster() {
+    if (!this.isDataLoaded) return;
 
-    const rng = RNG.create(seed);
-    container.innerHTML = '';
-    BoosterLogic.generatePackData(pool, rng).forEach(card => {
-      container.appendChild(CardUI.createCardElement(card));
+    const rng = RNG.create(this.seed);
+    this.container.innerHTML = '';
+    BoosterLogic.generatePackData(this.pool, rng).forEach(card => {
+      this.container.appendChild(CardUI.createCardElement(card));
     });
   }
+}
 
-  openAnotherBtn.addEventListener('click', () => {
-    const newSeed = RNG.generateSeed();
-    SeedUtils.updateUrlWithSeed(newSeed, false);
-    generateBooster(newSeed);
-  });
-
-  UIUtils.initModal({
-    triggerId: 'btn-view-rules',
-    modalId: 'rules-modal',
-    closeId: 'close-rules-btn',
-    onOpen: () => {
-      const rulesContent = document.getElementById('rules-content');
-      if (rulesContent) {
-        rulesContent.innerHTML = UIUtils.renderRulesTableHTML(BoosterLogic.rules);
-      }
-    }
-  });
-
-  // Zoom Logic
-  UIUtils.initZoomControl();
-  fetchCards();
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new BoosterApp();
+  app.init();
 });
