@@ -19,7 +19,7 @@ const BoosterLogic = {
   // Default Configuration (Play Booster)
   rules: [
     { count: 6, name: "Common Slots", pool: { "common": 1 } },
-    { count: 1, name: "List/Common Slot", pool: { "common": 1 } },
+    { count: 1, name: "List/Common Slot", pool: { "common": 7, "spg": 1 } },
     { count: 3, name: "Uncommon Slots", pool: { "uncommon": 1 } },
     { count: 1, name: "Rare/Mythic Slot", pool: { "rare": 7, "mythic": 1 } },
     { count: 1, name: "Land Slot", pool: { "basic": 4, "land": 1 } }, // 80% Basic, 20% Non-Basic Common
@@ -44,12 +44,30 @@ const BoosterLogic = {
     this.isDataLoaded = false;
 
     try {
-      const cards = await Scryfall.fetchCards(`set:${setCode} unique:prints`);
-      if (cards && cards.length > 0) {
-        const { basics, others } = this.separateBasicLands(cards);
+      const setInfo = await Scryfall.fetchSet(setCode).catch(() => null);
+      let releaseDate = null;
+      if (setInfo && setInfo.released_at) {
+        releaseDate = setInfo.released_at;
+      }
+
+      const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:prints`);
+      let spgPromise = Promise.resolve([]);
+      if (releaseDate) {
+        spgPromise = Scryfall.fetchCards(`set:spg date:${releaseDate} unique:prints`).catch(() => []);
+      }
+
+      const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
+
+      if (mainCards && mainCards.length > 0) {
+        const { basics, others } = this.separateBasicLands(mainCards);
         this.basicLands = basics;
         this.processCards(others, this.pool);
         this.addBasics(this.pool, this.basicLands);
+
+        if (spgCards && spgCards.length > 0) {
+          this.pool.spg = this.groupCardsByName(spgCards);
+        }
+
         this.isDataLoaded = true;
         return true;
       }
@@ -76,7 +94,8 @@ const BoosterLogic = {
       rare: [],
       mythic: [],
       land: [], // Common duals / non-basics
-      basic: [] // Basic lands
+      basic: [], // Basic lands
+      spg: [] // Special Guests / The List
     };
   },
 
