@@ -455,7 +455,7 @@ class SealedApp {
     document.getElementById('sort-type').addEventListener('click', () => { this.currentSort = 'type'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
     document.getElementById('sort-cmc').addEventListener('click', () => { this.currentSort = 'cmc'; this.isGridView = false; this.resetPoolAreaStyle(); this.render(); });
 
-    document.getElementById('btn-layout').addEventListener('click', () => {
+    document.getElementById('btn-spread').addEventListener('click', () => {
       this.isGridView = !this.isGridView;
       this.render();
     });
