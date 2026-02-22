@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCardsGlobal = [];
 
     try {
-      const cards = await Scryfall.fetchCards(`set:${setCode}`, currentUniqueMode);
+      const cards = await Scryfall.fetchCards(`set:${setCode} unique:${currentUniqueMode}`);
       if (cards.length === 0) {
         if (loading) loading.showError(`No cards found for set: ${setCode.toUpperCase()}`);
         return;

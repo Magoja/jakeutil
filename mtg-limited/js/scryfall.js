@@ -62,9 +62,9 @@ const Scryfall = {
    * @param {string} query - Scryfall search query string.
    * @returns {Promise<Array>} Array of card objects.
    */
-  async fetchCards(query, uniqueMode = 'cards') {
+  async fetchCards(query) {
     let allCards = [];
-    const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&unique=${uniqueMode}`;
+    const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
 
     try {
       await this.fetchPaginated(url, (data) => {
