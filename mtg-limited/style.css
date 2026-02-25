@@ -1211,7 +1211,306 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 2000;
     min-width: 150px;
-    display: flex;
     flex-direction: column;
     gap: 5px;
+  }
+
+  /* --- Playtest (Solitaire) Styles --- */
+
+  .playmat {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    min-height: 800px;
+    background-color: #2b543e;
+    /* Darker green base */
+    background-image:
+      radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 100%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .zone-battlefield {
+    flex: 1;
+    min-height: 400px;
+    position: relative;
+    width: 100%;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  .bottom-play-area {
+    display: flex;
+    height: calc(var(--card-height) + 40px);
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 20;
+    align-items: flex-end;
+  }
+
+  .zone-library,
+  .zone-graveyard,
+  .zone-exile {
+    width: 150px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 20px;
+    position: relative;
+  }
+
+  /* Library zone background placeholder */
+  .zone-library {
+    background: rgba(0, 0, 0, 0.3);
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .zone-hand {
+    flex: 1;
+    height: 100%;
+    background-color: #fffff0;
+    /* Ivory background */
+    background-image: radial-gradient(#e6e6d8 15%, transparent 16%), radial-gradient(#e6e6d8 15%, transparent 16%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: 10px;
+    /* Standard gap instead of overlap */
+    padding: 0 20px 20px 20px;
+    box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .zone-hand .card-item {
+    margin-left: -40px;
+    /* overlap cards */
+    flex-shrink: 0;
+  }
+
+  .zone-title+.card-item {
+    margin-left: 0;
+  }
+
+  .zone-hand .card-item:hover {
+    z-index: 50;
+  }
+
+  .zone-hand .card-item:first-child {
+    margin-left: 0;
+  }
+
+  .zone-graveyard {
+    background-color: #3e3e3e;
+    background-image: repeating-linear-gradient(45deg, #333 0, #333 10px, #222 10px, #222 20px);
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .zone-exile {
+    background-color: #1a1a2e;
+    background-image: radial-gradient(white, rgba(255, 255, 255, .2) 2px, transparent 10px), radial-gradient(white, rgba(255, 255, 255, .15) 1px, transparent 5px), radial-gradient(white, rgba(255, 255, 255, .1) 2px, transparent 10px);
+    background-size: 50px 50px, 20px 20px, 30px 30px;
+    background-position: 0 0, 10px 10px, 15px 15px;
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .zone-title {
+    position: absolute;
+    top: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 100;
+  }
+
+  /* Tapped state */
+  .card-item.tapped {
+    transform: rotate(90deg);
+  }
+
+  .card-item.tapped:hover {
+    transform: rotate(90deg) scale(1.05);
+    /* keep tapped on hover if needed */
+  }
+
+  /* Absolute positioning for cards on battlefield */
+  .zone-battlefield .card-item {
+    position: absolute;
+    cursor: grab;
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 0.2s;
+  }
+
+  .zone-battlefield .card-item.dragging {
+    opacity: 0.8;
+    z-index: 1000 !important;
+    cursor: grabbing;
+    box-shadow: 10px 15px 25px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Stacked Library/Graveyard appearance */
+  .stacked-zone-container {
+    position: relative;
+    width: var(--card-width);
+    height: calc(var(--card-height) + 120px);
+    margin-top: 30px;
+  }
+
+  .stacked-card {
+    position: relative;
+    cursor: pointer;
+    width: var(--card-width);
+    height: var(--card-height);
+  }
+
+  .stacked-card::before,
+  .stacked-card::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #2a1b1b;
+    background-image: url('https://backs.scryfall.io/large/0/a/0aeebaf5-8c7d-4636-9e82-8c27447861f7.jpg');
+    background-size: 100% 100%;
+    border-radius: 9px;
+    border: 1px solid #000;
+    box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+
+  .stacked-card::before {
+    top: -4px;
+    left: 4px;
+  }
+
+  .stacked-card::after {
+    top: -8px;
+    left: 8px;
+    z-index: -2;
+  }
+
+  .zone-controls {
+    position: absolute;
+    bottom: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+  }
+
+  .zone-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  .zone-btn:hover {
+    background: #555;
+  }
+
+  .life-counter {
+    position: absolute;
+    bottom: 270px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 30;
+    border: 2px solid #5d9cec;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .life-btn {
+    background: #5d9cec;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+  }
+
+  .life-btn:hover {
+    background: #4a89dc;
+  }
+
+  .life-btn:active {
+    transform: scale(0.9);
+  }
+
+  .zoom-controls {
+    display: flex;
+    gap: 5px;
+  }
+
+  .zoom-btn {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .zoom-btn:hover {
+    background: #555;
+    border-color: white;
+  }
+
+  .zoom-btn:active {
+    transform: scale(0.95);
+  }
+
+  .mulligan-modal-content {
+    background: #2b2b2b;
+    color: white;
+  }
+
+  .mulligan-modal-content h3 {
+    margin-top: 0;
+  }
+
+  .list-modal-content {
+    width: 80%;
+    max-width: 1000px;
+  }
+
+  .list-modal-content .cards-grid {
+    max-height: 60vh;
+    overflow-y: auto;
   }

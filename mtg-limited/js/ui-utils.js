@@ -12,11 +12,11 @@ const UIUtils = {
     return defaultValue;
   },
 
-  initZoomControl(storageKey = 'sealed-card-zoom') {
+  initZoomControl(storageKey = 'sealed-card-zoom', defaultZoom = 1) {
     const zoomInBtn = document.getElementById('zoom-in');
     const zoomOutBtn = document.getElementById('zoom-out');
 
-    let currentZoom = parseFloat(this.loadSetting(storageKey) || 1);
+    let currentZoom = parseFloat(this.loadSetting(storageKey) || defaultZoom);
 
     // Set initial bounds
     let minZoom = 0.5;

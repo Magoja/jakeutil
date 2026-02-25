@@ -871,6 +871,16 @@ class SealedApp {
       }
     });
 
+    document.getElementById('playtest-btn').addEventListener('click', () => {
+      const serialized = DeckSerializer.serialize(this.deckCards);
+      const url = new URL('play.html', window.location.href);
+      url.searchParams.set('type', 'solitare');
+      url.searchParams.set('set', this.setCode);
+      url.searchParams.set('seed', this.seed);
+      url.searchParams.set('deck', serialized);
+      window.location.href = url.toString();
+    });
+
     window.addEventListener('resize', fitHandToScreen);
   }
 
