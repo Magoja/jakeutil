@@ -130,5 +130,70 @@
         }
       ]
     }
+  },
+  "sos": {
+    "keywords": {
+      "Prepared": [
+        { "property": "oracle_text", "regex": "Prepared" }
+      ],
+      "Opus": [
+        { "property": "oracle_text", "regex": "Opus" }
+      ],
+      "Repartee": [
+        { "property": "oracle_text", "regex": "Repartee" }
+      ],
+      "Increment": [
+        { "property": "oracle_text", "regex": "Increment" }
+      ],
+      "Converge": [
+        { "property": "oracle_text", "regex": "Converge" }
+      ],
+      "Infusion": [
+        { "property": "oracle_text", "regex": "Infusion" }
+      ],
+      "Paradigm": [
+        { "property": "oracle_text", "regex": "Paradigm" }
+      ],
+      "Surveil": [
+        { "property": "oracle_text", "regex": "Surveil" }
+      ],
+      "Life Gain": [
+        { "property": "oracle_text", "regex": "you gain \\d+ life" },
+        { "property": "oracle_text", "regex": "if you gained life" },
+        { "property": "oracle_text", "regex": "whenever you gain life" }
+      ],
+      "Instant/Sorcery": [
+        { "property": "oracle_text", "regex": "instant or sorcery spell" },
+        { "property": "oracle_text", "regex": "instant or sorcery card" }
+      ],
+      "+1/+1 Counter": [
+        { "property": "oracle_text", "regex": "\\+1/\\+1" }
+      ],
+      "Flashback": [
+        { "property": "oracle_text", "regex": "Flashback" }
+      ],
+      "Graveyard": [
+        { "property": "oracle_text", "regex": "from your graveyard" }
+      ],
+      "Leaves Graveyard": [
+        { "property": "oracle_text", "regex": "leave your graveyard" }
+      ],
+      "Fractal": [
+        { "property": "type_line", "regex": "Fractal" },
+        { "property": "oracle_text", "regex": "Fractal" }
+      ],
+      "Wizard": [
+        { "property": "type_line", "regex": "Wizard" }
+      ],
+      "Cleric": [
+        { "property": "type_line", "regex": "Cleric" }
+      ],
+      "Bard": [
+        { "property": "type_line", "regex": "Bard" }
+      ],
+      "Druid": [
+        { "property": "type_line", "regex": "Druid" }
+      ]
+    }
   }
 }
