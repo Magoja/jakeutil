@@ -731,7 +731,14 @@ class SealedApp {
     sortedKeys.forEach(k => {
       if (!customKwNames.has(k)) genericKws.push(k);
     });
-    customKwNames.forEach(k => customKws.push(k));
+
+    Array.from(customKwNames).filter(k => (this.keywordCounts.get(k) || 0) > 0).sort((a, b) => {
+      const countA = this.keywordCounts.get(a) || 0;
+      const countB = this.keywordCounts.get(b) || 0;
+      const diff = countB - countA;
+      if (diff !== 0) return diff;
+      return a.localeCompare(b);
+    }).forEach(k => customKws.push(k));
 
     return { customKws, genericKws };
   }
