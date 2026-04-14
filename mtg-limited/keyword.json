@@ -151,9 +151,6 @@
       "Infusion": [
         { "property": "oracle_text", "regex": "Infusion" }
       ],
-      "Paradigm": [
-        { "property": "oracle_text", "regex": "Paradigm" }
-      ],
       "Surveil": [
         { "property": "oracle_text", "regex": "Surveil" }
       ],
@@ -169,14 +166,23 @@
       "+1/+1 Counter": [
         { "property": "oracle_text", "regex": "\\+1/\\+1" }
       ],
+      "ETB Trigger": [
+        { "property": "oracle_text", "regex": "when(ever)? [^.]{0,30}enters" }
+      ],
+      "Copy Spell": [
+        { "property": "oracle_text", "regex": "cast a copy" },
+        { "property": "oracle_text", "regex": "copy of [^.]{0,20}spell" },
+        { "property": "oracle_text", "regex": "copy target" }
+      ],
       "Flashback": [
         { "property": "oracle_text", "regex": "Flashback" }
       ],
       "Graveyard": [
-        { "property": "oracle_text", "regex": "from your graveyard" }
+        { "property": "oracle_text", "regex": "from your graveyard" },
+        { "property": "oracle_text", "regex": "into your graveyard" }
       ],
       "Leaves Graveyard": [
-        { "property": "oracle_text", "regex": "leave your graveyard" }
+        { "property": "oracle_text", "regex": "leaves? your graveyard" }
       ],
       "Fractal": [
         { "property": "type_line", "regex": "Fractal" },
@@ -185,14 +191,20 @@
       "Wizard": [
         { "property": "type_line", "regex": "Wizard" }
       ],
+      "Warlock": [
+        { "property": "type_line", "regex": "Warlock" }
+      ],
       "Cleric": [
         { "property": "type_line", "regex": "Cleric" }
       ],
-      "Bard": [
-        { "property": "type_line", "regex": "Bard" }
+      "Sorcerer": [
+        { "property": "type_line", "regex": "Sorcerer" }
       ],
       "Druid": [
         { "property": "type_line", "regex": "Druid" }
+      ],
+      "Bard": [
+        { "property": "type_line", "regex": "Bard" }
       ]
     }
   }
