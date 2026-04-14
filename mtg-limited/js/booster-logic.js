@@ -71,7 +71,9 @@ const BoosterLogic = {
     this.isDataLoaded = false;
 
     try {
-      const { mainCards, spgCards } = await this.fetchSetCards(setCode);
+      const { mainCards: rawMain, spgCards: rawSpg } = await this.fetchSetCards(setCode);
+      const mainCards = rawMain.filter(c => c.lang === 'en');
+      const spgCards = rawSpg.filter(c => c.lang === 'en');
 
       if (mainCards && mainCards.length > 0) {
         const { basics, others } = this.separateBasicLands(mainCards);
