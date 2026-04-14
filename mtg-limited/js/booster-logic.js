@@ -135,6 +135,8 @@ const BoosterLogic = {
     cards.forEach(card => {
       // Filter out promos (keep only if promo field exists AND is strictly false)
       if (card.promo !== false) return;
+      // Filter out cards not in play boosters (e.g. extended art, borderless, showcase collector variants)
+      if (card.booster === false) return;
       // Filter out meld cards
       if (card.layout === 'meld') return;
 
@@ -185,7 +187,7 @@ const BoosterLogic = {
 
   addBasics(pool, basics) {
     if (basics && Array.isArray(basics)) {
-      const nonPromos = basics.filter(c => !c.promo);
+      const nonPromos = basics.filter(c => !c.promo && c.booster !== false);
       pool.basic = this.groupCardsByName(nonPromos);
     }
   },
