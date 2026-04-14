@@ -132,11 +132,17 @@ const BoosterLogic = {
     const lands = []; // Non-basic common lands
     const basics = []; // Just in case basics slipped in by mistake
 
+    // Only apply the booster field filter if the set has cards explicitly marked booster=true.
+    // Some sets (unreleased, Universes Beyond) have booster=false on all cards even for
+    // regular play-booster cards, so the field can't be trusted unless it's actually populated.
+    const hasBoosterData = cards.some(c => c.booster === true);
+
     cards.forEach(card => {
       // Filter out promos (keep only if promo field exists AND is strictly false)
       if (card.promo !== false) return;
-      // Filter out cards not in play boosters (e.g. extended art, borderless, showcase collector variants)
-      if (card.booster === false) return;
+      // Filter out Collector-Booster-only cards (extended art, borderless variants, etc.)
+      // Only when the set's booster field is reliably populated.
+      if (hasBoosterData && card.booster === false) return;
       // Filter out meld cards
       if (card.layout === 'meld') return;
 
@@ -187,7 +193,7 @@ const BoosterLogic = {
 
   addBasics(pool, basics) {
     if (basics && Array.isArray(basics)) {
-      const nonPromos = basics.filter(c => !c.promo && c.booster !== false);
+      const nonPromos = basics.filter(c => !c.promo);
       pool.basic = this.groupCardsByName(nonPromos);
     }
   },
