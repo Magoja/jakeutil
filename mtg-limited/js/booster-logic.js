@@ -9,28 +9,44 @@
 // 14	Traditional Foil Wildcard	Guaranteed foil card of any rarity.
 // 15	Non-Playable Card	65% Token/Ad card, 30% Art card, 5% Art card with gold-foil signature.
 
+const _BOOSTER_DEFAULT_RULES = [
+  { count: 6, name: "Common Slots",       pool: { "common": 1 } },
+  { count: 1, name: "List/Common Slot",   pool: { "common": 7, "spg": 1 } },
+  { count: 3, name: "Uncommon Slots",     pool: { "uncommon": 1 } },
+  { count: 1, name: "Rare/Mythic Slot",   pool: { "rare": 7, "mythic": 1 } },
+  { count: 1, name: "Land Slot",          pool: { "basic": 4, "land": 1 } }, // 80% Basic, 20% Non-Basic Common
+  { count: 1, name: "Wildcard Slot",      pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+  { count: 1, name: "Foil Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
+];
+
 const BoosterLogic = {
   // Set-specific state
   currentSetCode: null,
   pool: null,
   basicLands: [],
   isDataLoaded: false,
+  _configCache: null,
 
-  // Default Configuration (Play Booster)
-  rules: [
-    { count: 6, name: "Common Slots", pool: { "common": 1 } },
-    { count: 1, name: "List/Common Slot", pool: { "common": 7, "spg": 1 } },
-    { count: 3, name: "Uncommon Slots", pool: { "uncommon": 1 } },
-    { count: 1, name: "Rare/Mythic Slot", pool: { "rare": 7, "mythic": 1 } },
-    { count: 1, name: "Land Slot", pool: { "basic": 4, "land": 1 } }, // 80% Basic, 20% Non-Basic Common
-    { count: 1, name: "Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
-    { count: 1, name: "Foil Wildcard Slot", pool: { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
-  ],
+  // Default Configuration (Play Booster) — overridden per-set via keyword.json "booster" key
+  rules: _BOOSTER_DEFAULT_RULES,
 
   setRules(newRules) {
     if (Array.isArray(newRules)) {
       this.rules = newRules;
     }
+  },
+
+  async _loadSetConfig(setCode) {
+    if (!this._configCache) {
+      try {
+        const res = await fetch('keyword.json');
+        this._configCache = res.ok ? await res.json() : {};
+      } catch (e) {
+        console.warn('Failed to load keyword.json for booster config', e);
+        this._configCache = {};
+      }
+    }
+    return this._configCache[setCode] || null;
   },
 
   async fetchBonusCards(setCode, uniqueMode = 'prints') {
@@ -52,9 +68,17 @@ const BoosterLogic = {
     return [];
   },
 
-  async fetchSetCards(setCode, uniqueMode = 'prints') {
+  async fetchSetCards(setCode, bonusQuery, uniqueMode = 'prints') {
     const mainPromise = Scryfall.fetchCards(`set:${setCode} unique:${uniqueMode}`);
-    const spgPromise = this.fetchBonusCards(setCode, uniqueMode);
+
+    let spgPromise;
+    if (bonusQuery === null) {
+      spgPromise = Promise.resolve([]);
+    } else if (typeof bonusQuery === 'string') {
+      spgPromise = Scryfall.fetchCards(`${bonusQuery} unique:${uniqueMode}`).catch(() => []);
+    } else {
+      spgPromise = this.fetchBonusCards(setCode, uniqueMode);
+    }
 
     const [mainCards, spgCards] = await Promise.all([mainPromise, spgPromise]);
     return { mainCards, spgCards };
@@ -69,20 +93,35 @@ const BoosterLogic = {
     this.pool = this.createPool();
     this.basicLands = [];
     this.isDataLoaded = false;
+    this.rules = [..._BOOSTER_DEFAULT_RULES];
 
     try {
-      const { mainCards: rawMain, spgCards: rawSpg } = await this.fetchSetCards(setCode);
+      const setConfig = await this._loadSetConfig(setCode);
+      const boosterConfig = setConfig?.booster;
+      const bonusQuery = boosterConfig && 'bonusQuery' in boosterConfig
+        ? boosterConfig.bonusQuery
+        : undefined;
+
+      const { mainCards: rawMain, spgCards: rawSpg } = await this.fetchSetCards(setCode, bonusQuery);
       const mainCards = rawMain.filter(c => c.lang === 'en');
       const spgCards = rawSpg.filter(c => c.lang === 'en');
 
       if (mainCards && mainCards.length > 0) {
         const { basics, others } = this.separateBasicLands(mainCards);
         this.basicLands = basics;
-        this.processCards(others, this.pool);
+        const hasBoosterData = others.some(c => c.booster === true);
+        this.processCards(others, this.pool, hasBoosterData);
         this.addBasics(this.pool, this.basicLands);
 
         if (spgCards && spgCards.length > 0) {
           this.pool.spg = this.groupCardsByName(spgCards);
+        }
+
+        if (boosterConfig?.customPools) {
+          this.buildCustomPools(others, boosterConfig.customPools, this.pool, hasBoosterData);
+        }
+        if (boosterConfig?.rules) {
+          this.setRules(boosterConfig.rules);
         }
 
         this.isDataLoaded = true;
@@ -126,7 +165,29 @@ const BoosterLogic = {
     return Object.values(groups);
   },
 
-  processCards(cards, pool) {
+  _isPlayableCard(card, hasBoosterData) {
+    if (card.promo !== false) return false;
+    if (hasBoosterData && card.booster === false) return false;
+    if (card.layout === 'meld') return false;
+    return true;
+  },
+
+  buildCustomPools(cards, customPoolDefs, pool, hasBoosterData) {
+    for (const [poolKey, rules] of Object.entries(customPoolDefs)) {
+      const matching = cards.filter(card => {
+        if (!this._isPlayableCard(card, hasBoosterData)) return false;
+        return rules.some(rule => {
+          const val = card[rule.property]
+            || (card.faces && card.faces[0][rule.property])
+            || '';
+          return new RegExp(rule.regex, 'i').test(val);
+        });
+      });
+      pool[poolKey] = this.groupCardsByName(matching);
+    }
+  },
+
+  processCards(cards, pool, hasBoosterData) {
     const commons = [];
     const uncommons = [];
     const rares = [];
@@ -137,16 +198,12 @@ const BoosterLogic = {
     // Only apply the booster field filter if the set has cards explicitly marked booster=true.
     // Some sets (unreleased, Universes Beyond) have booster=false on all cards even for
     // regular play-booster cards, so the field can't be trusted unless it's actually populated.
-    const hasBoosterData = cards.some(c => c.booster === true);
+    if (hasBoosterData === undefined) {
+      hasBoosterData = cards.some(c => c.booster === true);
+    }
 
     cards.forEach(card => {
-      // Filter out promos (keep only if promo field exists AND is strictly false)
-      if (card.promo !== false) return;
-      // Filter out Collector-Booster-only cards (extended art, borderless variants, etc.)
-      // Only when the set's booster field is reliably populated.
-      if (hasBoosterData && card.booster === false) return;
-      // Filter out meld cards
-      if (card.layout === 'meld') return;
+      if (!this._isPlayableCard(card, hasBoosterData)) return;
 
       const type = card.type_line || (card.faces ? card.faces[0].type_line : '');
       const rarity = card.rarity;
