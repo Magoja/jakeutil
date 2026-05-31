@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     allCardsGlobal = [];
 
     try {
-      const { mainCards, spgCards } = await BoosterLogic.fetchSetCards(setCode, currentUniqueMode);
+      const { mainCards, spgCards } = await BoosterLogic.fetchSetCards(setCode, undefined, currentUniqueMode);
       const cards = mainCards.concat(spgCards);
       if (cards.length === 0) {
         if (loading) loading.showError(`No cards found for set: ${setCode.toUpperCase()}`);
