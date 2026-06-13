@@ -1,27 +1,32 @@
 ---
 name: mtg-keyword-update
-description: Update mtg-limited/keyword.json with synergy filter rules for the latest MTG limited set (if not already present). Fetches cards from Scryfall, analyzes synergy patterns, runs a swarm review, updates the file, and commits. Only operates on the jakeutil project folder (/Users/magoja/Documents/project/jakeutil).
+description: Add or update synergy filter rules in mtg-limited/keyword.json for an MTG set. Use when the user wants to add a new set to the limited trainer, refresh draft archetype/synergy tags, or asks to "update keywords" for a set. Accepts an optional set code argument (e.g. "msh"); defaults to the latest released limited set when none is given. Skips sets already present. Fetches cards from Scryfall, derives synergy groups, runs a 3-agent swarm review, edits the file, and auto-commits. Only operates on the jakeutil project (/Users/magoja/Documents/project/jakeutil).
 tools: WebFetch, Read, Write, Bash, Agent
 ---
 
 # MTG Keyword Update
 
-Update `mtg-limited/keyword.json` with synergy filter rules for the latest MTG limited set.
+Update `mtg-limited/keyword.json` with synergy filter rules for an MTG set — a specific set if a code is passed as an argument, otherwise the latest released limited set.
 
 **Project root (all file paths must be relative to this):** `/Users/magoja/Documents/project/jakeutil`
 
 ---
 
-## Step 1 – Find the latest limited set
+## Step 1 – Determine the target set
 
-Fetch `https://api.scryfall.com/sets/` and parse the `data` array.
+**If a set code was passed as an argument** (e.g. `msh`), use it directly as `targetSet`:
+- Fetch `https://api.scryfall.com/sets/{code}` to confirm it exists and capture `.code` and `.name`.
+- If the set is not found, output `No set found for code "{code}".` and stop.
+- This path does NOT apply the "latest"/recency filters below — the user named the set explicitly.
+
+**If no argument was passed**, auto-detect the latest limited set. Fetch `https://api.scryfall.com/sets/` and parse the `data` array.
 
 Filter rules (matching `set-utils.js` booster logic):
 - `set_type` must be one of: `core`, `expansion`, `masters`, `draft_innovation`
 - `released_at` must be ≤ today + 14 days (sets releasing within the next 2 weeks are included, matching `maxAgeDays: 14`)
 - `card_count` must be > 0 (set must be complete/populated)
 - Sort the filtered list by `released_at` descending
-- Take the first entry as `latestSet` (capture `.code` and `.name`)
+- Take the first entry as `targetSet` (capture `.code` and `.name`)
 
 ---
 
@@ -29,7 +34,7 @@ Filter rules (matching `set-utils.js` booster logic):
 
 Read `/Users/magoja/Documents/project/jakeutil/mtg-limited/keyword.json`.
 
-If `latestSet.code` is already a top-level key → output:
+If `targetSet.code` is already a top-level key → output:
 
 ```
 keyword.json already contains "{code}" ({name}). Nothing to do.
@@ -57,7 +62,7 @@ Build a flat list of all cards with these four fields.
 
 ## Step 4 – Analyze synergies
 
-Go through the full card list and identify **8–15 synergy groups**. For each group, produce:
+Go through the full card list and identify the synergy groups — **aim for 8–15, but add more if the set is mechanically dense** (faction tribes, multiple build-arounds). For each group, produce:
 - A short, human-readable **name** (e.g. "Life Gain", "Graveyard Recursion", "Token Swarm")
 - **1–3 regex rules**, each specifying:
   - `property`: `"oracle_text"` or `"type_line"`
