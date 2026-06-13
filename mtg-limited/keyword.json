@@ -236,5 +236,211 @@
         { "count": 1, "name": "Foil Wildcard Slot",    "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
       ]
     }
+  },
+  "msh": {
+    "keywords": {
+      "Power-up": [
+        {
+          "property": "oracle_text",
+          "regex": "Power-up"
+        }
+      ],
+      "Teamwork": [
+        {
+          "property": "oracle_text",
+          "regex": "Teamwork"
+        }
+      ],
+      "+1/+1 Counter": [
+        {
+          "property": "oracle_text",
+          "regex": "\\+1/\\+1"
+        }
+      ],
+      "Tap Synergy": [
+        {
+          "property": "oracle_text",
+          "regex": "becomes tapped"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "tap (target|any number of|another|an untapped|enchanted|up to)"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Teamwork"
+        }
+      ],
+      "Connive": [
+        {
+          "property": "oracle_text",
+          "regex": "connive"
+        }
+      ],
+      "Second Card": [
+        {
+          "property": "oracle_text",
+          "regex": "(draw|drawn) (your |their )?second card"
+        }
+      ],
+      "Discard": [
+        {
+          "property": "oracle_text",
+          "regex": "discard"
+        }
+      ],
+      "Sneak": [
+        {
+          "property": "oracle_text",
+          "regex": "Sneak"
+        }
+      ],
+      "Prowess / Spells": [
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        }
+      ],
+      "Transform": [
+        {
+          "property": "oracle_text",
+          "regex": "transform"
+        },
+        {
+          "property": "type_line",
+          "regex": "//"
+        }
+      ],
+      "Hero": [
+        {
+          "property": "type_line",
+          "regex": "Hero"
+        }
+      ],
+      "Villain": [
+        {
+          "property": "type_line",
+          "regex": "Villain"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "another Villain"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Villain (you control|spell|creature token)"
+        }
+      ],
+      "Mutant": [
+        {
+          "property": "type_line",
+          "regex": "Mutant"
+        }
+      ],
+      "Robot": [
+        {
+          "property": "type_line",
+          "regex": "Robot"
+        }
+      ],
+      "Spy": [
+        {
+          "property": "type_line",
+          "regex": "Spy"
+        }
+      ],
+      "Scientist": [
+        {
+          "property": "type_line",
+          "regex": "Scientist"
+        }
+      ],
+      "Soldier": [
+        {
+          "property": "type_line",
+          "regex": "Soldier"
+        }
+      ],
+      "Equipment": [
+        {
+          "property": "type_line",
+          "regex": "Equipment"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equip "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equipment"
+        }
+      ],
+      "Vehicle": [
+        {
+          "property": "type_line",
+          "regex": "Vehicle"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Vehicle"
+        }
+      ],
+      "Artifact Matters": [
+        {
+          "property": "oracle_text",
+          "regex": "artifact you control"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "artifact enters"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "an artifact entered"
+        }
+      ],
+      "Sacrifice": [
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice (a|an|another) "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice this creature"
+        }
+      ],
+      "Dies Trigger": [
+        {
+          "property": "oracle_text",
+          "regex": "dies,"
+        }
+      ],
+      "Graveyard Recursion": [
+        {
+          "property": "oracle_text",
+          "regex": "from your graveyard"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "return .* from your graveyard"
+        }
+      ],
+      "Attack Alone": [
+        {
+          "property": "oracle_text",
+          "regex": "attacks? alone"
+        }
+      ],
+      "Token": [
+        {
+          "property": "oracle_text",
+          "regex": "create [^.]*token"
+        }
+      ]
+    }
   }
 }
