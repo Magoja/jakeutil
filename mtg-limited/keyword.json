@@ -440,6 +440,28 @@
           "property": "oracle_text",
           "regex": "create [^.]*token"
         }
+      ],
+      "Plan": [
+        {
+          "property": "type_line",
+          "regex": "\\bPlan\\b"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "plan counter"
+        }
+      ]
+    },
+    "booster": {
+      "bonusQuery": "set:mar date:2026-06-26",
+      "rules": [
+        { "count": 6, "name": "Common Slots",        "pool": { "common": 1 } },
+        { "count": 1, "name": "Source Material Slot", "pool": { "common": 23, "spg": 1 } },
+        { "count": 3, "name": "Uncommon Slots",       "pool": { "uncommon": 1 } },
+        { "count": 1, "name": "Rare/Mythic Slot",     "pool": { "rare": 82, "mythic": 18 } },
+        { "count": 1, "name": "Land Slot",            "pool": { "basic": 4, "land": 1 } },
+        { "count": 1, "name": "Wildcard Slot",        "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Foil Wildcard Slot",   "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
       ]
     }
   }
