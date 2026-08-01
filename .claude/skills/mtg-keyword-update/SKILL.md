@@ -1,7 +1,7 @@
 ---
 name: mtg-keyword-update
-description: Add or update synergy filter rules in mtg-limited/keyword.json for an MTG set. Use when the user wants to add a new set to the limited trainer, refresh draft archetype/synergy tags, or asks to "update keywords" for a set. Accepts an optional set code argument (e.g. "msh"); defaults to the latest released limited set when none is given. Skips sets already present. Fetches cards from Scryfall, derives synergy groups, runs a 3-agent swarm review, edits the file, and auto-commits. Only operates on the jakeutil project (/Users/magoja/Documents/project/jakeutil).
-tools: WebFetch, Read, Write, Bash, Agent
+description: Add or update synergy filter rules in mtg-limited/keyword.json for an MTG set. Use when the user wants to add a new set to the limited trainer, refresh draft archetype/synergy tags, or asks to "update keywords" for a set. Accepts an optional set code argument (e.g. "msh"); defaults to the latest released limited set when none is given. Skips sets already present. Fetches cards from Scryfall, derives one consolidated synergy group per two-color draft archetype, runs a 3-agent swarm review, edits the file, and auto-commits. Only operates on the jakeutil project (/Users/magoja/Documents/project/jakeutil).
+tools: Read, Write, Bash, Agent
 ---
 
 # MTG Keyword Update
@@ -10,16 +10,18 @@ Update `mtg-limited/keyword.json` with synergy filter rules for an MTG set — a
 
 **Project root (all file paths must be relative to this):** `/Users/magoja/Documents/project/jakeutil`
 
+> **Fetching from Scryfall:** the Scryfall API blocks the `WebFetch` tool (HTTP 403). Always fetch via `Bash` using `curl` or a Python `urllib` script, and **send a `User-Agent` header** (Scryfall returns HTTP 400/403 without one), e.g. `curl -s -H 'User-Agent: jakeutil-keyword-update/1.0' -H 'Accept: application/json' <url>`. Do all card parsing/counting in a Python script and write intermediate data to the scratchpad directory (e.g. `<scratchpad>/cards.json`) so the review agents can read it instead of you pasting huge card lists into context.
+
 ---
 
 ## Step 1 – Determine the target set
 
 **If a set code was passed as an argument** (e.g. `msh`), use it directly as `targetSet`:
-- Fetch `https://api.scryfall.com/sets/{code}` to confirm it exists and capture `.code` and `.name`.
+- Fetch `https://api.scryfall.com/sets/{code}` (curl + User-Agent — see note above) to confirm it exists and capture `.code` and `.name`.
 - If the set is not found, output `No set found for code "{code}".` and stop.
 - This path does NOT apply the "latest"/recency filters below — the user named the set explicitly.
 
-**If no argument was passed**, auto-detect the latest limited set. Fetch `https://api.scryfall.com/sets/` and parse the `data` array.
+**If no argument was passed**, auto-detect the latest limited set. Fetch `https://api.scryfall.com/sets/` (curl + User-Agent) and parse the `data` array.
 
 Filter rules (matching `set-utils.js` booster logic):
 - `set_type` must be one of: `core`, `expansion`, `masters`, `draft_innovation`
@@ -46,9 +48,9 @@ Then stop.
 
 ## Step 3 – Fetch all cards for the set
 
-Fetch `https://api.scryfall.com/cards/search?q=set%3A{setCode}&unique=prints`.
+Fetch `https://api.scryfall.com/cards/search?q=set%3A{setCode}&unique=prints` (curl/urllib + User-Agent — see note at top).
 
-If the response has `has_more: true`, follow `next_page` URLs until exhausted. Collect all cards from every page.
+If the response has `has_more: true`, follow `next_page` URLs until exhausted. Collect all cards from every page. Add a short `sleep` (~0.1s) between pages to respect Scryfall rate limits.
 
 For each card record, extract:
 - `name`
@@ -56,65 +58,77 @@ For each card record, extract:
 - `type_line` (or from `card_faces[0].type_line`)
 - `keywords` array
 
-Build a flat list of all cards with these four fields.
+Build a flat list of all cards with these four fields and save it to the scratchpad (e.g. `<scratchpad>/{setCode}_cards.json`).
+
+> **Dedup when counting.** `unique=prints` returns duplicate entries for the same card (alternate art, promos). When you count how many cards match a theme, dedup by `name` first — otherwise a single card can look like a 3-card theme. Do all counting in a Python script, not by eye.
 
 ---
 
-## Step 4 – Analyze synergies
+## Step 4 – Identify the draft archetypes (signpost cards)
 
-Go through the full card list and identify the synergy groups — **aim for 8–15, but add more if the set is mechanically dense** (faction tribes, multiple build-arounds). For each group, produce:
-- A short, human-readable **name** (e.g. "Life Gain", "Graveyard Recursion", "Token Swarm")
-- **1–3 regex rules**, each specifying:
-  - `property`: `"oracle_text"` or `"type_line"`
-  - `regex`: a pattern that matches the synergy text (regexes are matched case-insensitively)
+The goal is **one consolidated synergy group per two-color draft archetype**, not many small single-mechanic groups. First discover what the archetypes actually are:
 
-**What to look for:**
+- Fetch the multicolor/gold cards: `https://api.scryfall.com/cards/search?q=set%3A{setCode}+is%3Agold&unique=cards&order=color` (curl + User-Agent).
+- Group them by color pair (`colors` array). The gold uncommons are the **signposts** — each names an archetype's mechanic and tribe.
+- The **dual lands** (`{T}: Add {X} or {Y}` cards) confirm each pair's tribe/theme.
+- **Do not assume 10 archetypes.** Count the color pairs that actually appear. Some sets are a 5-pair "color ring" (each color pairs with its two neighbors → 5 archetypes, e.g. `hob`), others have all 10. Let the gold cards tell you.
+- If the user supplied a starter list of archetypes (color pair → tribe → mechanic), treat it as authoritative and use the gold cards to fill in any pairs they left unstated.
 
-| Theme | Approach |
-|-------|----------|
-| Named mechanics (Landfall, Proliferate, Convoke, etc.) | Regex the keyword name in `oracle_text` |
-| Repeating oracle_text phrases (3+ cards) | Extract the common clause as a regex |
-| Tribal creature types with 4+ members | Match `type_line` |
-| Graveyard themes | Regex "from your graveyard", "dies", "flashback", etc. |
-| +1/+1 or -1/-1 counter themes | Regex counter notation |
-| Life gain | Regex "gain" and "life", or "lifelink" |
-| Sacrifice synergy | Regex "sacrifice" in `oracle_text` |
-| Spell-casting triggers | Regex "whenever you cast" |
-| Enter-the-battlefield triggers | Regex "when .* enters" |
-| Token generation | Regex "create" and "token" |
+---
 
-Draft the synergy groups as a JSON object matching this structure:
+## Step 5 – Build one consolidated group per archetype
+
+For **each archetype**, create a single keyword group named `"{Colors} {Tribe} — {Mechanic}"` (e.g. `"WU Humans — Draw Two"`, `"UG Elves — Landfall"`). The group's regex rules are a **union** — a card is tagged if ANY rule matches — so pack each archetype's whole playable pool into one filter, spanning three ingredient types:
+
+- **Enabler** — cards that turn the mechanic on (e.g. for a "draw two" theme: `recruit`, extra-draw effects; for landfall: land ramp / `search your library for [^.]*land`).
+- **Payoff** — cards that reward it (e.g. `draw (your |their )?second card`, `landfall`, `Storied` / `enduring story`).
+- **Tribe** — the archetype's creature type via `type_line` (e.g. `Human`, `Elf`). Include closely-linked types when a dual land pumps several (e.g. `hob`'s BG land targets Bear/Spider/Wolf).
+
+Each rule specifies:
+- `property`: `"oracle_text"` or `"type_line"`
+- `regex`: a pattern (matched case-insensitively)
+
+**Guidelines learned from `hob`:**
+- Named mechanics → regex the keyword word in `oracle_text` (`ferocious`, `amass`, `landfall`, `Storied`).
+- Prefer specific payoff clauses over broad verbs. `\+1/\+1 counter` not `\+1/\+1` (the latter catches anthems/pumps). `\bdie(s)?,` catches plural "die," triggers. Don't include bare `sacrifice this` (hits self-sac utility lands).
+- Keep each group's total match count sane — aim for roughly 15–45% of the deduped pool per archetype. If a `type_line: Artifact` / `type_line: Legendary` enabler balloons a group, narrow it (e.g. `type_line: Equipment` + `type_line: Saga` instead of all `Artifact`).
+- Verify every regex's match list/count in a Python script against the deduped pool before finalizing — don't guess.
+
+Draft the entry as a JSON object matching this structure:
 
 ```json
 {
   "{setCode}": {
     "keywords": {
-      "Group Name": [
-        { "property": "oracle_text", "regex": "pattern" },
-        { "property": "type_line", "regex": "pattern" }
+      "WU Humans — Draw Two": [
+        { "property": "type_line", "regex": "Human" },
+        { "property": "oracle_text", "regex": "recruit" },
+        { "property": "oracle_text", "regex": "draw (your |their )?second card" }
       ]
     }
   }
 }
 ```
 
+> The em dash `—` in group names is intentional and matches the `hob` entry style.
+
 ---
 
-## Step 5 – Swarm review
+## Step 6 – Swarm review
 
-Spawn **3 agents in parallel** (single message, 3 Agent tool calls) with the draft JSON and the full card list. Each agent has a specific focus:
+Write the draft JSON to the scratchpad (e.g. `<scratchpad>/{setCode}_draft.json`). Spawn **3 agents in parallel** (single message, 3 Agent tool calls). Give each agent the **file paths** to the card list and the draft (they have file tools) rather than pasting the full card list inline. Each agent has a specific focus:
 
 **Agent 1 – Coverage review:**
-> "You are reviewing draft synergy groups for the MTG set {setCode} ({setName}). Here is the full card list: {cardList}. Here is the draft keyword JSON: {draftJSON}. Are there major synergy themes present in 3 or more cards that are missing from the draft? List any missing groups with suggested names and regex patterns."
+> "You are reviewing draft archetype synergy groups for the MTG set {setCode} ({setName}). Read the full card list at {cardListPath} and the draft keyword JSON at {draftPath}. The set's draft archetypes are {archetypeList}. For each archetype group, are there enabler or payoff cards (3+ unique cards, deduped by name) that belong to that archetype but are missing from its regex rules? Also flag any archetype that appears in the gold/signpost cards but has no group at all. Verify counts by scripting against the card list. Suggest concrete regex additions."
 
 **Agent 2 – Accuracy review:**
-> "You are reviewing draft synergy groups for the MTG set {setCode} ({setName}). Here is the full card list: {cardList}. Here is the draft keyword JSON: {draftJSON}. For each regex pattern, check whether it correctly matches the intended cards. Flag: (a) false positives — patterns that match unrelated cards, (b) misses — cards that belong to a group but the regex doesn't catch them. Suggest tighter or broader patterns as needed."
+> "You are reviewing draft archetype synergy groups for the MTG set {setCode} ({setName}). Read the full card list at {cardListPath} and the draft keyword JSON at {draftPath}. Write a Python script to run each regex (case-insensitive) against the deduped card pool. For each rule report: (a) false positives — cards it matches that don't belong to that archetype, (b) misses — cards that belong but aren't caught. Watch for over-broad patterns (bare `\\+1/\\+1`, `type_line: Artifact`/`Legendary`, generic `sacrifice this`). Suggest tighter or broader patterns. Do not guess — test."
 
 **Agent 3 – Format review:**
-> "You are reviewing the format of a keyword.json entry for the MTG set {setCode}. Here is the existing keyword.json for reference: {existingJSON}. Here is the new draft entry: {draftJSON}. Does the structure, nesting, and field names exactly match the existing format? Report any discrepancies."
+> "You are reviewing the format of a keyword.json entry for the MTG set {setCode}. Read the existing keyword.json at /Users/magoja/Documents/project/jakeutil/mtg-limited/keyword.json and the new draft entry at {draftPath}. Does the structure, nesting, and field names exactly match the existing format (top-level set code → `keywords` → group name → array of `{property, regex}` objects)? Check regex escaping conventions (`\\+`, `\\d`, `\\b`). Report any discrepancies. Note: a `booster` key is optional and not required."
 
 Collect all three responses. Reconcile feedback:
-- Add any missing groups identified by Agent 1
+- Add missing enabler/payoff rules or missing archetype groups identified by Agent 1
 - Fix regex patterns flagged by Agent 2
 - Correct any format issues from Agent 3
 
@@ -122,26 +136,28 @@ Produce the final JSON entry.
 
 ---
 
-## Step 6 – Update keyword.json
+## Step 7 – Update keyword.json
 
 Read the current `/Users/magoja/Documents/project/jakeutil/mtg-limited/keyword.json`.
 
-Merge the new set entry into the top-level object (add `"{setCode}": { "keywords": { ... } }` alongside existing keys).
+Merge the new set entry into the top-level object (add `"{setCode}": { "keywords": { ... } }` alongside existing keys). **Merge textually** (insert the new block) rather than round-tripping the whole file through a JSON dumper — the existing entries use hand-formatted compact styling that a re-dump would destroy, creating a huge noise diff. Anchor the edit on the file's tail (end of the last existing entry).
 
-Write the updated JSON back to `/Users/magoja/Documents/project/jakeutil/mtg-limited/keyword.json` with 2-space indentation.
+After writing, validate the file parses: `python3 -c "import json; json.load(open('mtg-limited/keyword.json'))"`.
 
 ---
 
-## Step 7 – Commit
+## Step 8 – Commit
 
 ```bash
 git -C /Users/magoja/Documents/project/jakeutil add mtg-limited/keyword.json
 git -C /Users/magoja/Documents/project/jakeutil commit -m "$(cat <<'EOF'
 Add keyword synergies for {setCode} ({setName})
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: {your model} <noreply@anthropic.com>
 EOF
 )"
 ```
 
-Output: `Done. Added {N} synergy groups for {setCode} ({setName}) and committed.`
+(Use the `Co-Authored-By` line for the model actually running this skill.)
+
+Output: `Done. Added {N} archetype synergy groups for {setCode} ({setName}) and committed.`
