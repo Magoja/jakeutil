@@ -467,104 +467,40 @@
   },
   "hob": {
     "keywords": {
-      "Recruit": [
-        { "property": "oracle_text", "regex": "recruit" }
-      ],
-      "Draw Two / Second Card": [
+      "WU Humans — Draw Two": [
+        { "property": "type_line", "regex": "Human" },
+        { "property": "oracle_text", "regex": "recruit" },
         { "property": "oracle_text", "regex": "draw (your |their )?second card" },
-        { "property": "oracle_text", "regex": "second card each turn" }
+        { "property": "oracle_text", "regex": "second card each turn" },
+        { "property": "oracle_text", "regex": "drawn two or more cards" },
+        { "property": "oracle_text", "regex": "whenever you draw a card" }
       ],
-      "Discard / Loot": [
-        { "property": "oracle_text", "regex": "then discard" },
-        { "property": "oracle_text", "regex": "discard (a|an|two|your hand|that|their)" }
-      ],
-      "Storied": [
+      "WR Dwarves — Storied": [
+        { "property": "type_line", "regex": "Dwarf" },
         { "property": "oracle_text", "regex": "Storied" },
-        { "property": "oracle_text", "regex": "enduring story" }
+        { "property": "oracle_text", "regex": "enduring story" },
+        { "property": "type_line", "regex": "Saga" },
+        { "property": "type_line", "regex": "Equipment" }
       ],
-      "Amass Goblins": [
-        { "property": "oracle_text", "regex": "amass" }
+      "BR Goblins — Amass / Sacrifice": [
+        { "property": "type_line", "regex": "Goblin" },
+        { "property": "oracle_text", "regex": "amass" },
+        { "property": "oracle_text", "regex": "sacrifice (a|an|another) " },
+        { "property": "oracle_text", "regex": "\\bdie(s)?," },
+        { "property": "oracle_text", "regex": "Army you control" }
       ],
-      "Ferocious (Power 4+)": [
+      "BG Wolves — Ferocious": [
+        { "property": "type_line", "regex": "Wolf" },
+        { "property": "type_line", "regex": "Bear" },
+        { "property": "type_line", "regex": "Spider" },
         { "property": "oracle_text", "regex": "ferocious" },
         { "property": "oracle_text", "regex": "power 4 or (greater|more)" }
       ],
-      "Landfall": [
+      "UG Elves — Landfall": [
+        { "property": "type_line", "regex": "Elf" },
         { "property": "oracle_text", "regex": "landfall" },
-        { "property": "oracle_text", "regex": "a land enters" }
-      ],
-      "Treasure": [
-        { "property": "oracle_text", "regex": "Treasure" }
-      ],
-      "Tokens / Go Wide": [
-        { "property": "oracle_text", "regex": "create (a|one|two|three|\\w+) [^.]{0,30}(Soldier|Human|Dwarf|Elf|Wolf|Goblin|Bird|Bear)[^.]{0,15}token" },
-        { "property": "oracle_text", "regex": "creatures you control (get|gain)" },
-        { "property": "oracle_text", "regex": "other creatures you control" }
-      ],
-      "Sacrifice": [
-        { "property": "oracle_text", "regex": "sacrifice (a|an|another) " }
-      ],
-      "Dies Trigger": [
-        { "property": "oracle_text", "regex": "\\bdie(s)?," }
-      ],
-      "Graveyard": [
-        { "property": "oracle_text", "regex": "from your graveyard" },
-        { "property": "oracle_text", "regex": "into your graveyard" },
-        { "property": "oracle_text", "regex": "Flashback" }
-      ],
-      "Life Gain": [
-        { "property": "oracle_text", "regex": "gain \\d+ life" },
-        { "property": "oracle_text", "regex": "gained life" },
-        { "property": "oracle_text", "regex": "lifelink" }
-      ],
-      "+1/+1 Counter": [
-        { "property": "oracle_text", "regex": "\\+1/\\+1 counter" }
-      ],
-      "Equipment": [
-        { "property": "type_line", "regex": "Equipment" },
-        { "property": "oracle_text", "regex": "Equip " }
-      ],
-      "Saga": [
-        { "property": "type_line", "regex": "Saga" }
-      ],
-      "ETB Trigger": [
-        { "property": "oracle_text", "regex": "when(ever)? [^.]{0,45}enters" }
-      ],
-      "Noncreature Spell": [
-        { "property": "oracle_text", "regex": "noncreature spell" }
-      ],
-      "Mill": [
-        { "property": "oracle_text", "regex": "mill" }
-      ],
-      "Dwarf": [
-        { "property": "type_line", "regex": "Dwarf" }
-      ],
-      "Elf": [
-        { "property": "type_line", "regex": "Elf" }
-      ],
-      "Goblin": [
-        { "property": "type_line", "regex": "Goblin" }
-      ],
-      "Human": [
-        { "property": "type_line", "regex": "Human" }
-      ],
-      "Wolf": [
-        { "property": "type_line", "regex": "Wolf" }
-      ],
-      "Halfling": [
-        { "property": "type_line", "regex": "Halfling" }
-      ],
-      "Dragon": [
-        { "property": "type_line", "regex": "Dragon" }
-      ],
-      "Bear": [
-        { "property": "type_line", "regex": "Bear" }
-      ],
-      "Noble": [
-        { "property": "type_line", "regex": "Noble" }
-      ],
-      "Soldier": [
-        { "property": "type_line", "regex": "Soldier" }
+        { "property": "oracle_text", "regex": "a land enters" },
+        { "property": "oracle_text", "regex": "search your library for [^.]*land" }
       ]
     }
   }
