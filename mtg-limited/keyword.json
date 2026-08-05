@@ -473,34 +473,39 @@
         { "property": "oracle_text", "regex": "draw (your |their )?second card" },
         { "property": "oracle_text", "regex": "second card each turn" },
         { "property": "oracle_text", "regex": "drawn two or more cards" },
-        { "property": "oracle_text", "regex": "whenever you draw a card" }
+        { "property": "oracle_text", "regex": "whenever you draw a card" },
+        { "property": "oracle_text", "regex": "target Human" }
       ],
       "WR Dwarves — Storied": [
         { "property": "type_line", "regex": "Dwarf" },
         { "property": "oracle_text", "regex": "Storied" },
         { "property": "oracle_text", "regex": "enduring story" },
         { "property": "type_line", "regex": "Saga" },
-        { "property": "type_line", "regex": "Equipment" }
+        { "property": "type_line", "regex": "Equipment" },
+        { "property": "oracle_text", "regex": "target Dwarf" }
       ],
       "BR Goblins — Amass / Sacrifice": [
         { "property": "type_line", "regex": "Goblin" },
         { "property": "oracle_text", "regex": "amass" },
         { "property": "oracle_text", "regex": "sacrifice (a|an|another) " },
         { "property": "oracle_text", "regex": "\\bdie(s)?," },
-        { "property": "oracle_text", "regex": "Army you control" }
+        { "property": "oracle_text", "regex": "Army you control" },
+        { "property": "oracle_text", "regex": "Goblin or Orc" }
       ],
-      "BG Wolves — Ferocious": [
+      "BG Beasts — Ferocious": [
         { "property": "type_line", "regex": "Wolf" },
         { "property": "type_line", "regex": "Bear" },
         { "property": "type_line", "regex": "Spider" },
         { "property": "oracle_text", "regex": "ferocious" },
-        { "property": "oracle_text", "regex": "power 4 or (greater|more)" }
+        { "property": "oracle_text", "regex": "power 4 or (greater|more)" },
+        { "property": "oracle_text", "regex": "Bear, Spider, or Wolf" }
       ],
       "UG Elves — Landfall": [
         { "property": "type_line", "regex": "Elf" },
         { "property": "oracle_text", "regex": "landfall" },
         { "property": "oracle_text", "regex": "a land enters" },
-        { "property": "oracle_text", "regex": "search your library for [^.]*land" }
+        { "property": "oracle_text", "regex": "search your library for [^.]*land" },
+        { "property": "oracle_text", "regex": "target Elf" }
       ]
     }
   }
