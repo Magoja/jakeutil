@@ -506,6 +506,15 @@
         { "property": "oracle_text", "regex": "a land enters" },
         { "property": "oracle_text", "regex": "search your library for [^.]*land" },
         { "property": "oracle_text", "regex": "target Elf" }
+      ],
+      "Creature Removal": [
+        { "property": "oracle_text", "regex": "destroy target creature" },
+        { "property": "oracle_text", "regex": "exile target creature" },
+        { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature)" },
+        { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
+        { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
+        { "property": "oracle_text", "regex": "sacrifices a creature" },
+        { "property": "oracle_text", "regex": "fights? (target|another target)" }
       ]
     }
   }

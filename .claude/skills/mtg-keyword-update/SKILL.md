@@ -88,6 +88,20 @@ Each rule specifies:
 - `property`: `"oracle_text"` or `"type_line"`
 - `regex`: a pattern (matched case-insensitively)
 
+**Always add a `"Creature Removal"` group** (a non-archetype utility filter, placed after the archetype groups). Start from this reusable base and add any set-specific removal wordings (evasion-conditional destroys, named burn spells, edict phrasings, mass -X/-X, etc.), then verify against the deduped pool for false positives (exclude "damage to target opponent"/face burn and generic "destroy target permanent" fixers that aren't really creature removal):
+
+```json
+"Creature Removal": [
+  { "property": "oracle_text", "regex": "destroy target creature" },
+  { "property": "oracle_text", "regex": "exile target creature" },
+  { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature)" },
+  { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
+  { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
+  { "property": "oracle_text", "regex": "sacrifices a creature" },
+  { "property": "oracle_text", "regex": "fights? (target|another target)" }
+]
+```
+
 **Guidelines learned from `hob`:**
 - Named mechanics → regex the keyword word in `oracle_text` (`ferocious`, `amass`, `landfall`, `Storied`).
 - Prefer specific payoff clauses over broad verbs. `\+1/\+1 counter` not `\+1/\+1` (the latter catches anthems/pumps). `\bdie(s)?,` catches plural "die," triggers. Don't include bare `sacrifice this` (hits self-sac utility lands).
