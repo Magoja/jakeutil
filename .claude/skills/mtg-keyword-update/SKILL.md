@@ -94,7 +94,8 @@ Each rule specifies:
 "Creature Removal": [
   { "property": "oracle_text", "regex": "destroy target creature" },
   { "property": "oracle_text", "regex": "exile target creature" },
-  { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature)" },
+  { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature|each [^.]*creature)" },
+  { "property": "oracle_text", "regex": "deals \\d+ damage divided" },
   { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
   { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
   { "property": "oracle_text", "regex": "sacrifices a creature" },
