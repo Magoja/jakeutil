@@ -54,11 +54,11 @@ If the response has `has_more: true`, follow `next_page` URLs until exhausted. C
 
 For each card record, extract:
 - `name`
-- `oracle_text` (or from `card_faces[0].oracle_text` for double-faced cards)
-- `type_line` (or from `card_faces[0].type_line`)
+- `oracle_text` — **union of every face**: join the top-level `oracle_text` with each `card_faces[*].oracle_text`. Adventures and split cards keep their spell text on `card_faces[1]`, and Scryfall gives multi-face cards **no** top-level `oracle_text`, so reading only the top level or `card_faces[0]` silently drops that text (e.g. an Adventure creature's removal half like *Smaug // Spew Flame*).
+- `type_line` — likewise union the top-level and all `card_faces[*].type_line`.
 - `keywords` array
 
-Build a flat list of all cards with these four fields and save it to the scratchpad (e.g. `<scratchpad>/{setCode}_cards.json`).
+Build a flat list of all cards with these fields and save it to the scratchpad (e.g. `<scratchpad>/{setCode}_cards.json`). This face-union must match how the app matches rules (`js/keyword-extractor.js` `collectProp`) — keep them consistent.
 
 > **Dedup when counting.** `unique=prints` returns duplicate entries for the same card (alternate art, promos). When you count how many cards match a theme, dedup by `name` first — otherwise a single card can look like a 3-card theme. Do all counting in a Python script, not by eye.
 

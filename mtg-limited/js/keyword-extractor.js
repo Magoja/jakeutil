@@ -24,6 +24,23 @@ class KeywordExtractor {
     KeywordExtractor.customRulesLoaded = true;
   }
 
+  /**
+   * Collect a property (e.g. oracle_text, type_line) across the whole card,
+   * unioning the top-level value with every face. Adventures and split cards
+   * carry their spell text on card_faces[1], and Scryfall gives multi-face
+   * cards no top-level oracle_text, so matching only the top level or face[0]
+   * silently misses that text (e.g. an Adventure's removal half).
+   */
+  static collectProp(card, prop) {
+    const parts = [];
+    if (card[prop]) parts.push(card[prop]);
+    const faces = card.card_faces || card.faces;
+    if (Array.isArray(faces)) {
+      faces.forEach(f => { if (f && f[prop]) parts.push(f[prop]); });
+    }
+    return parts.join('\n');
+  }
+
   static getKeywords(card) {
     const keywords = new Set();
     const typeLine = card.type_line || (card.faces ? card.faces[0].type_line : '');
@@ -46,12 +63,7 @@ class KeywordExtractor {
       if (customKws) {
         for (const [kw, rules] of Object.entries(customKws)) {
           const matches = rules.some(rule => {
-            let propValue = card[rule.property];
-            if (!propValue && card.faces) {
-              propValue = card.faces[0][rule.property];
-            }
-            if (!propValue) propValue = '';
-
+            const propValue = KeywordExtractor.collectProp(card, rule.property);
             const regex = new RegExp(rule.regex, 'i');
             return regex.test(propValue);
           });
