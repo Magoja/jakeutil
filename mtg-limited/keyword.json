@@ -523,6 +523,14 @@
         { "property": "oracle_text", "regex": "doesn't untap during its controller" },
         { "property": "oracle_text", "regex": "enchanted creature can't attack" }
       ]
+    },
+    "booster": {
+      "landPool": { "basic": 1, "dual": 1 },
+      "customPools": {
+        "dual": [
+          { "property": "oracle_text", "regex": "Sacrifice this land: Put two \\+1/\\+1 counters on target" }
+        ]
+      }
     }
   }
 }

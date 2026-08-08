@@ -123,6 +123,13 @@ const BoosterLogic = {
         if (boosterConfig?.rules) {
           this.setRules(boosterConfig.rules);
         }
+        // Override just the land-slot ratio without restating every rule.
+        // The land ratio (basic vs common dual/nonbasic) varies set to set.
+        if (boosterConfig?.landPool) {
+          this.rules = this.rules.map(r =>
+            r.name === "Land Slot" ? { ...r, pool: boosterConfig.landPool } : r
+          );
+        }
 
         this.isDataLoaded = true;
         return true;

@@ -167,6 +167,12 @@ Merge the new set entry into the top-level object (add `"{setCode}": { "keywords
 
 After writing, validate the file parses: `python3 -c "import json; json.load(open('mtg-limited/keyword.json'))"`.
 
+**Optional `booster` key.** A set may add a sibling `"booster"` object next to `"keywords"` (see `js/booster-logic.js`). Prefer the smallest override that expresses the change:
+- `landPool` — overrides **only** the Land Slot's pool weights, keeping every other default Play Booster slot. The land ratio (basic vs common dual/nonbasic) varies set to set, so this is the usual knob. Example: `"landPool": { "basic": 1, "dual": 1 }` = 50% basic / 50% dual.
+- `customPools` — named card pools (`{ poolKey: [{property, regex}] }`) referenced by pool weights, e.g. a `"dual"` pool matching a set's dual-land cycle: `{ "property": "oracle_text", "regex": "Sacrifice this land: Put two \\+1/\\+1 counters on target" }`.
+- `rules` — only when the whole slot structure differs from the default (like `msh`); otherwise use `landPool` instead of restating all seven slots.
+- `bonusQuery` — override the SPG/bonus-sheet query; omit to auto-detect.
+
 ---
 
 ## Step 8 – Commit
