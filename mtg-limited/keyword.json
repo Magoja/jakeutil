@@ -517,7 +517,11 @@
         { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
         { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
         { "property": "oracle_text", "regex": "sacrifices a creature" },
-        { "property": "oracle_text", "regex": "fights? (target|another target)" }
+        { "property": "oracle_text", "regex": "fights? (target|another target)" },
+        { "property": "oracle_text", "regex": "puts? it on [^.]*(top|bottom) of [^.]*library" },
+        { "property": "oracle_text", "regex": "loses all abilities" },
+        { "property": "oracle_text", "regex": "doesn't untap during its controller" },
+        { "property": "oracle_text", "regex": "enchanted creature can't attack" }
       ]
     }
   }

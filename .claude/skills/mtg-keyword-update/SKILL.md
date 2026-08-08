@@ -101,9 +101,15 @@ Each rule specifies:
   { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
   { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
   { "property": "oracle_text", "regex": "sacrifices a creature" },
-  { "property": "oracle_text", "regex": "fights? (target|another target)" }
+  { "property": "oracle_text", "regex": "fights? (target|another target)" },
+  { "property": "oracle_text", "regex": "puts? it on [^.]*(top|bottom) of [^.]*library" },
+  { "property": "oracle_text", "regex": "loses all abilities" },
+  { "property": "oracle_text", "regex": "doesn't untap during its controller" },
+  { "property": "oracle_text", "regex": "enchanted creature can't attack" }
 ]
 ```
+
+Beyond hard removal, this base also tags **soft/tempo removal**: tuck-to-library (*Uneasy Partings*), and Pacifism-style neutralizers — an Aura whose creature *loses all abilities*, *doesn't untap during its controller's* untap step, or *can't attack (or block)*. It deliberately excludes bounce (return-to-hand), which overlaps heavily with graveyard recursion and self-return.
 
 **Guidelines learned from `hob`:**
 - Named mechanics → regex the keyword word in `oracle_text` (`ferocious`, `amass`, `landfall`, `Storied`).
