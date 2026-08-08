@@ -509,7 +509,8 @@
       ],
       "Creature Removal": [
         { "property": "oracle_text", "regex": "destroy target creature" },
-        { "property": "oracle_text", "regex": "exile target creature" },
+        { "property": "oracle_text", "regex": "exile (up to \\w+ )?target (creature|nonland permanent)(?![^.]*you control)" },
+        { "property": "oracle_text", "regex": "exile all [^.]*creatures" },
         { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature|each [^.]*creature)" },
         { "property": "oracle_text", "regex": "deals \\d+ damage divided" },
         { "property": "oracle_text", "regex": "deals damage equal to [^.]* to (target creature|another target creature|up to (one|two|\\w+) target creature)" },
