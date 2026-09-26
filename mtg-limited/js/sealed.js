@@ -115,7 +115,7 @@ class SealedApp {
     if (this.activeFilters.size > 0) {
       const filterFn = (c) => {
         const kws = KeywordExtractor.getKeywords(c);
-        return kws.some(k => this.activeFilters.has(k));
+        return kws.some(k => this.activeFilters.has(k) && this.keywordColorOk(c, k));
       };
 
       filteredPool = this.poolCards.filter(filterFn);
@@ -544,9 +544,26 @@ class SealedApp {
     this.allCards.forEach(card => {
       const kws = KeywordExtractor.getKeywords(card);
       kws.forEach(k => {
+        if (!this.keywordColorOk(card, k)) return;
         this.keywordCounts.set(k, (this.keywordCounts.get(k) || 0) + 1);
       });
     });
+  }
+
+  // Archetype buckets are named like "GW Vigorbloom — Life Gain": a leading
+  // two-letter color pair. When such a filter is active, also require the
+  // card's colors to fit the pair (colorless cards and lands always fit),
+  // so the GW filter doesn't show blue life-gain cards. Buckets without a
+  // color prefix (mechanics, generic keywords) are unaffected.
+  static archetypeColors(bucketName) {
+    const m = /^([WUBRG]{2}) /.exec(bucketName);
+    return m ? [...m[1]] : null;
+  }
+
+  keywordColorOk(card, bucketName) {
+    const pair = SealedApp.archetypeColors(bucketName);
+    if (!pair) return true;
+    return getCardColors(card).every(col => pair.includes(col));
   }
 
   // Sorting utilities
@@ -770,7 +787,8 @@ class SealedApp {
       label.style.borderRadius = '4px';
       label.style.marginBottom = '5px';
       const ruleText = rules.map(r => `${r.property} ~= /${r.regex}/`).join(" OR ");
-      label.title = `Looking for:\n${ruleText}`;
+      const pair = SealedApp.archetypeColors(k);
+      label.title = `Looking for:\n${ruleText}` + (pair ? `\nColors: ${pair.join(', ')}` : '');
     }
 
     const cb = document.createElement('input');
