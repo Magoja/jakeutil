@@ -532,5 +532,211 @@
         ]
       }
     }
+  },
+  "fra":   {
+    "keywords": {
+      "BG Garruk's — Bestiary": [
+        {
+          "property": "oracle_text",
+          "regex": "deathtouch"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "trample"
+        }
+      ],
+      "BR Stingerquill — Face Burn": [
+        {
+          "property": "oracle_text",
+          "regex": "noncombat damage"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "damage to target opponent"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "deals \\d+ damage to any target"
+        }
+      ],
+      "Behold": [
+        {
+          "property": "oracle_text",
+          "regex": "behold"
+        }
+      ],
+      "Empower Jace": [
+        {
+          "property": "oracle_text",
+          "regex": "empower Jace"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace planeswalker token"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace token"
+        }
+      ],
+      "GU Jace's — Mastery": [
+        {
+          "property": "oracle_text",
+          "regex": "empower Jace"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace"
+        },
+        {
+          "property": "type_line",
+          "regex": "Jace"
+        }
+      ],
+      "GW Vigorbloom — Life Gain": [
+        {
+          "property": "oracle_text",
+          "regex": "you gain \\d+ life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "if you gained life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "whenever you gain life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "\\+1/\\+1"
+        }
+      ],
+      "Heartwood": [
+        {
+          "property": "oracle_text",
+          "regex": "Heartwood"
+        },
+        {
+          "property": "type_line",
+          "regex": "Heartwood"
+        }
+      ],
+      "Prepare": [
+        {
+          "property": "oracle_text",
+          "regex": "prepared"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "prepare spell"
+        }
+      ],
+      "Prowess": [
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        }
+      ],
+      "RG Konstrari — Mana Ramp": [
+        {
+          "property": "oracle_text",
+          "regex": "Heartwood"
+        },
+        {
+          "property": "type_line",
+          "regex": "Heartwood"
+        }
+      ],
+      "RW Ajani's — Army": [
+        {
+          "property": "type_line",
+          "regex": "Cadet"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Cadet"
+        },
+        {
+          "property": "type_line",
+          "regex": "Equipment"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equip "
+        }
+      ],
+      "Surveil": [
+        {
+          "property": "oracle_text",
+          "regex": "surveil"
+        }
+      ],
+      "Threshold": [
+        {
+          "property": "oracle_text",
+          "regex": "threshold"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "seven or more cards in your graveyard"
+        }
+      ],
+      "UB Theorix — Graveyard Math": [
+        {
+          "property": "oracle_text",
+          "regex": "threshold"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "mill"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cards in your graveyard"
+        }
+      ],
+      "UR Chandra's — Prowess": [
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "instant or sorcery"
+        }
+      ],
+      "WB Liliana's — Attrition": [
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice (a|an|another) "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "dies,"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "from your graveyard"
+        }
+      ],
+      "WU Fatehold — Surveil Aggro": [
+        {
+          "property": "oracle_text",
+          "regex": "surveil"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "whenever you surveil"
+        }
+      ]
+    }
   }
 }
