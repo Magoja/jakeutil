@@ -1,13 +1,71 @@
 /**
  * scryfall.js
  * Centralized logic for interacting with the Scryfall API.
+ *
+ * Results are cached in ephemeral storage (in-memory Map + sessionStorage)
+ * so repeat visits and re-rolls don't hammer the Scryfall API. Card and set
+ * data is immutable once released, so entries live for 24h; spoiler season
+ * gets fresh data at most once a day.
  */
 
 const Scryfall = {
+  // ---- Ephemeral result cache -------------------------------------------
+  CACHE_TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
+  CACHE_PREFIX: 'scryfall-cache-v1:',
+  _memoryCache: new Map(),
+
   /**
-   * Fetch all sets from Scryfall.
-   * @returns {Promise<Array>} Array of set objects.
+   * Read a cached value. Returns a deep clone so callers can't mutate the
+   * cached copy, or null on miss/expiry.
    */
+  _cacheGet(key) {
+    const now = Date.now();
+    const mem = this._memoryCache.get(key);
+    if (mem && now - mem.ts < this.CACHE_TTL_MS) {
+      return structuredClone(mem.value);
+    }
+    try {
+      const raw = sessionStorage.getItem(this.CACHE_PREFIX + key);
+      if (!raw) return null;
+      const entry = JSON.parse(raw);
+      if (now - entry.ts > this.CACHE_TTL_MS) {
+        sessionStorage.removeItem(this.CACHE_PREFIX + key);
+        return null;
+      }
+      this._memoryCache.set(key, entry); // promote to memory tier
+      return structuredClone(entry.value);
+    } catch (e) {
+      return null; // storage unavailable or corrupt entry
+    }
+  },
+
+  /**
+   * Store a value in both cache tiers. sessionStorage may throw on quota
+   * (large sets) or when blocked; the memory tier still covers the session.
+   */
+  _cacheSet(key, value) {
+    const entry = { ts: Date.now(), value };
+    this._memoryCache.set(key, entry);
+    try {
+      sessionStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify(entry));
+    } catch (e) {
+      console.warn('Scryfall cache: sessionStorage unavailable, memory-only.', e);
+    }
+  },
+
+  /** Clear all cached Scryfall responses from both tiers. */
+  clearCache() {
+    this._memoryCache.clear();
+    try {
+      const keys = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith(this.CACHE_PREFIX)) keys.push(k);
+      }
+      keys.forEach(k => sessionStorage.removeItem(k));
+    } catch (e) { /* storage unavailable */ }
+  },
+
   /**
    * Generic paginated fetch helper.
    * @param {string} initialUrl - The URL to start fetching from.
@@ -45,12 +103,18 @@ const Scryfall = {
    * @returns {Promise<Object>} The set object.
    */
   async fetchSet(setCode) {
+    const key = `set:${setCode.toLowerCase()}`;
+    const cached = this._cacheGet(key);
+    if (cached) return cached;
+
     const url = `https://api.scryfall.com/sets/${setCode}`;
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`API Error: ${response.status}`);
     }
-    return await response.json();
+    const set = await response.json();
+    this._cacheSet(key, set);
+    return set;
   },
 
   /**
@@ -58,12 +122,18 @@ const Scryfall = {
    * @returns {Promise<Array>} Array of set objects.
    */
   async fetchAllSets() {
+    const key = 'sets:all';
+    const cached = this._cacheGet(key);
+    if (cached) return cached;
+
     let allSets = [];
     try {
       await this.fetchPaginated('https://api.scryfall.com/sets/', (data) => {
         allSets = allSets.concat(data);
       });
-      return allSets.filter(set => set.card_count > 0);
+      const filtered = allSets.filter(set => set.card_count > 0);
+      this._cacheSet(key, filtered);
+      return filtered;
     } catch (error) {
       console.error("Error fetching sets:", error);
       throw error;
@@ -77,6 +147,10 @@ const Scryfall = {
    * @returns {Promise<Array>} Array of card objects.
    */
   async fetchCards(query) {
+    const key = `cards:${query}`;
+    const cached = this._cacheGet(key);
+    if (cached) return cached;
+
     let allCards = [];
     const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
 
@@ -89,6 +163,7 @@ const Scryfall = {
       // Sort by collector number
       Scryfall.sortByCollectorNumber(allCards);
 
+      this._cacheSet(key, allCards);
       return allCards;
 
     } catch (error) {
