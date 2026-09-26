@@ -561,7 +561,13 @@ class SealedApp {
   }
 
   keywordColorOk(card, bucketName) {
-    const pair = SealedApp.archetypeColors(bucketName);
+    // Prefer the explicit per-set archetype_colors map from keyword.json;
+    // fall back to parsing the "GW ..." name prefix for older data.
+    const cfg = KeywordExtractor.setCustomConfig[this.setCode] || {};
+    const fromJson = cfg.archetype_colors && cfg.archetype_colors[bucketName];
+    const pair = (Array.isArray(fromJson) && fromJson.length > 0)
+      ? fromJson
+      : SealedApp.archetypeColors(bucketName);
     if (!pair) return true;
     return getCardColors(card).every(col => pair.includes(col));
   }
