@@ -738,5 +738,12 @@
         }
       ]
     }
-  }
+  },
+  "update_log": [
+    {
+      "date": "2026-09-26",
+      "set": "Reality Fracture",
+      "message": "Added Reality Fracture (fra) draft keywords: 10 archetypes and 7 mechanics"
+    }
+  ]
 }
