@@ -524,6 +524,13 @@
         { "property": "oracle_text", "regex": "enchanted creature can't attack" }
       ]
     },
+    "archetype_colors": {
+      "WU Humans — Draw Two": ["W", "U"],
+      "WR Dwarves — Storied": ["W", "R"],
+      "BR Goblins — Amass / Sacrifice": ["B", "R"],
+      "BG Beasts — Ferocious": ["B", "G"],
+      "UG Elves — Landfall": ["U", "G"]
+    },
     "booster": {
       "landPool": { "basic": 1, "dual": 1 },
       "customPools": {
@@ -737,6 +744,18 @@
           "regex": "whenever you surveil"
         }
       ]
+    },
+    "archetype_colors": {
+      "BG Garruk's — Bestiary": ["B", "G"],
+      "BR Stingerquill — Face Burn": ["B", "R"],
+      "GU Jace's — Mastery": ["G", "U"],
+      "GW Vigorbloom — Life Gain": ["G", "W"],
+      "RG Konstrari — Mana Ramp": ["R", "G"],
+      "RW Ajani's — Army": ["R", "W"],
+      "UB Theorix — Graveyard Math": ["U", "B"],
+      "UR Chandra's — Prowess": ["U", "R"],
+      "WB Liliana's — Attrition": ["W", "B"],
+      "WU Fatehold — Surveil Aggro": ["W", "U"]
     }
   },
   "update_log": [
