@@ -1,0 +1,324 @@
+{
+ "description": "Chord quiz question bank. Each entry: id, answer (canonical chord symbol), voicing (low-E to high-e, frets 0-5, x=muted). All voicings verified note-by-note against the answer's pitch-class set (only the 5th may be omitted). Complex/extended harmony only; no plain major/minor/dom7/min7 CAGED basics. Also feeds the weekday chat quiz.",
+ "questions": [
+  {
+   "answer": "Cmaj9",
+   "id": "q01",
+   "voicing": "x-3-5-4-3-0"
+  },
+  {
+   "answer": "Gmaj9",
+   "id": "q02",
+   "voicing": "3-0-0-0-0-2"
+  },
+  {
+   "answer": "Dmaj9",
+   "id": "q03",
+   "voicing": "x-5-4-6-5-0"
+  },
+  {
+   "answer": "Amaj9",
+   "id": "q04",
+   "voicing": "5-4-2-1-0-0"
+  },
+  {
+   "answer": "Fmaj9",
+   "id": "q05",
+   "voicing": "1-x-2-2-1-3"
+  },
+  {
+   "answer": "Bbmaj9",
+   "id": "q06",
+   "voicing": "x-1-0-2-1-1"
+  },
+  {
+   "answer": "Ebmaj9",
+   "id": "q07",
+   "voicing": "3-x-1-3-3-1"
+  },
+  {
+   "answer": "Emaj9",
+   "id": "q08",
+   "voicing": "0-x-4-1-4-2"
+  },
+  {
+   "answer": "Dm9",
+   "id": "q09",
+   "voicing": "x-5-3-5-5-0"
+  },
+  {
+   "answer": "Am9",
+   "id": "q10",
+   "voicing": "x-0-5-5-0-0"
+  },
+  {
+   "answer": "Em9",
+   "id": "q11",
+   "voicing": "0-2-0-0-0-2"
+  },
+  {
+   "answer": "Gm9",
+   "id": "q12",
+   "voicing": "x-1-3-2-3-3"
+  },
+  {
+   "answer": "Cm9",
+   "id": "q13",
+   "voicing": "x-3-1-3-3-3"
+  },
+  {
+   "answer": "Fm9",
+   "id": "q14",
+   "voicing": "1-3-1-1-1-3"
+  },
+  {
+   "answer": "F#m9",
+   "id": "q15",
+   "voicing": "2-x-2-2-2-4"
+  },
+  {
+   "answer": "E7#9",
+   "id": "q16",
+   "voicing": "0-x-0-1-0-3"
+  },
+  {
+   "answer": "A7#9",
+   "id": "q17",
+   "voicing": "5-4-2-0-1-0"
+  },
+  {
+   "answer": "D7#9",
+   "id": "q18",
+   "voicing": "x-5-4-5-6-x"
+  },
+  {
+   "answer": "G7#9",
+   "id": "q19",
+   "voicing": "3-1-0-0-0-1"
+  },
+  {
+   "answer": "B7#9",
+   "id": "q20",
+   "voicing": "x-2-1-2-3-x"
+  },
+  {
+   "answer": "E7b9",
+   "id": "q21",
+   "voicing": "0-2-0-1-0-1"
+  },
+  {
+   "answer": "A7b9",
+   "id": "q22",
+   "voicing": "x-1-2-0-2-5"
+  },
+  {
+   "answer": "D7b9",
+   "id": "q23",
+   "voicing": "x-5-4-5-4-x"
+  },
+  {
+   "answer": "Cmaj7#11",
+   "id": "q24",
+   "voicing": "x-3-2-0-0-2"
+  },
+  {
+   "answer": "Gmaj9#11",
+   "id": "q25",
+   "voicing": "3-2-4-2-2-2"
+  },
+  {
+   "answer": "Fmaj7#11",
+   "id": "q26",
+   "voicing": "1-3-3-2-0-0"
+  },
+  {
+   "answer": "E9sus4",
+   "id": "q27",
+   "voicing": "0-2-0-2-0-2"
+  },
+  {
+   "answer": "A9sus4",
+   "id": "q28",
+   "voicing": "x-0-0-0-0-0"
+  },
+  {
+   "answer": "D9sus4",
+   "id": "q29",
+   "voicing": "x-5-5-5-5-0"
+  },
+  {
+   "answer": "G13",
+   "id": "q30",
+   "voicing": "3-x-2-2-0-1"
+  },
+  {
+   "answer": "A13",
+   "id": "q31",
+   "voicing": "5-4-2-0-0-2"
+  },
+  {
+   "answer": "E13",
+   "id": "q32",
+   "voicing": "0-x-0-1-2-2"
+  },
+  {
+   "answer": "Am(maj7)",
+   "id": "q33",
+   "voicing": "x-0-2-1-1-0"
+  },
+  {
+   "answer": "Dm(maj7)",
+   "id": "q34",
+   "voicing": "x-5-3-6-x-x"
+  },
+  {
+   "answer": "Em(maj7)",
+   "id": "q35",
+   "voicing": "0-2-1-0-0-0"
+  },
+  {
+   "answer": "C6/9",
+   "id": "q36",
+   "voicing": "x-3-2-2-3-3"
+  },
+  {
+   "answer": "G6/9",
+   "id": "q37",
+   "voicing": "3-0-2-0-0-0"
+  },
+  {
+   "answer": "D6/9",
+   "id": "q38",
+   "voicing": "x-5-4-2-0-0"
+  },
+  {
+   "answer": "G7sus4",
+   "id": "q39",
+   "voicing": "3-3-0-0-x-1"
+  },
+  {
+   "answer": "B7sus4",
+   "id": "q40",
+   "voicing": "x-2-4-2-0-0"
+  },
+  {
+   "answer": "Cdim7",
+   "id": "q41",
+   "voicing": "x-3-4-2-4-x"
+  },
+  {
+   "answer": "Gdim7",
+   "id": "q42",
+   "voicing": "3-x-2-3-2-x"
+  },
+  {
+   "answer": "Adim7",
+   "id": "q43",
+   "voicing": "x-0-1-2-1-2"
+  },
+  {
+   "answer": "Bm7b5",
+   "id": "q44",
+   "voicing": "x-2-3-2-3-x"
+  },
+  {
+   "answer": "Dm7b5",
+   "id": "q45",
+   "voicing": "x-x-0-1-1-1"
+  },
+  {
+   "answer": "Caug",
+   "id": "q46",
+   "voicing": "x-3-2-1-1-0"
+  },
+  {
+   "answer": "Gaug",
+   "id": "q47",
+   "voicing": "3-2-1-0-0-3"
+  },
+  {
+   "answer": "D7#11",
+   "id": "q48",
+   "voicing": "x-5-4-5-x-4"
+  },
+  {
+   "answer": "E7#11",
+   "id": "q49",
+   "voicing": "0-1-0-1-3-0"
+  },
+  {
+   "answer": "G7b5",
+   "id": "q50",
+   "voicing": "3-4-3-4-3-x"
+  },
+  {
+   "answer": "Dadd9",
+   "id": "q51",
+   "voicing": "x-5-4-2-3-0"
+  },
+  {
+   "answer": "Aadd9",
+   "id": "q52",
+   "voicing": "5-4-2-2-0-0"
+  },
+  {
+   "answer": "Eadd9",
+   "id": "q53",
+   "voicing": "0-2-4-1-0-0"
+  },
+  {
+   "answer": "Asus2",
+   "id": "q54",
+   "voicing": "x-0-2-2-0-0"
+  },
+  {
+   "answer": "Dsus2",
+   "id": "q55",
+   "voicing": "x-x-0-2-3-0"
+  },
+  {
+   "answer": "Esus2",
+   "id": "q56",
+   "voicing": "0-2-4-4-0-0"
+  },
+  {
+   "answer": "Dm6",
+   "id": "q57",
+   "voicing": "x-5-3-2-0-1"
+  },
+  {
+   "answer": "Am6",
+   "id": "q58",
+   "voicing": "x-0-2-2-1-2"
+  },
+  {
+   "answer": "E9",
+   "id": "q59",
+   "voicing": "0-2-0-1-0-2"
+  },
+  {
+   "answer": "A9",
+   "id": "q60",
+   "voicing": "5-4-2-2-0-3"
+  },
+  {
+   "answer": "Db9",
+   "id": "q61",
+   "voicing": "x-4-3-4-4-x"
+  },
+  {
+   "answer": "Ab9",
+   "id": "q62",
+   "voicing": "4-x-1-3-1-2"
+  }
+ ],
+ "tuning": [
+  "E",
+  "A",
+  "D",
+  "G",
+  "B",
+  "e"
+ ],
+ "version": 1
+}

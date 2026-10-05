@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chord Quiz</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <a class="home" href="../">← jakeutil</a>
+      <h1>🎸 Chord Quiz</h1>
+      <p class="sub">Name the chord from its shape. Complex voicings only.</p>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><span class="num" id="stat-score">0</span><span class="lbl">correct</span></div>
+      <div class="stat"><span class="num" id="stat-answered">0</span><span class="lbl">answered</span></div>
+      <div class="stat"><span class="num" id="stat-streak">0</span><span class="lbl">streak</span></div>
+      <div class="stat"><span class="num" id="stat-best">0</span><span class="lbl">best</span></div>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg id="diagram" role="img" aria-label="Chord diagram"></svg>
+    </div>
+
+    <div class="input-row">
+      <input id="answer" type="text" placeholder="e.g. Cmaj9, Bb13, F#m7b5"
+             autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go">
+      <button id="submit-btn" class="primary">Submit</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="hint-btn" class="ghost">Show hint (4 choices)</button>
+      <button id="next-btn" class="primary" style="display:none">Next →</button>
+    </div>
+    <div id="choices" class="choices" style="display:none"></div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <footer>
+      <p>Type the chord name — spellings like <em>CM7 add 9</em>, <em>Cmaj9</em>,
+      <em>C major 9</em> all count. Streak counts only hint-free correct answers.</p>
+    </footer>
+  </div>
+  <script src="chord-parser.js"></script>
+  <script src="quiz.js"></script>
+</body>
+</html>
