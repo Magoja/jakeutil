@@ -122,7 +122,8 @@
    "voicing": "x-3-2-0-0-2"
   },
   {
-   "answer": "Gmaj9#11",
+   "answer": "Gmaj9b5",
+   "aliases": ["Gmaj9#11"],
    "id": "q25",
    "voicing": "3-2-4-2-2-2"
   },
@@ -237,17 +238,20 @@
    "voicing": "3-2-1-0-0-3"
   },
   {
-   "answer": "D7#11",
+   "answer": "D7b5",
+   "aliases": ["D7#11"],
    "id": "q48",
    "voicing": "x-5-4-5-x-4"
   },
   {
-   "answer": "E7#11",
+   "answer": "E7b5",
+   "aliases": ["E7#11"],
    "id": "q49",
    "voicing": "0-1-0-1-3-0"
   },
   {
-   "answer": "G7b5",
+   "answer": "G7#11",
+   "aliases": ["G7b5"],
    "id": "q50",
    "voicing": "3-4-3-4-3-x"
   },
