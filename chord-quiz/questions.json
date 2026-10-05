@@ -1,5 +1,5 @@
 {
- "description": "Chord quiz question bank. Each entry: id, answer (canonical chord symbol), voicing (low-E to high-e, frets 0-5, x=muted). All voicings verified note-by-note against the answer's pitch-class set (only the 5th may be omitted). Complex/extended harmony plus basic major/minor/7th/maj7/6 voicings in open-string or non-CAGED positions (no default CAGED grips). Also feeds the weekday chat quiz.",
+ "description": "Chord quiz question bank. Each entry: id, answer (canonical chord symbol), voicing (low-E to high-e, frets 0-6, x=muted). All voicings verified note-by-note against the answer's pitch-class set (only the 5th may be omitted). Complex/extended harmony plus basic major/minor/7th/maj7/6 voicings in open-string or non-CAGED positions (no default CAGED grips). Also feeds the weekday chat quiz.",
  "questions": [
   {
    "answer": "Cmaj9",
