@@ -137,8 +137,20 @@
 
   function grade(userText) {
     var userParsed = ChordParser.parse(userText);
-    var answerParsed = ChordParser.parse(current.answer);
-    return { userParsed: userParsed, ok: ChordParser.same(userParsed, answerParsed) };
+    var candidates = [current.answer].concat(current.aliases || []);
+    var ok = candidates.some(function (a) {
+      return ChordParser.same(userParsed, ChordParser.parse(a));
+    });
+    return { userParsed: userParsed, ok: ok };
+  }
+
+  function answerLabel() {
+    var label = current.answer;
+    if (current.aliases && current.aliases.length) {
+      label += ' <span class="hint-note">(also accepted: ' +
+        current.aliases.map(escapeHtml).join(', ') + ')</span>';
+    }
+    return label;
   }
 
   function reveal(correct, userText) {
@@ -151,7 +163,7 @@
         stats.best = Math.max(stats.best, stats.streak);
       }
       fb.className = 'feedback correct';
-      fb.innerHTML = '<strong>Correct!</strong> ' + escapeHtml(current.answer) +
+      fb.innerHTML = '<strong>Correct!</strong> ' + answerLabel() +
         (hinted ? ' <span class="hint-note">(with hint)</span>' : '') +
         '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>';
     } else {
@@ -159,7 +171,7 @@
       fb.className = 'feedback wrong';
       var heard = userText ? ' You answered <strong>' + escapeHtml(userText) + '</strong>.' : '';
       fb.innerHTML = '<strong>Not quite.</strong>' + heard +
-        ' The answer is <strong>' + escapeHtml(current.answer) + '</strong>.' +
+        ' The answer is <strong>' + answerLabel() + '</strong>.' +
         '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>';
     }
     saveStats();
