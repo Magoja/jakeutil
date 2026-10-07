@@ -31,8 +31,12 @@
       return v === 'x' ? -1 : (v === '0' || v === 'o' ? 0 : parseInt(v, 10));
     });
     var W = 320, H = 380, ml = 44, mr = 24, mt = 76, mb = 30;
+    // Fixed 5-fret window keeps the scale consistent; slide it up the neck
+    // so the voicing's frets are always visible with correct numbers.
     var nFrets = N_FRETS;
-    frets.forEach(function (fv) { if (fv > nFrets) nFrets = fv; });
+    var fretted = frets.filter(function (fv) { return fv > 0; });
+    var maxFret = fretted.length ? Math.max.apply(null, fretted) : N_FRETS;
+    var startFret = maxFret <= N_FRETS ? 1 : maxFret - N_FRETS + 1;
     var gw = W - ml - mr, gh = H - mt - mb;
     var sx = gw / 5, sy = gh / nFrets;
     var NS = 'http://www.w3.org/2000/svg';
@@ -43,11 +47,11 @@
     }
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
     svg.innerHTML = '';
-    // fret lines
+    // fret lines (thick top line only when showing the nut)
     for (var f = 0; f <= nFrets; f++) {
       var y = mt + f * sy;
       svg.appendChild(el('line', { x1: ml, y1: y, x2: W - mr, y2: y,
-        stroke: '#222', 'stroke-width': f === 0 ? 5 : 2 }));
+        stroke: '#222', 'stroke-width': (f === 0 && startFret === 1) ? 5 : 2 }));
     }
     // strings
     for (var sIdx = 0; sIdx < 6; sIdx++) {
@@ -55,9 +59,10 @@
       svg.appendChild(el('line', { x1: x, y1: mt, x2: x, y2: mt + gh,
         stroke: '#222', 'stroke-width': sIdx === 0 ? 4 : 2 }));
     }
-    // fret numbers
-    for (var fn = 1; fn <= nFrets; fn++) {
-      var t = el('text', { x: ml - 16, y: mt + (fn - 0.5) * sy, 'text-anchor': 'middle',
+    // fret numbers (actual fret indexes for the visible window)
+    for (var i = 0; i < nFrets; i++) {
+      var fn = startFret + i;
+      var t = el('text', { x: ml - 16, y: mt + (i + 0.5) * sy, 'text-anchor': 'middle',
         'dominant-baseline': 'central', 'font-size': 15, fill: '#777' });
       t.textContent = fn;
       svg.appendChild(t);
@@ -77,7 +82,7 @@
         svg.appendChild(el('circle', { cx: mx, cy: 48, r: 10, fill: 'none',
           stroke: '#222', 'stroke-width': 3 }));
       } else {
-        var cy = mt + (fv - 0.5) * sy;
+        var cy = mt + (fv - startFret + 0.5) * sy;
         svg.appendChild(el('circle', { cx: mx, cy: cy, r: 15, fill: '#222' }));
       }
     }
