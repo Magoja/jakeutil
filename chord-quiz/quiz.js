@@ -100,6 +100,76 @@
     return names.join(', ');
   }
 
+  /* Interval formula + position strip, e.g.
+   *   Formula: 1 b3 5 b7 9
+   *   A BC D EF G A BC D EF G A
+   *   ^   ^     ^   ^     ^
+   * Derived from the chord's pitch-class set; ambiguous spellings
+   * (b3 vs #9, 6 vs 13, ...) are resolved from the chord name. */
+  var NATURAL_LETTERS = { 0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B' };
+  var DEGREE_ORDER = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '#4', '5',
+                      'b6', '#5', '6', 'bb7', 'b7', '7', 'b9', '9', '#9',
+                      '11', '#11', 'b13', '13'];
+
+  function chordFormula(chordName) {
+    var parsed = ChordParser.parse(chordName);
+    if (!parsed) return null;
+    var root = parsed.root;
+    var intervals = parsed.pcs.map(function (pc) { return (pc - root + 12) % 12; });
+    var name = String(chordName).toLowerCase();
+    var hasMajor3 = intervals.indexOf(4) !== -1;
+    var hasSeventh = intervals.indexOf(10) !== -1 || intervals.indexOf(11) !== -1;
+    var isSus = name.indexOf('sus') !== -1;
+    function degree(iv) {
+      switch (iv) {
+        case 0: return '1';
+        case 1: return 'b9';
+        case 2: return name.indexOf('sus2') !== -1 ? '2' : '9';
+        case 3: return hasMajor3 ? '#9' : 'b3';
+        case 4: return '3';
+        case 5: return isSus ? '4' : '11';
+        case 6: return name.indexOf('#11') !== -1 ? '#11' : 'b5';
+        case 7: return '5';
+        case 8: return name.indexOf('b13') !== -1 ? 'b13' :
+          (name.indexOf('aug') !== -1 || name.indexOf('#5') !== -1 ||
+           name.indexOf('+') !== -1 ? '#5' : 'b13');
+        case 9: return name.indexOf('dim7') !== -1 ? 'bb7' :
+          (hasSeventh ? '13' : '6');
+        case 10: return 'b7';
+        case 11: return '7';
+      }
+      return '?';
+    }
+    var items = intervals.map(function (iv) { return { iv: iv, d: degree(iv) }; });
+    items.sort(function (a, b) {
+      return DEGREE_ORDER.indexOf(a.d) - DEGREE_ORDER.indexOf(b.d);
+    });
+    return {
+      root: root,
+      degrees: items.map(function (x) { return x.d; }),
+      offsets: items.map(function (x) { return x.iv; })
+    };
+  }
+
+  function renderFormulaStrip(root, offsets) {
+    var strip = '', marks = '';
+    for (var i = 0; i <= 24; i++) {
+      var pc = (root + i) % 12;
+      strip += NATURAL_LETTERS[pc] || ' ';
+      marks += offsets.indexOf(i % 12) !== -1 ? '^' : ' ';
+    }
+    return strip + '\n' + marks;
+  }
+
+  function formulaHtml(chordName) {
+    var f = chordFormula(chordName);
+    if (!f) return '';
+    return '<div class="formula">Formula: ' +
+      escapeHtml(f.degrees.join(' ')) + '</div>' +
+      '<pre class="strip">' +
+      escapeHtml(renderFormulaStrip(f.root, f.offsets)) + '</pre>';
+  }
+
   function pickQuestion() {
     var pool = questions.filter(function (q) { return q.id !== lastId; });
     return pool[Math.floor(Math.random() * pool.length)];
@@ -172,14 +242,16 @@
       fb.className = 'feedback correct';
       fb.innerHTML = '<strong>Correct!</strong> ' + answerLabel() +
         (hinted ? ' <span class="hint-note">(with hint)</span>' : '') +
-        '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>';
+        '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>' +
+        formulaHtml(current.answer);
     } else {
       stats.streak = 0;
       fb.className = 'feedback wrong';
       var heard = userText ? ' You answered <strong>' + escapeHtml(userText) + '</strong>.' : '';
       fb.innerHTML = '<strong>Not quite.</strong>' + heard +
         ' The answer is <strong>' + answerLabel() + '</strong>.' +
-        '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>';
+        '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>' +
+        formulaHtml(current.answer);
     }
     saveStats();
     updateStats();
