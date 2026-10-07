@@ -25,7 +25,7 @@
     try { localStorage.setItem('chordquiz-stats', JSON.stringify(stats)); } catch (e) {}
   }
 
-  function renderDiagram(svg, voicing) {
+  function renderDiagram(svg, voicing, showNotes) {
     var frets = voicing.split('-').map(function (v) {
       v = v.trim().toLowerCase();
       return v === 'x' ? -1 : (v === '0' || v === 'o' ? 0 : parseInt(v, 10));
@@ -79,11 +79,26 @@
         xt.textContent = '✕';
         svg.appendChild(xt);
       } else if (fv === 0) {
-        svg.appendChild(el('circle', { cx: mx, cy: 48, r: 10, fill: 'none',
-          stroke: '#222', 'stroke-width': 3 }));
+        if (showNotes) {
+          var ot = el('text', { x: mx, y: 48, 'text-anchor': 'middle',
+            'dominant-baseline': 'central', 'font-size': 13, 'font-weight': 'bold',
+            fill: '#222' });
+          ot.textContent = NOTE_NAMES[STRING_BASES[i] % 12];
+          svg.appendChild(ot);
+        } else {
+          svg.appendChild(el('circle', { cx: mx, cy: 48, r: 10, fill: 'none',
+            stroke: '#222', 'stroke-width': 3 }));
+        }
       } else {
         var cy = mt + (fv - startFret + 0.5) * sy;
         svg.appendChild(el('circle', { cx: mx, cy: cy, r: 15, fill: '#222' }));
+        if (showNotes) {
+          var nt = el('text', { x: mx, y: cy, 'text-anchor': 'middle',
+            'dominant-baseline': 'central', 'font-size': 11, 'font-weight': 'bold',
+            fill: '#fff' });
+          nt.textContent = NOTE_NAMES[(STRING_BASES[i] + fv) % 12];
+          svg.appendChild(nt);
+        }
       }
     }
   }
@@ -219,11 +234,16 @@
     return out;
   }
 
-  function showQuestion() {
-    current = pickQuestion();
-    lastId = current.id;
+  function showNotesOn() {
+    var cb = $('show-notes');
+    return cb && cb.checked;
+  }
+
+  function displayQuestion(q) {
+    current = q;
+    lastId = q.id;
     hinted = false;
-    renderDiagram($('diagram'), current.voicing);
+    renderDiagram($('diagram'), q.voicing, showNotesOn());
     $('answer').value = '';
     $('feedback').className = 'feedback';
     $('feedback').innerHTML = '';
@@ -234,6 +254,25 @@
     $('submit-btn').style.display = '';
     $('answer').disabled = false;
     $('answer').focus();
+    // Shareable link: put the question id in the URL hash (no history spam).
+    try {
+      history.replaceState(null, '', '#' + q.id);
+    } catch (e) {
+      location.hash = q.id;
+    }
+  }
+
+  function showQuestion() {
+    displayQuestion(pickQuestion());
+  }
+
+  function questionFromHash() {
+    var h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    for (var i = 0; i < questions.length; i++) {
+      if (questions[i].id === h) return questions[i];
+    }
+    return null;
   }
 
   function grade(userText) {
@@ -341,12 +380,15 @@
     });
     $('hint-btn').onclick = showHint;
     $('next-btn').onclick = showQuestion;
+    $('show-notes').onchange = function () {
+      if (current) renderDiagram($('diagram'), current.voicing, this.checked);
+    };
     fetch('questions.json')
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (bank) {
         questions = bank.questions;
         if (!questions.length) throw new Error('empty bank');
-        showQuestion();
+        displayQuestion(questionFromHash() || pickQuestion());
       })
       .catch(function (err) {
         $('feedback').className = 'feedback wrong';
