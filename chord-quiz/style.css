@@ -30,6 +30,11 @@ h1 { margin: 8px 0 4px; font-size: 26px; }
   padding: 8px; margin-bottom: 12px;
 }
 #diagram { width: 100%; height: auto; display: block; }
+.notes-toggle {
+  display: block; text-align: center; margin: -4px 0 12px;
+  font-size: 14px; color: #555; cursor: pointer; user-select: none;
+}
+.notes-toggle input { vertical-align: -1px; margin-right: 4px; }
 
 .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
 #answer {
