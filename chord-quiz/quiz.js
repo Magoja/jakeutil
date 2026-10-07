@@ -147,27 +147,51 @@
     return {
       root: root,
       degrees: items.map(function (x) { return x.d; }),
-      offsets: items.map(function (x) { return x.iv; })
+      offsets: items.map(function (x) { return x.iv; }),
+      formulaPcs: parsed.pcs.slice()
     };
   }
 
-  function renderFormulaStrip(root, offsets) {
-    var strip = '', marks = '';
-    for (var i = 0; i <= 24; i++) {
-      var pc = (root + i) % 12;
-      strip += NATURAL_LETTERS[pc] || ' ';
-      marks += offsets.indexOf(i % 12) !== -1 ? '^' : ' ';
+  /* Pitch classes actually sounding in a voicing (open strings count, muted don't). */
+  function voicingPcs(voicing) {
+    var pcs = [];
+    var parts = voicing.split('-');
+    for (var i = 0; i < 6; i++) {
+      var v = parts[i].trim().toLowerCase();
+      if (v === 'x') continue;
+      var fret = (v === '0' || v === 'o') ? 0 : parseInt(v, 10);
+      var pc = (STRING_BASES[i] + fret) % 12;
+      if (pcs.indexOf(pc) === -1) pcs.push(pc);
     }
-    return strip + '\n' + marks;
+    return pcs;
   }
 
-  function formulaHtml(chordName) {
+  /* Single-octave strip with highlighted cells:
+   * dark = note played in the voicing, amber = chord tone omitted. */
+  function renderFormulaStrip(root, formulaPcs, playedPcs) {
+    var html = '';
+    for (var i = 0; i <= 12; i++) {
+      var pc = (root + i) % 12;
+      var letter = NATURAL_LETTERS[pc] || ' ';
+      var cls = 'off';
+      if (playedPcs.indexOf(pc) !== -1) cls = 'on';
+      else if (formulaPcs.indexOf(pc) !== -1) cls = 'informula';
+      html += '<span class="fcell ' + cls + '" title="' +
+        escapeHtml(NOTE_NAMES[pc]) + '">' + letter + '</span>';
+    }
+    return html;
+  }
+
+  function formulaHtml(chordName, voicing) {
     var f = chordFormula(chordName);
     if (!f) return '';
+    var played = voicingPcs(voicing);
     return '<div class="formula">Formula: ' +
       escapeHtml(f.degrees.join(' ')) + '</div>' +
-      '<pre class="strip">' +
-      escapeHtml(renderFormulaStrip(f.root, f.offsets)) + '</pre>';
+      '<div class="fstrip">' +
+      renderFormulaStrip(f.root, f.formulaPcs, played) + '</div>' +
+      '<div class="flegend"><span class="fcell on">&nbsp;</span> played' +
+      ' <span class="fcell informula">&nbsp;</span> chord tone omitted</div>';
   }
 
   function pickQuestion() {
@@ -243,7 +267,7 @@
       fb.innerHTML = '<strong>Correct!</strong> ' + answerLabel() +
         (hinted ? ' <span class="hint-note">(with hint)</span>' : '') +
         '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>' +
-        formulaHtml(current.answer);
+        formulaHtml(current.answer, current.voicing);
     } else {
       stats.streak = 0;
       fb.className = 'feedback wrong';
@@ -251,7 +275,7 @@
       fb.innerHTML = '<strong>Not quite.</strong>' + heard +
         ' The answer is <strong>' + answerLabel() + '</strong>.' +
         '<div class="notes">Notes: ' + escapeHtml(voicingNotes(current.voicing)) + '</div>' +
-        formulaHtml(current.answer);
+        formulaHtml(current.answer, current.voicing);
     }
     saveStats();
     updateStats();
