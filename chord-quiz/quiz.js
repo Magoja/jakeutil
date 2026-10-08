@@ -67,6 +67,22 @@
       t.textContent = fn;
       svg.appendChild(t);
     }
+    // position inlay markers (single dots at 3,5,7,9,15,17,19,21; double at 12,24),
+    // drawn before finger dots so dots cover them on overlap
+    var INLAYS = { 3: 1, 5: 1, 7: 1, 9: 1, 12: 2, 15: 1, 17: 1, 19: 1, 21: 1, 24: 2 };
+    var midx = ml + 2.5 * sx;
+    for (var mk in INLAYS) {
+      var mfn = parseInt(mk, 10);
+      if (mfn >= startFret && mfn < startFret + nFrets) {
+        var my = mt + (mfn - startFret + 0.5) * sy;
+        if (INLAYS[mk] === 2) {
+          svg.appendChild(el('circle', { cx: midx - sx * 0.55, cy: my, r: 6, fill: '#c9c9c9' }));
+          svg.appendChild(el('circle', { cx: midx + sx * 0.55, cy: my, r: 6, fill: '#c9c9c9' }));
+        } else {
+          svg.appendChild(el('circle', { cx: midx, cy: my, r: 7, fill: '#c9c9c9' }));
+        }
+      }
+    }
     // markers
     for (var i = 0; i < 6; i++) {
       var mx = ml + i * sx, fv = frets[i];
