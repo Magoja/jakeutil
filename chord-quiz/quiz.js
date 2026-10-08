@@ -121,7 +121,6 @@
    *   ^   ^     ^   ^     ^
    * Derived from the chord's pitch-class set; ambiguous spellings
    * (b3 vs #9, 6 vs 13, ...) are resolved from the chord name. */
-  var NATURAL_LETTERS = { 0: 'C', 2: 'D', 4: 'E', 5: 'F', 7: 'G', 9: 'A', 11: 'B' };
   var DEGREE_ORDER = ['1', 'b2', '2', 'b3', '3', '4', 'b5', '#4', '5',
                       'b6', '#5', '6', 'bb7', 'b7', '7', 'b9', '9', '#9',
                       '11', '#11', 'b13', '13'];
@@ -181,18 +180,47 @@
     return pcs;
   }
 
+  /* Spell a chord tone from its formula degree, e.g. the b3 of B is D
+   * (not Db), the #9 of E is F##, the bb7 of Bdim7 is Ab. The accidental
+   * is derived from semitones so the label stays theoretically correct
+   * for the chord. Non-chord tones fall back to sharp spellings. */
+  var LETTER_PCS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  var SCALE_LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
+  function spellChordTone(rootLetter, rootPc, degree, iv) {
+    var pc = (rootPc + iv) % 12;
+    var num = parseInt(String(degree).replace(/[^0-9]/g, ''), 10);
+    var li = rootLetter ? SCALE_LETTERS.indexOf(rootLetter) : -1;
+    if (!num || li === -1) return NOTE_NAMES[pc];
+    var letter = SCALE_LETTERS[(li + num - 1) % 7];
+    var diff = (pc - LETTER_PCS[letter]) % 12;
+    if (diff > 6) diff -= 12;
+    if (diff < -6) diff += 12;
+    var acc = diff === 0 ? '' :
+              diff === 1 ? '#' :
+              diff === 2 ? '##' :
+              diff === -1 ? 'b' :
+              diff === -2 ? 'bb' : '?';
+    return letter + acc;
+  }
+
   /* Single-octave strip with highlighted cells:
-   * dark = note played in the voicing, amber = chord tone omitted. */
-  function renderFormulaStrip(root, formulaPcs, playedPcs) {
+   * dark = note played in the voicing, amber = chord tone omitted.
+   * Every cell is labeled; chord tones are spelled from the formula
+   * degrees so e.g. F# shows for Bm7 instead of a blank. */
+  function renderFormulaStrip(root, rootLetter, degByIv, formulaPcs, playedPcs) {
     var html = '';
     for (var i = 0; i <= 12; i++) {
-      var pc = (root + i) % 12;
-      var letter = NATURAL_LETTERS[pc] || ' ';
+      var iv = i % 12;
+      var pc = (root + iv) % 12;
+      var label = degByIv[iv] !== undefined
+        ? spellChordTone(rootLetter, root, degByIv[iv], iv)
+        : NOTE_NAMES[pc];
       var cls = 'off';
       if (playedPcs.indexOf(pc) !== -1) cls = 'on';
       else if (formulaPcs.indexOf(pc) !== -1) cls = 'informula';
       html += '<span class="fcell ' + cls + '" title="' +
-        escapeHtml(NOTE_NAMES[pc]) + '">' + letter + '</span>';
+        escapeHtml(label) + '">' + escapeHtml(label) + '</span>';
     }
     return html;
   }
@@ -201,10 +229,14 @@
     var f = chordFormula(chordName);
     if (!f) return '';
     var played = voicingPcs(voicing);
+    var degByIv = {};
+    for (var k = 0; k < f.offsets.length; k++) degByIv[f.offsets[k]] = f.degrees[k];
+    var m = String(chordName).match(/^[A-G]/i);
+    var rootLetter = m ? m[0].toUpperCase() : null;
     return '<div class="formula">Formula: ' +
       escapeHtml(f.degrees.join(' ')) + '</div>' +
       '<div class="fstrip">' +
-      renderFormulaStrip(f.root, f.formulaPcs, played) + '</div>' +
+      renderFormulaStrip(f.root, rootLetter, degByIv, f.formulaPcs, played) + '</div>' +
       '<div class="flegend"><span class="fcell on">&nbsp;</span> played' +
       ' <span class="fcell informula">&nbsp;</span> chord tone omitted</div>';
   }
@@ -396,6 +428,24 @@
       });
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  function maybeInit() {
+    // Only auto-start on the quiz page itself; test.html drives the
+    // exposed ChordQuiz API directly without the quiz DOM.
+    if (!document.getElementById('answer')) return;
+    init();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', maybeInit);
+  else maybeInit();
+
+  // UI component API for test.html (and console debugging).
+  if (typeof window !== 'undefined') {
+    window.ChordQuiz = {
+      renderDiagram: renderDiagram,
+      voicingNotes: voicingNotes,
+      formulaHtml: formulaHtml,
+      chordFormula: chordFormula,
+      voicingPcs: voicingPcs
+    };
+  }
 })();
