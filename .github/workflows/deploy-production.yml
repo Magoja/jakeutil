@@ -1,0 +1,33 @@
+name: Deploy production site
+
+# Publish master to the root of the gh-pages branch.
+# PR previews live under gh-pages/pr-preview/pr-<number>/ (see pr-preview.yml),
+# so production deploys must never delete that directory.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to gh-pages (root)
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: .
+          clean: true
+          clean-exclude: pr-preview/
+          force: false
