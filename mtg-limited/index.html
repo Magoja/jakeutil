@@ -67,12 +67,6 @@
           style="width: 100%; font-size: 1.2em; padding: 15px; background-color: #967adc;">Practice Sealed
           Event</button>
       </div>
-      <div id="update-log" style="margin-top: 20px; text-align: left;">
-        <div class="subtitle" style="font-weight: bold;">Recent Rule Updates</div>
-        <ul id="update-log-list" style="margin: 8px 0 0 0; padding-left: 20px; font-size: 0.9em;">
-          <li>Loading…</li>
-        </ul>
-      </div>
     </fieldset>
   </div>
 
@@ -81,42 +75,6 @@
   <script src="js/rng.js"></script>
   <script src="js/set-utils.js"></script>
   <script src="js/app.js"></script>
-  <script>
-    // Show the last 5 entries from keyword.json's update_log below the Practice Sealed button.
-    document.addEventListener('DOMContentLoaded', async () => {
-      const list = document.getElementById('update-log-list');
-      if (!list) return;
-      try {
-        const res = await fetch('keyword.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        const log = Array.isArray(data.update_log) ? data.update_log : [];
-        const last5 = log.slice(-5).reverse();
-        list.innerHTML = '';
-        if (last5.length === 0) {
-          const li = document.createElement('li');
-          li.textContent = 'No updates yet.';
-          list.appendChild(li);
-          return;
-        }
-        for (const entry of last5) {
-          const li = document.createElement('li');
-          li.textContent = (entry.date || '') + ' — ';
-          const b = document.createElement('strong');
-          b.textContent = entry.set || '';
-          li.appendChild(b);
-          li.appendChild(document.createTextNode(': ' + (entry.message || '')));
-          list.appendChild(li);
-        }
-      } catch (err) {
-        console.warn('Could not load update log:', err);
-        list.innerHTML = '';
-        const li = document.createElement('li');
-        li.textContent = 'Update history unavailable.';
-        list.appendChild(li);
-      }
-    });
-  </script>
 </body>
 <footer class="sticky-footer">
   By Jake, JAN/2026. For my loving kids.
