@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solitaire Playtest</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <a href="#" class="back-link" id="back-btn">← Back</a>
+    <div class="header-controls">
+      <div style="position: relative;">
+        <button class="action-button small" id="options-btn" style="background-color: #5d9cec;">Options</button>
+        <div class="options-menu" id="options-menu"
+          style="display: none; align-items: center; padding: 10px; flex-direction: row; right: 0;">
+          <span style="color: black; font-weight: bold; margin-right: 5px;">Zoom:</span>
+          <div class="menu-zoom-controls" style="display: flex; gap: 5px;">
+            <button id="zoom-out" class="zoom-btn">-</button>
+            <button id="zoom-in" class="zoom-btn">+</button>
+          </div>
+        </div>
+      </div>
+      <button class="action-button small" id="restart-btn" style="background-color: #d9534f;">Restart</button>
+    </div>
+  </div>
+
+  <div class="playmat">
+    <div class="zone-battlefield" id="battlefield">
+      <!-- Battlefield cards go here -->
+    </div>
+
+    <div class="life-counter">
+      <button class="life-btn" id="life-minus">-</button>
+      <span id="life-total">20</span>
+      <button class="life-btn" id="life-plus">+</button>
+    </div>
+
+    <div class="bottom-play-area">
+      <div class="zone-library" id="library-zone">
+        <div class="zone-title">Library</div>
+        <div id="library-stack"></div>
+        <div class="zone-controls">
+          <button class="zone-btn" id="lib-draw"
+            style="background-color: #5d9cec; font-weight: bold; padding: 5px 10px;">Draw Card</button>
+          <button class="zone-btn" id="untap-btn" style="background-color: #f6bb42;">Untap</button>
+          <button class="zone-btn" id="lib-reveal">Reveal</button>
+          <button class="zone-btn" id="lib-peek">Peek</button>
+          <button class="zone-btn" id="lib-search">Search</button>
+        </div>
+      </div>
+
+      <div class="zone-hand" id="hand-zone">
+        <div class="zone-title">Hand</div>
+        <!-- Hand cards go here -->
+      </div>
+
+      <div class="zone-graveyard" id="graveyard-zone" style="cursor: pointer;">
+        <div class="zone-title">Graveyard</div>
+        <div id="graveyard-stack" class="stacked-zone-container"></div>
+      </div>
+
+      <div class="zone-exile" id="exile-zone" style="cursor: pointer;">
+        <div class="zone-title">Exile</div>
+        <div id="exile-stack" class="stacked-zone-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full Screen Loading Overlay -->
+  <div id="global-loading-overlay" class="loading-overlay" style="display: flex;">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Loading Deck...</p>
+    </div>
+  </div>
+
+  <!-- Opening Draw 7 Modal -->
+  <div id="mulligan-modal" class="modal-overlay" style="display: none; z-index: 2000;">
+    <div class="modal mulligan-modal-content" style="width: 90%; max-width: 1000px;">
+      <h3>Opening Hand</h3>
+      <div id="mulligan-hand-display" class="cards-grid" style="justify-content: center; margin-bottom: 20px;">
+        <!-- Hand cards during opening go here -->
+      </div>
+      <div id="mulligan-instructions" style="margin-bottom: 10px; font-style: italic;">
+        Click cards to send them to the bottom of the library.
+      </div>
+      <div class="modal-buttons">
+        <button id="mulligan-action-btn" class="action-button small"
+          style="background-color: #d9534f;">Mulligan</button>
+        <button id="accept-hand-btn" class="action-button small" style="background-color: #8cc152;">Keep Hand</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- General List Modal (Searches, Graveyard, Exile) -->
+  <div id="list-modal" class="modal-overlay" style="display: none; z-index: 2500;">
+    <div class="modal list-modal-content">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 10px;">
+        <h3 id="list-modal-title" style="margin: 0; color: #333;">Title</h3>
+        <button id="close-list-modal-btn"
+          style="background:none; border:none; font-size: 20px; cursor: pointer; color: #333;">&times;</button>
+      </div>
+      <div id="list-modal-display" class="cards-grid" style="justify-content: center; margin-bottom: 20px;">
+        <!-- Cards go here -->
+      </div>
+      <div class="modal-buttons">
+        <button id="list-modal-action-btn" class="action-button small" style="display:none;"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Modal (Replaces alert) -->
+  <div id="message-modal" class="modal-overlay" style="display: none; z-index: 3000;">
+    <div class="modal list-modal-content" style="max-width: 300px; text-align: center; padding: 20px;">
+      <h3 id="message-modal-text" style="color: #333; margin-bottom: 20px; font-size: 16px;">Message</h3>
+      <button id="close-message-modal-btn" class="action-button small"
+        style="background-color: #5d9cec; width: 100%;">OK</button>
+    </div>
+  </div>
+
+  <script src="js/scryfall.js"></script>
+  <script src="js/loading-overlay.js"></script>
+  <script src="js/rng.js"></script>
+  <script src="js/seed-utils.js"></script>
+  <script src="js/card-ui.js"></script>
+  <script src="js/ui-utils.js"></script>
+  <script src="js/filter-utils.js"></script>
+  <script src="js/keyword-extractor.js"></script>
+  <script src="js/set-utils.js"></script>
+  <script src="js/booster-logic.js"></script>
+  <script src="js/deck-serializer.js"></script>
+  <script src="js/play.js"></script>
+</body>
+
+</html>
