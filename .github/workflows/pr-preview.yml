@@ -1,0 +1,32 @@
+name: Deploy PR preview
+
+# Every pull request gets a live preview of the whole site at
+# https://jakeutil.com/pr-preview/pr-<number>/
+# The preview is removed automatically when the PR is closed.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency: preview-${{ github.ref }}
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: .
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          pages-base-url: jakeutil.com
+          wait-for-pages-deployment: true
+          qr-code: false
