@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jake's Family Tools</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <a href="https://pages.jakeutil.com" class="blog-link" target="_blank">Blog</a>
+  <div class="container">
+    <h1>Jake's Family Tools</h1>
+    <div class="subtitle">Free, simple tools for my family and anyone who needs them. No ads, no paywalls.</div>
+    <input class="search" type="text" id="search" placeholder="Search tools..." oninput="filterApps()">
+    <div class="cards" id="cards"></div>
+  </div>
+  <script>
+    const apps = [
+      {
+        name: "Luke's Awesome Typer",
+        url: "/typing/",
+        description: "Luke would be an awesome typer with this app.",
+        preview: "⌨️"
+      },
+      {
+        name: "Javascript Playground",
+        url: "/js-playground/",
+        description: "Write and run Javascript code instantly.",
+        preview: "⚡"
+      },
+      {
+        name: "Python Playground",
+        url: "/python-playground/",
+        description: "Write and run Python code instantly.",
+        preview: "🐍"
+      },
+      {
+        name: "MTG Proxy Generator",
+        url: "/mtgproxy/",
+        description: "Generate Magic the Gathering proxy card image to print.",
+        preview: "🃏"
+      },
+      {
+        name: "QRCode generator",
+        url: "/freeqr/",
+        description: "No shenanigan, just create QR Code.",
+        preview: `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="10" height="10" fill="#222"/><rect x="20" y="2" width="10" height="10" fill="#222"/><rect x="2" y="20" width="10" height="10" fill="#222"/><rect x="14" y="14" width="4" height="4" fill="#222"/><rect x="24" y="24" width="4" height="4" fill="#222"/><rect x="14" y="24" width="2" height="2" fill="#222"/><rect x="24" y="14" width="2" height="2" fill="#222"/></svg>`
+      },
+      {
+        name: "Weekly Calendar Print",
+        url: "/weekly-calendar-print/",
+        description: "Print weekly calendar for reminder.",
+        preview: "🗓️"
+      },
+      // Add more apps here in future
+      {
+        name: "Costco Shopping List",
+        url: "/costco/",
+        description: "Organize and optimize your Costco shopping trip.",
+        preview: "🛒"
+      },
+      {
+        name: "MTG Limited Training",
+        url: "/mtg-limited/",
+        description: "Review MTG sets for limited play",
+        preview: '<img src="mtg-limited/icon.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">'
+      },
+      {
+        name: "Chord Quiz",
+        url: "/chord-quiz/",
+        description: "Name the chord from its fretboard shape",
+        preview: "🎸"
+      },
+    ];
+
+    // Load recent apps
+    function getRecentApps() {
+      try {
+        return JSON.parse(localStorage.getItem('jakeutil_recent_apps')) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function trackAppUsage(appName) {
+      let recent = getRecentApps();
+      // Remove if exists
+      recent = recent.filter(name => name !== appName);
+      // Add to front
+      recent.unshift(appName);
+      // Limit to 5
+      if (recent.length > 5) recent.pop();
+      localStorage.setItem('jakeutil_recent_apps', JSON.stringify(recent));
+    }
+
+    // Sort apps by recency
+    function sortApps(appList) {
+      const recent = getRecentApps();
+      if (recent.length === 0) return appList;
+
+      return [...appList].sort((a, b) => {
+        const indexA = recent.indexOf(a.name);
+        const indexB = recent.indexOf(b.name);
+
+        // If both are recent, sort by index (lower index = more recent = first)
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        // If a is recent but b is not, a comes first
+        if (indexA !== -1) return -1;
+        // If b is recent but a is not, b comes first
+        if (indexB !== -1) return 1;
+        // Neither is recent, keep original order (or alphabetical?)
+        // Keeping original order for now as per array definition
+        return 0;
+      });
+    }
+
+    function renderApps(list) {
+      const cards = document.getElementById('cards');
+      cards.innerHTML = '';
+
+      // Sort before rendering
+      const sortedList = sortApps(list);
+
+      sortedList.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        // Use data attribute or escape name for safety
+        const safeName = app.name.replace(/'/g, "\\'");
+        card.innerHTML = `
+          <div class="preview">${app.preview || '🔧'}</div>
+          <div class="app-name">${app.name}</div>
+          <div class="desc">${app.description}</div>
+          <a class="link" href="${app.url}" target="_blank" onclick="trackAppUsage('${safeName}')">Open</a>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
+    function filterApps() {
+      const q = document.getElementById('search').value.toLowerCase();
+      // Only filter, let renderApps handle sorting
+      const filtered = apps.filter(app =>
+        app.name.toLowerCase().includes(q) ||
+        app.description.toLowerCase().includes(q)
+      );
+      renderApps(filtered);
+    }
+
+    renderApps(apps);
+  </script>
+</body>
+
+<footer class="sticky-footer">
+  By Jake, Aug/2025,
+  <a href="mailto:info@jakeutil.com">Email</a> |
+  <a href="https://github.com/Magoja/jakeutil">Github Repository</a>
+</footer>
+
+</html>
