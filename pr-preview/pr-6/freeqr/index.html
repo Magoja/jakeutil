@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreeQR: Simple QR Code Generator</title>
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>FreeQR: QR Code Generator</h1>
+    <p class="desc">Generate a QR code for any URL instantly. No tracking, no ads. Enter your link below:</p>
+    <input type="text" id="urlInput" placeholder="Paste your URL here..." autocomplete="off">
+    <button id="generateBtn" disabled>Generate QR Code</button>
+    <div id="qrcode"></div>
+    <button id="downloadBtn" class="download-btn" style="display:none;">Download QR Code</button>
+    <div class="tips">
+      <strong>About other public QR code services:</strong>
+      <ul>
+        <li><b>Pros:</b> Easy to use, instant results, often free.</li>
+        <li><b>Cons:</b> Some services may track your usage or embed tracking in QR codes. Your URLs may be logged or
+          shared. Always check privacy policies.</li>
+      </ul>
+      <b>Tip:</b> Generating QR codes locally (like this app) is safer for privacy.
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="app.js"></script>
+</body>
+
+<footer class="sticky-footer">
+  By Jake, Aug/2025 for Jinmi.
+  <a href="mailto:info@jakeutil.com">Email</a> |
+  <a href="https://github.com/Magoja/jakeutil">Github Repository</a>
+</footer>
+
+</html>
