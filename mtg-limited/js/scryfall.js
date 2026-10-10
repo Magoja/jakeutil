@@ -2,16 +2,20 @@
  * scryfall.js
  * Centralized logic for interacting with the Scryfall API.
  *
- * Results are cached in ephemeral storage (in-memory Map + sessionStorage)
- * so repeat visits and re-rolls don't hammer the Scryfall API. Card and set
- * data is immutable once released, so entries live for 24h; spoiler season
- * gets fresh data at most once a day.
+ * Results are cached in a two-tier store (in-memory Map + localStorage)
+ * so repeat visits, new tabs, and browser restarts don't re-hit the
+ * Scryfall API. Card and set data is immutable once released, so entries
+ * live for 24h (TTL checked on read); spoiler season gets fresh data at
+ * most once a day. localStorage outlives the tab, unlike sessionStorage,
+ * and the pruned card/set shapes (PR A) keep entries small enough for
+ * its ~5 MB quota; on quota pressure the oldest entries are evicted.
  */
 
 const Scryfall = {
   // ---- Ephemeral result cache -------------------------------------------
   CACHE_TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
-  CACHE_PREFIX: 'scryfall-cache-v2:',
+  CACHE_PREFIX: 'scryfall-cache-v3:',
+  LEGACY_PREFIXES: ['scryfall-cache-v2:', 'scryfall-cache-v1:'],
   _memoryCache: new Map(),
 
   /**
@@ -25,11 +29,11 @@ const Scryfall = {
       return structuredClone(mem.value);
     }
     try {
-      const raw = sessionStorage.getItem(this.CACHE_PREFIX + key);
+      const raw = localStorage.getItem(this.CACHE_PREFIX + key);
       if (!raw) return null;
       const entry = JSON.parse(raw);
       if (now - entry.ts > this.CACHE_TTL_MS) {
-        sessionStorage.removeItem(this.CACHE_PREFIX + key);
+        localStorage.removeItem(this.CACHE_PREFIX + key);
         return null;
       }
       this._memoryCache.set(key, entry); // promote to memory tier
@@ -40,30 +44,57 @@ const Scryfall = {
   },
 
   /**
-   * Store a value in both cache tiers. sessionStorage may throw on quota
-   * (large sets) or when blocked; the memory tier still covers the session.
+   * Store a value in both cache tiers. localStorage may throw on quota
+   * (many cached sets) or when blocked; on quota pressure, evict the
+   * oldest cache entries and retry once, else fall back to memory-only.
    */
   _cacheSet(key, value) {
     const entry = { ts: Date.now(), value };
     this._memoryCache.set(key, entry);
     try {
-      sessionStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify(entry));
+      localStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify(entry));
     } catch (e) {
-      console.warn('Scryfall cache: sessionStorage unavailable, memory-only.', e);
+      try {
+        this._evictOldest();
+        localStorage.setItem(this.CACHE_PREFIX + key, JSON.stringify(entry));
+      } catch (e2) {
+        console.warn('Scryfall cache: localStorage unavailable, memory-only.', e2);
+      }
     }
   },
 
-  /** Clear all cached Scryfall responses from both tiers. */
+  /** Remove the oldest half of this cache's localStorage entries. */
+  _evictOldest() {
+    const entries = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(this.CACHE_PREFIX)) {
+        let ts = 0;
+        try { ts = JSON.parse(localStorage.getItem(k)).ts || 0; } catch (e) { /* corrupt: evict first */ }
+        entries.push({ k, ts });
+      }
+    }
+    entries.sort((a, b) => a.ts - b.ts);
+    const n = Math.max(1, Math.ceil(entries.length / 2));
+    entries.slice(0, n).forEach(e => localStorage.removeItem(e.k));
+  },
+
+  /** Clear all cached Scryfall responses from both tiers, plus legacy
+   *  sessionStorage entries left by older cache versions. */
   clearCache() {
     this._memoryCache.clear();
-    try {
-      const keys = [];
-      for (let i = 0; i < sessionStorage.length; i++) {
-        const k = sessionStorage.key(i);
-        if (k && k.startsWith(this.CACHE_PREFIX)) keys.push(k);
-      }
-      keys.forEach(k => sessionStorage.removeItem(k));
-    } catch (e) { /* storage unavailable */ }
+    const sweep = (storage, prefixes) => {
+      try {
+        const keys = [];
+        for (let i = 0; i < storage.length; i++) {
+          const k = storage.key(i);
+          if (k && prefixes.some(p => k.startsWith(p))) keys.push(k);
+        }
+        keys.forEach(k => storage.removeItem(k));
+      } catch (e) { /* storage unavailable */ }
+    };
+    sweep(localStorage, [this.CACHE_PREFIX]);
+    sweep(sessionStorage, this.LEGACY_PREFIXES);
   },
 
   /**
