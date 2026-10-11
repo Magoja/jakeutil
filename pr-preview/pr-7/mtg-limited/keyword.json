@@ -1,0 +1,768 @@
+{
+  "ecl": {
+    "keywords": {
+      "-1/-1 synergy": [
+        {
+          "property": "oracle_text",
+          "regex": "-1/-1"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Blight"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Persist"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Wither"
+        }
+      ],
+      "Spell 4+ Mana": [
+        {
+          "property": "oracle_text",
+          "regex": "Whenever you cast a spell with mana value 4 or greater"
+        }
+      ],
+      "Tapped Trigger": [
+        {
+          "property": "oracle_text",
+          "regex": "becomes tapped"
+        }
+      ],
+      "Elf": [
+        {
+          "property": "type_line",
+          "regex": "Elf"
+        }
+      ],
+      "Goblin": [
+        {
+          "property": "type_line",
+          "regex": "Goblin"
+        }
+      ],
+      "Elemental": [
+        {
+          "property": "type_line",
+          "regex": "Elemental"
+        }
+      ],
+      "Kithkin": [
+        {
+          "property": "type_line",
+          "regex": "Kithkin"
+        }
+      ],
+      "Merfolk": [
+        {
+          "property": "type_line",
+          "regex": "Merfolk"
+        }
+      ],
+      "Shapeshifter": [
+        {
+          "property": "type_line",
+          "regex": "Shapeshifter"
+        }
+      ]
+    }
+  },
+  "tmt": {
+    "keywords": {
+      "Sneak": [
+        {
+          "property": "oracle_text",
+          "regex": "Sneak"
+        }
+      ],
+      "Disappear": [
+        {
+          "property": "oracle_text",
+          "regex": "Disappear"
+        }
+      ],
+      "Alliance": [
+        {
+          "property": "oracle_text",
+          "regex": "Alliance"
+        }
+      ],
+      "Mutagen": [
+        {
+          "property": "oracle_text",
+          "regex": "Mutagen"
+        }
+      ],
+      "Artifact": [
+        {
+          "property": "type_line",
+          "regex": "Artifact"
+        }
+      ],
+      "Turtle": [
+        {
+          "property": "type_line",
+          "regex": "Turtle"
+        }
+      ],
+      "Mutant": [
+        {
+          "property": "type_line",
+          "regex": "Mutant"
+        }
+      ],
+      "Ninja": [
+        {
+          "property": "type_line",
+          "regex": "Ninja"
+        }
+      ],
+      "Food": [
+        {
+          "property": "type_line",
+          "regex": "Food"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Food"
+        }
+      ]
+    },
+    "booster": {
+      "bonusQuery": null,
+      "rules": [
+        { "count": 6, "name": "Common Slots",       "pool": { "common": 1 } },
+        { "count": 3, "name": "Uncommon Slots",     "pool": { "uncommon": 1 } },
+        { "count": 1, "name": "Rare/Mythic Slot",   "pool": { "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Land Slot",          "pool": { "basic": 1, "land": 1 } },
+        { "count": 1, "name": "Ninja Slot",         "pool": { "ninja": 1 } },
+        { "count": 1, "name": "Wildcard Slot",      "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Foil Wildcard Slot", "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
+      ],
+      "customPools": {
+        "ninja": [
+          { "property": "type_line", "regex": "Ninja" }
+        ]
+      }
+    }
+  },
+  "sos": {
+    "keywords": {
+      "Prepared": [
+        { "property": "oracle_text", "regex": "Prepared" }
+      ],
+      "Opus": [
+        { "property": "oracle_text", "regex": "Opus" }
+      ],
+      "Repartee": [
+        { "property": "oracle_text", "regex": "Repartee" }
+      ],
+      "Increment": [
+        { "property": "oracle_text", "regex": "Increment" }
+      ],
+      "Converge": [
+        { "property": "oracle_text", "regex": "Converge" }
+      ],
+      "Infusion": [
+        { "property": "oracle_text", "regex": "Infusion" }
+      ],
+      "Surveil": [
+        { "property": "oracle_text", "regex": "Surveil" }
+      ],
+      "Life Gain": [
+        { "property": "oracle_text", "regex": "you gain \\d+ life" },
+        { "property": "oracle_text", "regex": "if you gained life" },
+        { "property": "oracle_text", "regex": "whenever you gain life" }
+      ],
+      "Instant/Sorcery": [
+        { "property": "oracle_text", "regex": "instant or sorcery spell" },
+        { "property": "oracle_text", "regex": "instant or sorcery card" }
+      ],
+      "+1/+1 Counter": [
+        { "property": "oracle_text", "regex": "\\+1/\\+1" }
+      ],
+      "ETB Trigger": [
+        { "property": "oracle_text", "regex": "when(ever)? [^.]{0,30}enters" }
+      ],
+      "Copy Spell": [
+        { "property": "oracle_text", "regex": "cast a copy" },
+        { "property": "oracle_text", "regex": "copy of [^.]{0,20}spell" },
+        { "property": "oracle_text", "regex": "copy target" }
+      ],
+      "Flashback": [
+        { "property": "oracle_text", "regex": "Flashback" }
+      ],
+      "Graveyard": [
+        { "property": "oracle_text", "regex": "from your graveyard" },
+        { "property": "oracle_text", "regex": "into your graveyard" }
+      ],
+      "Leaves Graveyard": [
+        { "property": "oracle_text", "regex": "leaves? your graveyard" }
+      ],
+      "Fractal": [
+        { "property": "type_line", "regex": "Fractal" },
+        { "property": "oracle_text", "regex": "Fractal" }
+      ],
+      "Wizard": [
+        { "property": "type_line", "regex": "Wizard" }
+      ],
+      "Warlock": [
+        { "property": "type_line", "regex": "Warlock" }
+      ],
+      "Cleric": [
+        { "property": "type_line", "regex": "Cleric" }
+      ],
+      "Sorcerer": [
+        { "property": "type_line", "regex": "Sorcerer" }
+      ],
+      "Druid": [
+        { "property": "type_line", "regex": "Druid" }
+      ],
+      "Bard": [
+        { "property": "type_line", "regex": "Bard" }
+      ]
+    },
+    "booster": {
+      "bonusQuery": "set:soa",
+      "rules": [
+        { "count": 6, "name": "Common Slots",          "pool": { "common": 1 } },
+        { "count": 3, "name": "Uncommon Slots",        "pool": { "uncommon": 1 } },
+        { "count": 1, "name": "Rare/Mythic Slot",      "pool": { "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Land Slot",             "pool": { "basic": 1, "land": 1 } },
+        { "count": 1, "name": "Mythic Archive Slot",   "pool": { "spg": 1 } },
+        { "count": 1, "name": "Wildcard Slot",         "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Foil Wildcard Slot",    "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
+      ]
+    }
+  },
+  "msh": {
+    "keywords": {
+      "Power-up": [
+        {
+          "property": "oracle_text",
+          "regex": "Power-up"
+        }
+      ],
+      "Teamwork": [
+        {
+          "property": "oracle_text",
+          "regex": "Teamwork"
+        }
+      ],
+      "+1/+1 Counter": [
+        {
+          "property": "oracle_text",
+          "regex": "\\+1/\\+1"
+        }
+      ],
+      "Tap Synergy": [
+        {
+          "property": "oracle_text",
+          "regex": "becomes tapped"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "tap (target|any number of|another|an untapped|enchanted|up to)"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Teamwork"
+        }
+      ],
+      "Connive": [
+        {
+          "property": "oracle_text",
+          "regex": "connive"
+        }
+      ],
+      "Second Card": [
+        {
+          "property": "oracle_text",
+          "regex": "(draw|drawn) (your |their )?second card"
+        }
+      ],
+      "Discard": [
+        {
+          "property": "oracle_text",
+          "regex": "discard"
+        }
+      ],
+      "Sneak": [
+        {
+          "property": "oracle_text",
+          "regex": "Sneak"
+        }
+      ],
+      "Prowess / Spells": [
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        }
+      ],
+      "Transform": [
+        {
+          "property": "oracle_text",
+          "regex": "transform"
+        },
+        {
+          "property": "type_line",
+          "regex": "//"
+        }
+      ],
+      "Hero": [
+        {
+          "property": "type_line",
+          "regex": "Hero"
+        }
+      ],
+      "Villain": [
+        {
+          "property": "type_line",
+          "regex": "Villain"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "another Villain"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Villain (you control|spell|creature token)"
+        }
+      ],
+      "Mutant": [
+        {
+          "property": "type_line",
+          "regex": "Mutant"
+        }
+      ],
+      "Robot": [
+        {
+          "property": "type_line",
+          "regex": "Robot"
+        }
+      ],
+      "Spy": [
+        {
+          "property": "type_line",
+          "regex": "Spy"
+        }
+      ],
+      "Scientist": [
+        {
+          "property": "type_line",
+          "regex": "Scientist"
+        }
+      ],
+      "Soldier": [
+        {
+          "property": "type_line",
+          "regex": "Soldier"
+        }
+      ],
+      "Equipment": [
+        {
+          "property": "type_line",
+          "regex": "Equipment"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equip "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equipment"
+        }
+      ],
+      "Vehicle": [
+        {
+          "property": "type_line",
+          "regex": "Vehicle"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Vehicle"
+        }
+      ],
+      "Artifact Matters": [
+        {
+          "property": "oracle_text",
+          "regex": "artifact you control"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "artifact enters"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "an artifact entered"
+        }
+      ],
+      "Sacrifice": [
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice (a|an|another) "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice this creature"
+        }
+      ],
+      "Dies Trigger": [
+        {
+          "property": "oracle_text",
+          "regex": "dies,"
+        }
+      ],
+      "Graveyard Recursion": [
+        {
+          "property": "oracle_text",
+          "regex": "from your graveyard"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "return .* from your graveyard"
+        }
+      ],
+      "Attack Alone": [
+        {
+          "property": "oracle_text",
+          "regex": "attacks? alone"
+        }
+      ],
+      "Token": [
+        {
+          "property": "oracle_text",
+          "regex": "create [^.]*token"
+        }
+      ],
+      "Plan": [
+        {
+          "property": "type_line",
+          "regex": "\\bPlan\\b"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "plan counter"
+        }
+      ]
+    },
+    "booster": {
+      "bonusQuery": "set:mar date:2026-06-26",
+      "rules": [
+        { "count": 6, "name": "Common Slots",        "pool": { "common": 1 } },
+        { "count": 1, "name": "Source Material Slot", "pool": { "common": 23, "spg": 1 } },
+        { "count": 3, "name": "Uncommon Slots",       "pool": { "uncommon": 1 } },
+        { "count": 1, "name": "Rare/Mythic Slot",     "pool": { "rare": 82, "mythic": 18 } },
+        { "count": 1, "name": "Land Slot",            "pool": { "basic": 4, "land": 1 } },
+        { "count": 1, "name": "Wildcard Slot",        "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } },
+        { "count": 1, "name": "Foil Wildcard Slot",   "pool": { "common": 60, "uncommon": 25, "rare": 7, "mythic": 1 } }
+      ]
+    }
+  },
+  "hob": {
+    "keywords": {
+      "WU Humans — Draw Two": [
+        { "property": "type_line", "regex": "Human" },
+        { "property": "oracle_text", "regex": "recruit" },
+        { "property": "oracle_text", "regex": "draw (your |their )?second card" },
+        { "property": "oracle_text", "regex": "second card each turn" },
+        { "property": "oracle_text", "regex": "drawn two or more cards" },
+        { "property": "oracle_text", "regex": "whenever you draw a card" },
+        { "property": "oracle_text", "regex": "target Human" }
+      ],
+      "WR Dwarves — Storied": [
+        { "property": "type_line", "regex": "Dwarf" },
+        { "property": "oracle_text", "regex": "Storied" },
+        { "property": "oracle_text", "regex": "enduring story" },
+        { "property": "type_line", "regex": "Saga" },
+        { "property": "type_line", "regex": "Equipment" },
+        { "property": "oracle_text", "regex": "target Dwarf" }
+      ],
+      "BR Goblins — Amass / Sacrifice": [
+        { "property": "type_line", "regex": "Goblin" },
+        { "property": "oracle_text", "regex": "amass" },
+        { "property": "oracle_text", "regex": "sacrifice (a|an|another) " },
+        { "property": "oracle_text", "regex": "\\bdie(s)?," },
+        { "property": "oracle_text", "regex": "Army you control" },
+        { "property": "oracle_text", "regex": "Goblin or Orc" }
+      ],
+      "BG Beasts — Ferocious": [
+        { "property": "type_line", "regex": "Wolf" },
+        { "property": "type_line", "regex": "Bear" },
+        { "property": "type_line", "regex": "Spider" },
+        { "property": "oracle_text", "regex": "ferocious" },
+        { "property": "oracle_text", "regex": "power 4 or (greater|more)" },
+        { "property": "oracle_text", "regex": "Bear, Spider, or Wolf" }
+      ],
+      "UG Elves — Landfall": [
+        { "property": "type_line", "regex": "Elf" },
+        { "property": "oracle_text", "regex": "landfall" },
+        { "property": "oracle_text", "regex": "a land enters" },
+        { "property": "oracle_text", "regex": "search your library for [^.]*land" },
+        { "property": "oracle_text", "regex": "target Elf" }
+      ],
+      "Creature Removal": [
+        { "property": "oracle_text", "regex": "destroy target creature" },
+        { "property": "oracle_text", "regex": "exile (up to \\w+ )?target (creature|nonland permanent)(?![^.]*you control)" },
+        { "property": "oracle_text", "regex": "exile all [^.]*creatures" },
+        { "property": "oracle_text", "regex": "deals \\d+ damage to (target creature|any target|another target creature|each [^.]*creature)" },
+        { "property": "oracle_text", "regex": "deals \\d+ damage divided" },
+        { "property": "oracle_text", "regex": "deals damage equal to [^.]* to (target creature|another target creature|up to (one|two|\\w+) target creature)" },
+        { "property": "oracle_text", "regex": "gets? -\\d/-\\d" },
+        { "property": "oracle_text", "regex": "creatures? (target player controls|an opponent controls) gets? -\\d" },
+        { "property": "oracle_text", "regex": "sacrifices a creature" },
+        { "property": "oracle_text", "regex": "fights? (target|another target)" },
+        { "property": "oracle_text", "regex": "puts? it on [^.]*(top|bottom) of [^.]*library" },
+        { "property": "oracle_text", "regex": "loses all abilities" },
+        { "property": "oracle_text", "regex": "doesn't untap during its controller" },
+        { "property": "oracle_text", "regex": "enchanted creature can't attack" }
+      ]
+    },
+    "archetype_colors": {
+      "WU Humans — Draw Two": ["W", "U"],
+      "WR Dwarves — Storied": ["W", "R"],
+      "BR Goblins — Amass / Sacrifice": ["B", "R"],
+      "BG Beasts — Ferocious": ["B", "G"],
+      "UG Elves — Landfall": ["U", "G"]
+    },
+    "booster": {
+      "landPool": { "basic": 1, "dual": 1 },
+      "customPools": {
+        "dual": [
+          { "property": "oracle_text", "regex": "Sacrifice this land: Put two \\+1/\\+1 counters on target" }
+        ]
+      }
+    }
+  },
+  "fra":   {
+    "keywords": {
+      "BG Garruk's — Bestiary": [
+        {
+          "property": "oracle_text",
+          "regex": "deathtouch"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "trample"
+        }
+      ],
+      "BR Stingerquill — Face Burn": [
+        {
+          "property": "oracle_text",
+          "regex": "noncombat damage"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "damage to target opponent"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "deals \\d+ damage to any target"
+        }
+      ],
+      "Behold": [
+        {
+          "property": "oracle_text",
+          "regex": "behold"
+        }
+      ],
+      "Empower Jace": [
+        {
+          "property": "oracle_text",
+          "regex": "empower Jace"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace planeswalker token"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace token"
+        }
+      ],
+      "GU Jace's — Mastery": [
+        {
+          "property": "oracle_text",
+          "regex": "empower Jace"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Jace"
+        },
+        {
+          "property": "type_line",
+          "regex": "Jace"
+        }
+      ],
+      "GW Vigorbloom — Life Gain": [
+        {
+          "property": "oracle_text",
+          "regex": "you gain \\d+ life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "if you gained life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "whenever you gain life"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "\\+1/\\+1"
+        }
+      ],
+      "Heartwood": [
+        {
+          "property": "oracle_text",
+          "regex": "Heartwood"
+        },
+        {
+          "property": "type_line",
+          "regex": "Heartwood"
+        }
+      ],
+      "Prepare": [
+        {
+          "property": "oracle_text",
+          "regex": "prepared"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "prepare spell"
+        }
+      ],
+      "Prowess": [
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        }
+      ],
+      "RG Konstrari — Mana Ramp": [
+        {
+          "property": "oracle_text",
+          "regex": "Heartwood"
+        },
+        {
+          "property": "type_line",
+          "regex": "Heartwood"
+        }
+      ],
+      "RW Ajani's — Army": [
+        {
+          "property": "type_line",
+          "regex": "Cadet"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Cadet"
+        },
+        {
+          "property": "type_line",
+          "regex": "Equipment"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "Equip "
+        }
+      ],
+      "Surveil": [
+        {
+          "property": "oracle_text",
+          "regex": "surveil"
+        }
+      ],
+      "Threshold": [
+        {
+          "property": "oracle_text",
+          "regex": "threshold"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "seven or more cards in your graveyard"
+        }
+      ],
+      "UB Theorix — Graveyard Math": [
+        {
+          "property": "oracle_text",
+          "regex": "threshold"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "mill"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cards in your graveyard"
+        }
+      ],
+      "UR Chandra's — Prowess": [
+        {
+          "property": "oracle_text",
+          "regex": "prowess"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "cast a noncreature spell"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "instant or sorcery"
+        }
+      ],
+      "WB Liliana's — Attrition": [
+        {
+          "property": "oracle_text",
+          "regex": "sacrifice (a|an|another) "
+        },
+        {
+          "property": "oracle_text",
+          "regex": "dies,"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "from your graveyard"
+        }
+      ],
+      "WU Fatehold — Surveil Aggro": [
+        {
+          "property": "oracle_text",
+          "regex": "surveil"
+        },
+        {
+          "property": "oracle_text",
+          "regex": "whenever you surveil"
+        }
+      ]
+    },
+    "archetype_colors": {
+      "BG Garruk's — Bestiary": ["B", "G"],
+      "BR Stingerquill — Face Burn": ["B", "R"],
+      "GU Jace's — Mastery": ["G", "U"],
+      "GW Vigorbloom — Life Gain": ["G", "W"],
+      "RG Konstrari — Mana Ramp": ["R", "G"],
+      "RW Ajani's — Army": ["R", "W"],
+      "UB Theorix — Graveyard Math": ["U", "B"],
+      "UR Chandra's — Prowess": ["U", "R"],
+      "WB Liliana's — Attrition": ["W", "B"],
+      "WU Fatehold — Surveil Aggro": ["W", "U"]
+    }
+  },
+  "update_log": [
+    {
+      "date": "2026-09-26",
+      "set": "Reality Fracture",
+      "message": "Added Reality Fracture (fra) draft keywords: 10 archetypes and 7 mechanics"
+    }
+  ]
+}

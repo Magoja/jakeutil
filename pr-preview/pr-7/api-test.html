@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worker API Test</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; background: #f7f5ef; color: #222; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    h1 { font-size: 22px; }
+    label { display: block; font-size: 13px; color: #666; margin: 14px 0 4px; }
+    input { width: 100%; box-sizing: border-box; font-size: 15px; padding: 10px; border: 2px solid #ddd; border-radius: 10px; }
+    input:focus { outline: none; border-color: #0f766e; }
+    button { margin-top: 16px; font-size: 16px; font-weight: 600; color: #fff; background: #0f766e; border: none; border-radius: 10px; padding: 12px 24px; cursor: pointer; }
+    button:active { background: #0b5e57; }
+    button:disabled { background: #999; cursor: wait; }
+    pre { background: #fff; border-radius: 12px; padding: 16px; margin-top: 16px; font-size: 14px; white-space: pre-wrap; word-break: break-word; min-height: 60px; }
+    .meta { font-size: 13px; color: #666; margin-top: 8px; }
+    .hint { font-size: 13px; color: #666; background: #fff; border-radius: 12px; padding: 12px 16px; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <h1>Worker API Test</h1>
+
+  <label for="base">API base URL (empty = same origin, i.e. <code>/api/…</code> on this site)</label>
+  <input id="base" type="text" placeholder="e.g. https://jakeutil-api.jake.workers.dev" autocomplete="off">
+
+  <label for="name">Name (optional)</label>
+  <input id="name" type="text" placeholder="Jake" maxlength="64" autocomplete="off">
+
+  <button id="call-btn">Call API</button>
+
+  <pre id="out">Result will appear here.</pre>
+  <div class="meta" id="meta"></div>
+
+  <div class="hint">
+    Until the Worker is deployed and routed to <code>jakeutil.com/api/*</code>,
+    paste its <code>*.workers.dev</code> URL above. After the route is live,
+    leave the base empty and it calls this site's own <code>/api/hello</code>.
+  </div>
+
+  <script>
+    const baseEl = document.getElementById('base');
+    const nameEl = document.getElementById('name');
+    const btn = document.getElementById('call-btn');
+    const out = document.getElementById('out');
+    const meta = document.getElementById('meta');
+
+    btn.addEventListener('click', async () => {
+      const base = baseEl.value.trim().replace(/\/+$/, '');
+      const name = nameEl.value.trim();
+      const target = base + '/api/hello' + (name ? '?name=' + encodeURIComponent(name) : '');
+      btn.disabled = true;
+      out.textContent = 'Calling ' + target + ' …';
+      meta.textContent = '';
+      const t0 = performance.now();
+      try {
+        const res = await fetch(target);
+        const ms = Math.round(performance.now() - t0);
+        const text = await res.text();
+        let pretty = text;
+        try { pretty = JSON.stringify(JSON.parse(text), null, 2); } catch (e) { /* not JSON */ }
+        out.textContent = pretty;
+        meta.textContent = 'HTTP ' + res.status + ' · ' + ms + ' ms';
+      } catch (err) {
+        out.textContent = 'Request failed: ' + err.message;
+        meta.textContent = '';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

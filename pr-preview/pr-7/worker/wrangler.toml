@@ -1,0 +1,19 @@
+# jakeutil-api — Cloudflare Worker for jakeutil.com
+# Deploy with: wrangler deploy   (run from this directory)
+
+name = "jakeutil-api"
+main = "src/index.js"
+compatibility_date = "2026-10-10"
+
+# Route the Worker to jakeutil.com/api/* so the static site (GitHub Pages)
+# keeps serving everything else. Requires the jakeutil.com zone on this account.
+# [[routes]]
+# pattern = "jakeutil.com/api/*"
+# zone_name = "jakeutil.com"
+
+# D1 database for the visitor-analytics feature (create first, then uncomment):
+#   wrangler d1 create jakeutil-analytics
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "jakeutil-analytics"
+# database_id = "PASTE-THE-ID-HERE"
