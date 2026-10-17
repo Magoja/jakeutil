@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match Triad — jakeutil</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<style>
+  :root{
+    --bg:#14151a; --panel:#1e2027; --panel2:#262933; --text:#f2f2f0; --dim:#a7abb8;
+    --accent:#e8b34b; --good:#58c98a; --bad:#e0655f;
+    --deg0:#e0655f; --deg1:#e8913f; --deg2:#e8c84a; --deg3:#6fbf73; --deg4:#4f9fd8; --deg5:#7a6fd0; --deg6:#c95fa0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+       display:flex; flex-direction:column; align-items:center; padding:18px 12px 40px}
+  .home{align-self:flex-start; color:var(--dim); text-decoration:none; font-size:14px}
+  .home:hover{color:var(--accent)}
+  h1{font-size:26px; margin:4px 0 2px; letter-spacing:.5px}
+  .sub{color:var(--dim); font-size:14px; margin-bottom:14px; text-align:center}
+  .hud{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:12px}
+  .stat{background:var(--panel); border-radius:10px; padding:8px 16px; min-width:92px; text-align:center}
+  .stat .k{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim)}
+  .stat .v{font-size:22px; font-weight:700}
+  #lastChord{color:var(--accent)}
+  #timeV.low{color:var(--bad)}
+  #board{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; width:min(92vw,430px); aspect-ratio:1;
+         background:var(--panel); padding:8px; border-radius:14px; user-select:none; touch-action:manipulation}
+  #board.locked{opacity:.55; pointer-events:none}
+  .tile{border:none; border-radius:10px; font-size:clamp(17px,5.4vw,27px); font-weight:700; color:#14151a;
+        cursor:pointer; display:flex; align-items:center; justify-content:center; aspect-ratio:1;
+        transition:transform .12s, box-shadow .12s, opacity .25s; font-family:inherit; padding:0}
+  .tile[data-d="0"]{background:var(--deg0)} .tile[data-d="1"]{background:var(--deg1)}
+  .tile[data-d="2"]{background:var(--deg2)} .tile[data-d="3"]{background:var(--deg3)}
+  .tile[data-d="4"]{background:var(--deg4)} .tile[data-d="5"]{background:var(--deg5); color:#fff}
+  .tile[data-d="6"]{background:var(--deg6); color:#fff}
+  .tile.sel{box-shadow:0 0 0 3px #fff, 0 0 0 6px var(--accent); transform:scale(1.06); z-index:2}
+  .tile.hint{box-shadow:0 0 0 3px #fff, 0 0 18px 4px var(--good)}
+  .tile.clearing{opacity:0; transform:scale(.4) rotate(12deg)}
+  .tile.bad{animation:shake .25s}
+  @keyframes shake{25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}}
+  .row{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; justify-content:center}
+  button.ctl{background:var(--panel2); color:var(--text); border:1px solid #3a3e4c; border-radius:9px;
+             padding:9px 18px; font-size:15px; cursor:pointer; font-family:inherit}
+  button.ctl:hover{border-color:var(--accent)}
+  button.ctl:disabled{opacity:.4; cursor:default}
+  button.ctl.primary{background:var(--accent); color:#14151a; font-weight:700; border-color:var(--accent)}
+  #msg{min-height:22px; margin-top:12px; font-size:15px; color:var(--dim); text-align:center; max-width:460px}
+  #msg b{color:var(--text)}
+  .legend{margin-top:16px; display:flex; gap:6px; flex-wrap:wrap; justify-content:center; max-width:480px}
+  .chip{background:var(--panel); border-radius:8px; padding:5px 10px; font-size:13px; color:var(--dim)}
+  .chip b{color:var(--text)}
+  .how{margin-top:10px; color:var(--dim); font-size:13px; text-align:center; max-width:460px; line-height:1.5}
+  .panel{background:var(--panel); border-radius:14px; padding:18px; width:min(94vw,560px); margin-bottom:14px}
+  .panel h2{margin:0 0 4px; font-size:19px}
+  .panel .p-sub{color:var(--dim); font-size:13px; margin-bottom:10px}
+  .group{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin:12px 0 6px}
+  .scales{display:flex; flex-wrap:wrap; gap:6px}
+  button.scale{background:var(--panel2); color:var(--text); border:1px solid #3a3e4c; border-radius:9px;
+               padding:8px 12px; font-size:14px; cursor:pointer; font-family:inherit; text-align:left}
+  button.scale:hover{border-color:var(--accent)}
+  button.scale .sn{display:block; font-size:11px; color:var(--dim); margin-top:2px}
+  button.scale .sb{display:block; font-size:11px; color:var(--accent); margin-top:2px; min-height:13px}
+  .final{font-size:44px; font-weight:800; color:var(--accent); text-align:center; margin:6px 0 0}
+  .final-sub{text-align:center; color:var(--dim); font-size:14px}
+  .newbest{text-align:center; color:var(--good); font-weight:700; margin-top:6px; min-height:20px}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<a class="home" href="../">← jakeutil</a>
+<h1>Match Triad</h1>
+<div class="sub">60 seconds · pick a scale · swap two neighbours to line up a triad — any order counts</div>
+
+<div class="panel" id="picker">
+  <h2>Choose a scale</h2>
+  <div class="p-sub">The scale fixes the 7 tiles on the board and the 7 triads you can make — every-other-note of the scale. Your run starts as soon as you pick. Best scores are kept on this device, per scale.</div>
+  <div id="scaleGroups"></div>
+</div>
+
+<div class="panel" id="endPanel" hidden>
+  <h2 id="endTitle">Time!</h2>
+  <div class="final" id="finalScore">0</div>
+  <div class="final-sub" id="finalDetails"></div>
+  <div class="newbest" id="newBest"></div>
+  <div class="row">
+    <button class="ctl primary" id="retryBtn">↻ Retry</button>
+    <button class="ctl" id="changeBtn">Choose a new scale</button>
+  </div>
+</div>
+
+<div class="hud">
+  <div class="stat"><div class="k">Time</div><div class="v" id="timeV">60</div></div>
+  <div class="stat"><div class="k">Score</div><div class="v" id="score">0</div></div>
+  <div class="stat"><div class="k">Moves</div><div class="v" id="moves">0</div></div>
+  <div class="stat"><div class="k">Triads</div><div class="v" id="triads">0</div></div>
+  <div class="stat"><div class="k">Last chord</div><div class="v" id="lastChord">—</div></div>
+  <div class="stat"><div class="k">Best</div><div class="v" id="bestV">—</div></div>
+</div>
+
+<div id="board" class="locked" aria-label="Match Triad board"></div>
+
+<div class="row">
+  <button class="ctl" id="shuffleBtn" disabled>↻ New board</button>
+  <button class="ctl" id="hintBtn" disabled>💡 Hint</button>
+  <button class="ctl" id="soundBtn">🔊 Sound on</button>
+</div>
+
+<div id="msg">Pick a scale above — the clock starts right away.</div>
+
+<div class="legend" id="legend"></div>
+<div class="how">A swap that makes no triad swaps back. Cascades multiply: 2nd chain ×2, 3rd ×3…
+New tiles drop in tuned — they never hand you a free triad; cascades come from tiles that fall.
+If the board ever has no move left, it retunes itself.</div>
+
+<script>
+"use strict";
+// ================= CORE (pure logic, machine-tested) =================
+const SCALES = [
+  // group, id, label, notes (spelled with consecutive letters from the tonic)
+  {group:"Major", id:"C",  label:"C major",  notes:["C","D","E","F","G","A","B"]},
+  {group:"Major", id:"G",  label:"G major",  notes:["G","A","B","C","D","E","F#"]},
+  {group:"Major", id:"D",  label:"D major",  notes:["D","E","F#","G","A","B","C#"]},
+  {group:"Major", id:"A",  label:"A major",  notes:["A","B","C#","D","E","F#","G#"]},
+  {group:"Major", id:"E",  label:"E major",  notes:["E","F#","G#","A","B","C#","D#"]},
+  {group:"Major", id:"F",  label:"F major",  notes:["F","G","A","Bb","C","D","E"]},
+  {group:"Major", id:"Bb", label:"Bb major", notes:["Bb","C","D","Eb","F","G","A"]},
+  {group:"Major", id:"Eb", label:"Eb major", notes:["Eb","F","G","Ab","Bb","C","D"]},
+  {group:"Natural minor", id:"Am",  label:"A minor", notes:["A","B","C","D","E","F","G"]},
+  {group:"Natural minor", id:"Em",  label:"E minor", notes:["E","F#","G","A","B","C","D"]},
+  {group:"Natural minor", id:"Bm",  label:"B minor", notes:["B","C#","D","E","F#","G","A"]},
+  {group:"Natural minor", id:"Dm",  label:"D minor", notes:["D","E","F","G","A","Bb","C"]},
+  {group:"Natural minor", id:"Gm",  label:"G minor", notes:["G","A","Bb","C","D","Eb","F"]},
+  {group:"Harmonic minor", id:"Ahm", label:"A harmonic minor", notes:["A","B","C","D","E","F","G#"]},
+  {group:"Harmonic minor", id:"Ehm", label:"E harmonic minor", notes:["E","F#","G","A","B","C","D#"]},
+  {group:"Harmonic minor", id:"Dhm", label:"D harmonic minor", notes:["D","E","F","G","A","Bb","C#"]},
+  {group:"Melodic minor", id:"Amm", label:"A melodic minor", notes:["A","B","C","D","E","F#","G#"]},
+  {group:"Modes", id:"Ddor", label:"D Dorian",     notes:["D","E","F","G","A","B","C"]},
+  {group:"Modes", id:"Gmix", label:"G Mixolydian", notes:["G","A","B","C","D","E","F"]},
+  {group:"Modes", id:"Flyd", label:"F Lydian",     notes:["F","G","A","B","C","D","E"]},
+];
+const PC_BASE = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+function pitchClass(note){
+  let pc = PC_BASE[note[0]];
+  for (const ch of note.slice(1)){ if (ch === "#") pc += 1; else if (ch === "b") pc -= 1; }
+  return ((pc % 12) + 12) % 12;
+}
+const QUALITY = {"4,7":"", "3,7":"m", "3,6":"dim", "4,8":"aug"};
+// Derive the 7 triads of a scale by stacking every-other-note from each degree.
+function buildScale(def){
+  const notes = def.notes, triads = [], bySet = {};
+  for (let i=0;i<7;i++){
+    const tn = [notes[i], notes[(i+2)%7], notes[(i+4)%7]];
+    const rpc = pitchClass(tn[0]);
+    const third = (pitchClass(tn[1]) - rpc + 12) % 12;
+    const fifth = (pitchClass(tn[2]) - rpc + 12) % 12;
+    const suffix = QUALITY[third + "," + fifth];
+    if (suffix === undefined) throw new Error("unclassified triad " + tn.join("-") + " in " + def.label);
+    const t = {name: tn[0] + suffix, notes: tn, semis: [0, third, fifth], degree: i};
+    triads.push(t); bySet[tn.slice().sort().join("|")] = t;
+  }
+  return {def, notes, triads, bySet};
+}
+let S = buildScale(SCALES[0]); // current scale, rebuilt on selection
+
+function triadOf3(a,b,c){
+  if (a===b || b===c || a===c) return null;
+  return S.bySet[[a,b,c].sort().join("|")] || null;
+}
+function findMatches(board){
+  const n = board.length, cells = new Set(), chords = [];
+  const check = (seq, coords) => {
+    const t = triadOf3(seq[0], seq[1], seq[2]);
+    if (t){ coords.forEach(k => cells.add(k)); chords.push({name:t.name, notes:t.notes.slice(), semis:t.semis.slice(), cells:coords}); }
+  };
+  for (let r=0;r<n;r++) for (let c=0;c+2<n;c++)
+    check([board[r][c],board[r][c+1],board[r][c+2]], [`${r},${c}`,`${r},${c+1}`,`${r},${c+2}`]);
+  for (let c=0;c<n;c++) for (let r=0;r+2<n;r++)
+    check([board[r][c],board[r+1][c],board[r+2][c]], [`${r},${c}`,`${r+1},${c}`,`${r+2},${c}`]);
+  return {cells, chords};
+}
+function swapped(board, r1,c1, r2,c2){
+  const b = board.map(row => row.slice());
+  [b[r1][c1], b[r2][c2]] = [b[r2][c2], b[r1][c1]];
+  return b;
+}
+function findMove(board){
+  const n = board.length;
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) for (const [dr,dc] of [[0,1],[1,0]]){
+    const r2=r+dr, c2=c+dc;
+    if (r2>=n || c2>=n || board[r][c]===board[r2][c2]) continue;
+    if (findMatches(swapped(board,r,c,r2,c2)).chords.length) return [r,c,r2,c2];
+  }
+  return null;
+}
+function generateBoard(n){
+  for (let attempt=0; attempt<500; attempt++){
+    const b = Array.from({length:n}, () => Array(n).fill(null));
+    let ok = true;
+    for (let r=0;r<n && ok;r++) for (let c=0;c<n;c++){
+      const order = S.notes.slice();
+      for (let i=order.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [order[i],order[j]]=[order[j],order[i]]; }
+      let placed = false;
+      for (const x of order){
+        b[r][c] = x;
+        const badH = c>=2 && triadOf3(b[r][c-2], b[r][c-1], x);
+        const badV = r>=2 && triadOf3(b[r-2][c], b[r-1][c], x);
+        if (!badH && !badV){ placed = true; break; }
+      }
+      if (!placed){ b[r][c] = null; ok = false; break; }
+    }
+    if (ok && findMove(b)) return b;
+  }
+  throw new Error("could not generate a board");
+}
+// ================= END CORE =================
+
+// ================= UI =================
+const N = 6, RUN_MS = 60000, LS_KEY = id => "match-triad:best:" + id;
+const $ = id => document.getElementById(id);
+let board, score, moves, triadCount, selected = null, busy = false, sound = true, actx = null;
+let state = "menu"; // menu | playing | over
+let endAt = 0, timerInt = null;
+
+const boardEl = $("board"), msgEl = $("msg");
+const disp = n => n.replace("#", "♯").replace(/b$/, "♭");
+const dispNotes = t => t.notes.map(disp).join("–");
+const bestOf = id => { const v = parseInt(localStorage.getItem(LS_KEY(id)) || "0", 10); return isNaN(v) ? 0 : v; };
+
+function renderPicker(){
+  const groups = [];
+  for (const s of SCALES) if (!groups.includes(s.group)) groups.push(s.group);
+  $("scaleGroups").innerHTML = groups.map(g =>
+    `<div class="group">${g}</div><div class="scales">` +
+    SCALES.filter(s => s.group === g).map(s => {
+      const best = bestOf(s.id);
+      return `<button class="scale" data-scale="${s.id}">${s.label}` +
+        `<span class="sn">${s.notes.map(disp).join(" ")}</span>` +
+        `<span class="sb">${best ? "★ Best " + best : ""}</span></button>`;
+    }).join("") + `</div>`
+  ).join("");
+  document.querySelectorAll("button.scale").forEach(b => b.onclick = () => startRun(b.dataset.scale));
+}
+function renderLegend(){
+  $("legend").innerHTML = S.triads.map(t => `<span class="chip"><b>${disp(t.name)}</b> ${dispNotes(t)}</span>`).join("");
+}
+function freqOf(midi){ return 440 * Math.pow(2, (midi - 69) / 12); }
+function playChord(chord){
+  if (!sound) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const rootMidi = 60 + pitchClass(chord.notes[0]);
+    const t0 = actx.currentTime + 0.02;
+    chord.semis.forEach((st, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "triangle"; o.frequency.value = freqOf(rootMidi + st);
+      g.gain.setValueAtTime(0.0001, t0 + i*0.07);
+      g.gain.exponentialRampToValueAtTime(0.20, t0 + i*0.07 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + i*0.07 + 0.9);
+      o.connect(g).connect(actx.destination); o.start(t0 + i*0.07); o.stop(t0 + i*0.07 + 1.0);
+    });
+  }catch(e){ /* audio is a bonus, never a blocker */ }
+}
+function render(){
+  boardEl.innerHTML = "";
+  for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+    const btn = document.createElement("button");
+    btn.className = "tile"; btn.dataset.d = S.notes.indexOf(board[r][c]);
+    btn.textContent = disp(board[r][c]);
+    btn.setAttribute("aria-label", board[r][c]);
+    if (selected && selected[0]===r && selected[1]===c) btn.classList.add("sel");
+    btn.onclick = () => onTile(r,c);
+    boardEl.appendChild(btn);
+  }
+  renderStats();
+}
+function renderStats(){
+  $("score").textContent = score;
+  $("moves").textContent = moves;
+  $("triads").textContent = triadCount;
+  const best = bestOf(S.def.id);
+  $("bestV").textContent = state === "menu" ? "—" : (best || "—");
+}
+function tileEl(r,c){ return boardEl.children[r*N + c]; }
+function sleep(ms){ return new Promise(res => setTimeout(res, ms)); }
+
+function startRun(scaleId){
+  const def = SCALES.find(s => s.id === scaleId) || SCALES[0];
+  S = buildScale(def);
+  board = generateBoard(N);
+  score = 0; moves = 0; triadCount = 0; selected = null; busy = false;
+  state = "playing";
+  $("lastChord").textContent = "—";
+  $("picker").hidden = true; $("endPanel").hidden = true;
+  $("shuffleBtn").disabled = false; $("hintBtn").disabled = false;
+  boardEl.classList.remove("locked");
+  renderLegend(); render();
+  msgEl.innerHTML = `<b>${def.label}</b> — 60 seconds. Go!`;
+  endAt = Date.now() + RUN_MS;
+  clearInterval(timerInt);
+  timerInt = setInterval(tick, 150);
+  tick();
+}
+function tick(){
+  if (state !== "playing") return;
+  const remain = Math.max(0, endAt - Date.now());
+  const secs = Math.ceil(remain / 1000);
+  $("timeV").textContent = secs;
+  $("timeV").classList.toggle("low", secs <= 10);
+  if (remain <= 0 && !busy) endRun();
+}
+function endRun(){
+  if (state !== "playing") return;
+  state = "over";
+  clearInterval(timerInt);
+  $("timeV").textContent = 0;
+  boardEl.classList.add("locked");
+  $("shuffleBtn").disabled = true; $("hintBtn").disabled = true;
+  const prev = bestOf(S.def.id), isNew = score > prev;
+  if (isNew) localStorage.setItem(LS_KEY(S.def.id), String(score));
+  $("endTitle").textContent = "Time! — " + S.def.label;
+  $("finalScore").textContent = score;
+  $("finalDetails").textContent = `${triadCount} triads in ${moves} moves · Best on this scale: ${Math.max(prev, score)}`;
+  $("newBest").textContent = isNew && prev > 0 ? "★ New high score!" : (isNew ? "★ First score on this scale!" : "");
+  $("retryBtn").textContent = "↻ Retry " + S.def.label;
+  $("endPanel").hidden = false;
+  $("endPanel").scrollIntoView({behavior:"smooth", block:"center"});
+  renderPicker();
+  renderStats();
+}
+async function onTile(r,c){
+  if (busy || state !== "playing") return;
+  if (!selected){ selected = [r,c]; render(); return; }
+  const [sr,sc] = selected;
+  if (sr===r && sc===c){ selected = null; render(); return; }
+  if (Math.abs(sr-r) + Math.abs(sc-c) !== 1){ selected = [r,c]; render(); return; }
+  selected = null; busy = true;
+  [board[sr][sc], board[r][c]] = [board[r][c], board[sr][sc]];
+  render();
+  const m = findMatches(board);
+  if (!m.chords.length){
+    tileEl(r,c).classList.add("bad"); tileEl(sr,sc).classList.add("bad");
+    await sleep(260);
+    [board[sr][sc], board[r][c]] = [board[r][c], board[sr][sc]];
+    render(); busy = false;
+    msgEl.textContent = "No triad — swapped back. Look for two notes of a triad with its third note one swap away.";
+    tick();
+    return;
+  }
+  moves++;
+  await resolveBoard(1);
+  busy = false;
+  if (Date.now() >= endAt){ endRun(); return; }
+  if (!findMove(board)){
+    msgEl.innerHTML = "<b>No moves left — retuning the board…</b>";
+    await sleep(900);
+    if (state !== "playing") return;
+    board = generateBoard(N); render();
+    msgEl.textContent = "Fresh board. Every board starts with at least one move.";
+  }
+}
+function completesTriadAt(r,c){
+  for (let s=Math.max(0,c-2); s<=Math.min(c,N-3); s++){
+    const seq = [board[r][s], board[r][s+1], board[r][s+2]];
+    if (!seq.includes(null) && triadOf3(seq[0],seq[1],seq[2])) return true;
+  }
+  for (let s=Math.max(0,r-2); s<=Math.min(r,N-3); s++){
+    const seq = [board[s][c], board[s+1][c], board[s+2][c]];
+    if (!seq.includes(null) && triadOf3(seq[0],seq[1],seq[2])) return true;
+  }
+  return false;
+}
+async function resolveBoard(chain){
+  let m = findMatches(board);
+  while (m.chords.length){
+    const pts = m.chords.length * 100 * chain;
+    score += pts; triadCount += m.chords.length;
+    const last = m.chords[m.chords.length-1];
+    $("lastChord").textContent = disp(last.name);
+    msgEl.innerHTML = m.chords.map(ch => `<b>${disp(ch.name)}</b> (${dispNotes(ch)})`).join(" · ")
+      + ` — <b>+${pts}</b>` + (chain>1 ? ` · cascade ×${chain}` : "");
+    playChord(last);
+    m.cells.forEach(k => { const [r,c] = k.split(",").map(Number); tileEl(r,c).classList.add("clearing"); });
+    renderStats();
+    await sleep(320);
+    for (let c=0;c<N;c++){
+      const keep = [];
+      for (let r=0;r<N;r++) if (!m.cells.has(`${r},${c}`)) keep.push(board[r][c]);
+      const col = Array(N - keep.length).fill(null).concat(keep);
+      for (let r=0;r<N;r++) board[r][c] = col[r];
+    }
+    // tuned refill: a new tile never completes a triad itself (measured:
+    // random refill averaged 7.4 triads per swap — runaway cascades)
+    for (let r=0;r<N;r++) for (let c=0;c<N;c++){
+      if (board[r][c] !== null) continue;
+      const order = S.notes.slice();
+      for (let i=order.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [order[i],order[j]]=[order[j],order[i]]; }
+      board[r][c] = order[0];
+      for (const x of order){ board[r][c] = x; if (!completesTriadAt(r,c)) break; }
+    }
+    render();
+    await sleep(180);
+    chain++;
+    m = findMatches(board);
+  }
+}
+$("shuffleBtn").onclick = () => { if (state === "playing" && !busy){ board = generateBoard(N); selected = null; render(); msgEl.textContent = "New board — clock keeps running."; } };
+$("soundBtn").onclick = (e) => { sound = !sound; e.target.textContent = sound ? "🔊 Sound on" : "🔇 Sound off"; };
+$("hintBtn").onclick = () => {
+  if (busy || state !== "playing") return;
+  const mv = findMove(board);
+  if (!mv){ msgEl.textContent = "No move on this board — hit New board."; return; }
+  const [r1,c1,r2,c2] = mv;
+  const probe = findMatches(swapped(board, r1,c1, r2,c2));
+  tileEl(r1,c1).classList.add("hint"); tileEl(r2,c2).classList.add("hint");
+  msgEl.innerHTML = `Try swapping the two glowing tiles — it can make <b>${disp(probe.chords[0].name)}</b> (${dispNotes(probe.chords[0])}).`;
+  setTimeout(() => { const a = tileEl(r1,c1), b = tileEl(r2,c2); if (a) a.classList.remove("hint"); if (b) b.classList.remove("hint"); }, 1600);
+};
+$("retryBtn").onclick = () => startRun(S.def.id);
+$("changeBtn").onclick = () => {
+  state = "menu"; $("endPanel").hidden = true; $("picker").hidden = false;
+  boardEl.classList.add("locked"); renderPicker();
+  msgEl.textContent = "Pick a scale — the clock starts right away.";
+  $("picker").scrollIntoView({behavior:"smooth", block:"center"});
+};
+
+// menu state: show a C major preview board behind the picker
+score = 0; moves = 0; triadCount = 0;
+board = generateBoard(N);
+renderLegend(); renderPicker(); render();
+</script>
+</body>
+</html>
